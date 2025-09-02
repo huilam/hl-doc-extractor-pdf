@@ -9,6 +9,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
@@ -51,7 +52,9 @@ public class PDFExtractor extends PDFTextStripper {
 	protected static String IMGTAG_PREFIX 		= "![IMAGE:";
 	protected static String IMGTAG_SUFFIX 		= "]";
 	protected static String IMG_FILEEXT			= "jpg";
-	protected static String FONTBOLD_PREFIX		= "##";
+	protected static String HEADING_1			= "#";
+	protected static String HEADING_2			= "##";
+	protected static String HEADING_3			= "###";
 	protected static Color DEF_PADDING_COLOR  	= Color.BLACK;
 	
 	private PDDocument pdf_doc 	= null;
@@ -68,7 +71,7 @@ public class PDFExtractor extends PDFTextStripper {
 
     
     public class ContentItem {
-    	public enum Type { TEXT, IMAGE }
+    	public enum Type { TEXT, IMAGE, SECTION }
     	public Type type		= Type.TEXT;
     	public int doc_seq 		= 0;
     	public int page_no 		= 0;
@@ -85,6 +88,106 @@ public class PDFExtractor extends PDFTextStripper {
         }
     }
     
+    public List<ContentItem> getItems() { return items; }
+    
+    public PDFExtractor(File aPDFFile) throws IOException {
+    	
+    	super.setAddMoreFormatting(true);
+    	super.setSortByPosition(true);
+    	super.setShouldSeparateByBeads(true);
+    	
+    	pdf_doc = Loader.loadPDF(aPDFFile);
+    	
+    	if(pdf_doc!=null)
+    	{
+ 	    	super.setStartPage(1);
+	    	super.setEndPage(pdf_doc.getNumberOfPages());
+
+	   		this.file_orig_pdf = aPDFFile;
+
+	   		PDDocumentInformation pdfInfo = pdf_doc.getDocumentInformation();
+	        DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:MM:ss");
+	        
+	        Calendar calCreateDate = pdfInfo.getCreationDate();
+	        String sTimeZone =  calCreateDate.getTimeZone().getDisplayName();
+	        String sCreationDate = df.format(calCreateDate.getTime())+" "+sTimeZone;
+	        String sAuthor = pdfInfo.getAuthor();
+	        if(sAuthor==null)
+	        	sAuthor = "-";
+	        
+	        prop_meta = new Properties();
+	        prop_meta.put(META_DOCNAME, file_orig_pdf.getName());
+	        prop_meta.put(META_TOTAL_PAGES, String.valueOf(pdf_doc.getNumberOfPages()));
+	        prop_meta.put(META_CREATION_DATE, sCreationDate);
+	        prop_meta.put(META_ENCRYPTED, String.valueOf(pdf_doc.isEncrypted()));
+	        prop_meta.put(META_VERSION,String.valueOf(pdf_doc.getVersion()));
+	        prop_meta.put(META_AUTHOR, sAuthor);
+    	}
+    }
+    
+    protected List<ContentItem> extract() throws IOException
+    {
+    	if(!this.extracted)
+    	{
+	    	this.extracted = true;
+    		super.writeText(pdf_doc, new StringWriter());
+
+	    	this.getItems().sort(Comparator
+	                .comparingInt((ContentItem it) -> it.page_no)
+	                .thenComparing(it -> it.y)
+	                .thenComparing(it -> it.x)
+	                
+	                );
+	        
+	    	int iDocSeq 	= 1;
+	    	int iPgLineSeq 	= 1;
+	    	int iLastPageNo = 1;
+	    	
+	    	int iExtractedImgCount = 0;
+	    	
+	    	List<ContentItem> listUpdated = new ArrayList<>();
+	    	ContentItem itemPrev = null;
+	    	
+	        for(ContentItem item : this.getItems())
+	        {	
+	        	if(iLastPageNo != item.page_no)
+	        	{
+	        		iLastPageNo = item.page_no;
+	        		iPgLineSeq = 1;
+	        	}
+	        	else if (itemPrev!=null)
+	        	{
+	        		if(itemPrev.type == ContentItem.Type.IMAGE && item.content.trim().length()==0)
+	        		{
+	        			if(item.type == ContentItem.Type.TEXT)
+	        				continue;
+	        		}
+	        		
+	        		//same page_no same y
+	        		if((item.y==itemPrev.y))
+	        		{
+        				//merge text to prev previous as same y-coord
+        				itemPrev.content += item.content;
+        				continue;
+	        		}
+	        	}
+	        	
+	        	item.doc_seq 		= iDocSeq++;
+	        	item.pg_line_seq 	= iPgLineSeq++;
+	        	itemPrev = item;
+	        	listUpdated.add(item);
+	        	
+	        	if(item.type == ContentItem.Type.IMAGE)
+	        		iExtractedImgCount++;
+	        }
+	        
+	        items.clear();
+	        items.addAll(listUpdated);
+	        updateMetaData(META_TOTAL_IMAGES, iExtractedImgCount);
+    	}
+        return items;
+    }
+    
     // Capture text with position
     @Override
     protected void writeString(String string, List<TextPosition> textPositions) throws IOException 
@@ -92,11 +195,17 @@ public class PDFExtractor extends PDFTextStripper {
         if (string != null && !string.isEmpty()) {
         	
             // take position of first character
-            TextPosition pos = textPositions.get(0);
-            float x = pos.getXDirAdj();
-            float y = pos.getYDirAdj();
-            float w = pos.getWidthDirAdj();
-            float h = pos.getHeightDir();
+            TextPosition textFirst 	= textPositions.get(0);
+            TextPosition textLast 	= textPositions.get(textPositions.size()-1);
+            
+            PDFont fontFirst 	= textFirst.getFont();
+            PDFont fontLast 	= textLast.getFont();
+            
+            float x = textFirst.getXDirAdj();
+            float y = textFirst.getYDirAdj();
+            float w = textFirst.getWidthDirAdj();
+            float h = textFirst.getFontSizeInPt(); //pos.getHeightDir();
+            
             
             if(string.trim().isEmpty())
             {
@@ -104,16 +213,25 @@ public class PDFExtractor extends PDFTextStripper {
             }
             else
             {
-	            PDFont font = pos.getFont();
-	            boolean isBold = font.getName().toLowerCase().contains("bold");
-	            if(isBold)
+            	String sFirstFontName = fontFirst.getName().toLowerCase();
+            	String sLastFontName = fontLast.getName().toLowerCase();
+            	
+            	if(sFirstFontName.contains("bold") && sLastFontName.contains("bold"))
 	            {
-	            	string = FONTBOLD_PREFIX+" "+string;
+	            	string = HEADING_2+" "+string;
 	            }
+            	else if((sFirstFontName.contains("italic") || sFirstFontName.contains("oblique"))
+            			&& (sLastFontName.contains("italic") || sLastFontName.contains("oblique")))
+	            {
+	            	string = HEADING_3+" "+string;
+	            }
+            	
+	            
             }
             
             items.add(new ContentItem(
-            		ContentItem.Type.TEXT, string, getCurrentPageNo(), 
+            		ContentItem.Type.TEXT, string, 
+            		getCurrentPageNo(), 
             		x, y, w, h ));
         }
     }
@@ -201,41 +319,6 @@ public class PDFExtractor extends PDFTextStripper {
         super.processOperator(operator, operands);
     }
     
-    public List<ContentItem> getItems() { return items; }
-    
-    public PDFExtractor(File aPDFFile) throws IOException {
-    	
-    	super.setAddMoreFormatting(true);
-    	super.setSortByPosition(false);
-    	
-    	pdf_doc = Loader.loadPDF(aPDFFile);
-    	
-    	if(pdf_doc!=null)
-    	{
- 	    	super.setStartPage(1);
-	    	super.setEndPage(pdf_doc.getNumberOfPages());
-
-	   		this.file_orig_pdf = aPDFFile;
-
-	   		PDDocumentInformation pdfInfo = pdf_doc.getDocumentInformation();
-	        DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:MM:ss");
-	        
-	        Calendar calCreateDate = pdfInfo.getCreationDate();
-	        String sTimeZone =  calCreateDate.getTimeZone().getDisplayName();
-	        String sCreationDate = df.format(calCreateDate.getTime())+" "+sTimeZone;
-	        String sAuthor = pdfInfo.getAuthor();
-	        if(sAuthor==null)
-	        	sAuthor = "-";
-	        
-	        prop_meta = new Properties();
-	        prop_meta.put(META_DOCNAME, file_orig_pdf.getName());
-	        prop_meta.put(META_TOTAL_PAGES, String.valueOf(pdf_doc.getNumberOfPages()));
-	        prop_meta.put(META_CREATION_DATE, sCreationDate);
-	        prop_meta.put(META_ENCRYPTED, String.valueOf(pdf_doc.isEncrypted()));
-	        prop_meta.put(META_VERSION,String.valueOf(pdf_doc.getVersion()));
-	        prop_meta.put(META_AUTHOR, sAuthor);
-    	}
-    }
     
     //////////////////////////////////////
     protected List<String> metaDataAsPlainText() throws IOException
@@ -252,7 +335,7 @@ public class PDFExtractor extends PDFTextStripper {
     
     protected List<String> contentAsPlainText() throws IOException
     {
-    	extract();
+    	this.extract();
     	
     	List<String> listPDF = new ArrayList<String>();
     	
@@ -473,67 +556,6 @@ public class PDFExtractor extends PDFTextStripper {
     		iPageNo = iLastPageNo;
     	
     	super.setEndPage(iPageNo);
-    }
-    
-    protected List<ContentItem> extract() throws IOException
-    {
-    	if(!this.extracted)
-    	{
-	    	this.extracted = true;
-    		super.writeText(pdf_doc, new StringWriter());
-
-	    	this.getItems().sort(Comparator
-	                .comparingInt((ContentItem it) -> it.page_no)
-	                .thenComparing((ContentItem it) -> it.y)
-	                .thenComparing(it -> it.x));
-	        
-	    	int iDocSeq 	= 1;
-	    	int iPgLineSeq 	= 1;
-	    	int iLastPageNo = 1;
-	    	
-	    	int iExtractedImgCount = 0;
-	    	
-	    	List<ContentItem> listUpdated = new ArrayList<>();
-	    	ContentItem itemPrev = null;
-	    	
-	        for(ContentItem item : this.getItems())
-	        {	
-	        	if(iLastPageNo != item.page_no)
-	        	{
-	        		iLastPageNo = item.page_no;
-	        		iPgLineSeq = 1;
-	        	}
-	        	else if (itemPrev!=null)
-	        	{
-	        		if(itemPrev.type == ContentItem.Type.IMAGE && item.content.trim().length()==0)
-	        		{
-	        			if(item.type == ContentItem.Type.TEXT)
-	        				continue;
-	        		}
-	        		
-	        		//same page_no same y
-	        		if((item.y==itemPrev.y))
-	        		{
-        				//merge text to prev previous as same y-coord
-        				itemPrev.content += item.content;
-        				continue;
-	        		}
-	        	}
-	        	
-	        	item.doc_seq 		= iDocSeq++;
-	        	item.pg_line_seq 	= iPgLineSeq++;
-	        	itemPrev = item;
-	        	listUpdated.add(item);
-	        	
-	        	if(item.type == ContentItem.Type.IMAGE)
-	        		iExtractedImgCount++;
-	        }
-	        
-	        items.clear();
-	        items.addAll(listUpdated);
-	        updateMetaData(META_TOTAL_IMAGES, iExtractedImgCount);
-    	}
-        return items;
     }
     
     private static BufferedImage convertToRGB(BufferedImage input) 

@@ -2,6 +2,7 @@
 
 	<property name="src" location="src"/>
 	<property name="build" location="build"/>
+	<property name="releases" location="releases"/>
 	<property name="jdk.ver" value="17"/>
 	
 	<tstamp>
@@ -26,17 +27,23 @@
 	</target>
 	
 	<target name="release" depends="jar">
-		<mkdir dir="${build}/release/${ant.project.name}_jdk${jdk.ver}_${buildno}"/>
-		<mkdir dir="${build}/release/${ant.project.name}_jdk${jdk.ver}_${buildno}/test"/>
-		<copy todir="${build}/release/${ant.project.name}_jdk${jdk.ver}_${buildno}">
+		<mkdir dir="${build}/${ant.project.name}_${buildno}"/>
+		<copy todir="${build}/${ant.project.name}_${buildno}">
 			<fileset dir="${basedir}/src/main/shell" includes="*.sh" />
 			<fileset dir="${basedir}/src/main/shell" includes="*.bat" />
+			<fileset dir="${basedir}/src/main/shell" includes="Readme.txt" />
 		</copy>
-		<copy todir="${build}/release/${ant.project.name}_jdk${jdk.ver}_${buildno}/lib">
+		<copy todir="${build}/${ant.project.name}_${buildno}/lib">
 			<fileset dir="${build}" includes="${ant.project.name}_*.jar" />
 			<fileset dir="${basedir}/lib" includes="*.jar" />
 			<fileset dir="${basedir}/lib/pdfbox" includes="*.jar" />
 		</copy>
+		<copy todir="${build}/${ant.project.name}_${buildno}/test">
+			<fileset dir="${basedir}/test" includes="Wikipedia_Apache_PDFBox.pdf" />
+		</copy>
+		
+		<zip destfile="${releases}/${ant.project.name}-${buildno}.zip" 
+			basedir="${build}/${ant.project.name}_${buildno}" />
 	</target>
 	
 	<path id="compile.classpath">
