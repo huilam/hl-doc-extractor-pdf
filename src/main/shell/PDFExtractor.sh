@@ -1,1 +1,1 @@
-java -cp "lib/*:." hl.doc.extractor.PDFExtractor "$@"
+java -cp "lib/*:." hl.doc.extractor.pdf.PDFExtractor "$@"
