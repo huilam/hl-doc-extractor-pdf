@@ -200,7 +200,6 @@ public class PDFExtractor extends PDFTextStripper {
 			  				isInclude = false;
 			  			}
 			  		}
-		  		
 				}
 			}
 			itemPrev = item;
@@ -429,7 +428,7 @@ public class PDFExtractor extends PDFTextStripper {
 		return jArrPages;
     }
     
-    protected JSONObject extractAsJSON() throws IOException
+    public JSONObject extractAsJSON() throws IOException
     {
     	JSONObject jsonDoc = new JSONObject();
     	
@@ -463,7 +462,7 @@ public class PDFExtractor extends PDFTextStripper {
 
     	return iSaved;
     }
-    private File extractAsFile(File aOutputFile) throws IOException
+    public File extractAsFile(File aOutputFile) throws IOException
     {
     	this.extract();
     	
