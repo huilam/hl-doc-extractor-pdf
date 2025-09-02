@@ -1,0 +1,1 @@
+java -cp "lib/*;." hl.doc.extractor.PDFExtractor %*
