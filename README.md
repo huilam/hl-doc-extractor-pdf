@@ -1,1 +1,1 @@
-A simple, lightweight Java PDF extractor based on PDFBox: https://pdfbox.apache.org/index.html
+A simple, lightweight (5Mb) Java PDF extractor based on PDFBox.
