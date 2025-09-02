@@ -3,13 +3,13 @@ package hl.doc.extractor.pdf;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
@@ -19,8 +19,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -48,6 +46,8 @@ public class PDFExtractor extends PDFTextStripper {
 	public static String META_TOTAL_PAGES 		= "totalpages";
 	public static String META_ENCRYPTED 		= "encrypted";
 	public static String META_TOTAL_IMAGES 		= "totalimages";
+	public static String META_PAGE_WIDTH 		= "pagewidth";
+	public static String META_PAGE_HEIGHT 		= "pageheight";
 
 	protected static String IMGTAG_PREFIX 		= "![IMAGE:";
 	protected static String IMGTAG_SUFFIX 		= "]";
@@ -55,7 +55,7 @@ public class PDFExtractor extends PDFTextStripper {
 	protected static String HEADING_1			= "#";
 	protected static String HEADING_2			= "##";
 	protected static String HEADING_3			= "###";
-	protected static Color DEF_PADDING_COLOR  	= Color.BLACK;
+
 	
 	private PDDocument pdf_doc 	= null;
 	private File file_orig_pdf 	= null;
@@ -67,18 +67,18 @@ public class PDFExtractor extends PDFTextStripper {
 	private boolean embed_image_base64 	= false;
 	private int max_image_size			= 0;
 	
-    protected final List<ContentItem> items = new ArrayList<>();
+    private final List<ContentItem> items = new ArrayList<>();
 
     
     public class ContentItem {
-    	public enum Type { TEXT, IMAGE, SECTION }
+    	public enum Type { TEXT, IMAGE }
     	public Type type		= Type.TEXT;
     	public int doc_seq 		= 0;
     	public int page_no 		= 0;
     	public int pg_line_seq 	= 0;
     	public String content 	= "";
     	public float x, y		= 0;
-    	public float w, h  		= 0; 
+    	public float w, h  		= 0;
 
         // For text & image
     	public ContentItem(Type type, String content, int pageno, float x, float y, float w, float h) {
@@ -122,32 +122,41 @@ public class PDFExtractor extends PDFTextStripper {
 	        prop_meta.put(META_ENCRYPTED, String.valueOf(pdf_doc.isEncrypted()));
 	        prop_meta.put(META_VERSION,String.valueOf(pdf_doc.getVersion()));
 	        prop_meta.put(META_AUTHOR, sAuthor);
+	        
+	        PDPage page = pdf_doc.getPage(0);
+	        PDRectangle mediaBox = page.getMediaBox();
+	        float dpi = 80;
+	        float width  = Math.round((mediaBox.getWidth() / 72f) * dpi);
+	        float height = Math.round((mediaBox.getHeight() / 72f) * dpi);
+	        
+	        prop_meta.put(META_PAGE_WIDTH, width);
+	        prop_meta.put(META_PAGE_HEIGHT, height);
     	}
     }
     
-    protected List<ContentItem> extract() throws IOException
+    private List<ContentItem> extract() throws IOException
     {
     	if(!this.extracted)
     	{
 	    	this.extracted = true;
     		super.writeText(pdf_doc, new StringWriter());
 
-	    	this.getItems().sort(Comparator
-	                .comparingInt((ContentItem it) -> it.page_no)
-	                .thenComparing(it -> it.y)
-	                .thenComparing(it -> it.x)
-	                
-	                );
-	        
+        	this.items.sort(Comparator
+                    .comparingInt((ContentItem it) -> it.page_no)
+                    .thenComparing(it -> it.y)
+                    .thenComparing(it -> it.x)
+                    
+                    );
+    		
+    		List<ContentItem> listItems = processExtractedItems(this.items);
+    		this.items.clear();
+    		this.items.addAll(listItems);
+    		
+        	///////////////////////
 	    	int iDocSeq 	= 1;
 	    	int iPgLineSeq 	= 1;
 	    	int iLastPageNo = 1;
-	    	
 	    	int iExtractedImgCount = 0;
-	    	
-	    	List<ContentItem> listUpdated = new ArrayList<>();
-	    	ContentItem itemPrev = null;
-	    	
 	        for(ContentItem item : this.getItems())
 	        {	
 	        	if(iLastPageNo != item.page_no)
@@ -155,37 +164,50 @@ public class PDFExtractor extends PDFTextStripper {
 	        		iLastPageNo = item.page_no;
 	        		iPgLineSeq = 1;
 	        	}
-	        	else if (itemPrev!=null)
-	        	{
-	        		if(itemPrev.type == ContentItem.Type.IMAGE && item.content.trim().length()==0)
-	        		{
-	        			if(item.type == ContentItem.Type.TEXT)
-	        				continue;
-	        		}
-	        		
-	        		//same page_no same y
-	        		if((item.y==itemPrev.y))
-	        		{
-        				//merge text to prev previous as same y-coord
-        				itemPrev.content += item.content;
-        				continue;
-	        		}
-	        	}
-	        	
 	        	item.doc_seq 		= iDocSeq++;
 	        	item.pg_line_seq 	= iPgLineSeq++;
-	        	itemPrev = item;
-	        	listUpdated.add(item);
 	        	
 	        	if(item.type == ContentItem.Type.IMAGE)
 	        		iExtractedImgCount++;
 	        }
-	        
-	        items.clear();
-	        items.addAll(listUpdated);
 	        updateMetaData(META_TOTAL_IMAGES, iExtractedImgCount);
     	}
-        return items;
+    	
+        return this.items;
+    }
+    
+    public List<ContentItem> processExtractedItems(final List<ContentItem> aList)
+    {
+		ContentItem itemPrev = null;
+		List<ContentItem> listUpdated = new ArrayList<>();
+		for(ContentItem item : aList)
+		{	
+			boolean isInclude = true;
+			if (itemPrev!=null)
+			{
+				boolean isSamePage = (itemPrev.page_no == item.page_no);
+				boolean isTextType = (item.type == ContentItem.Type.TEXT);
+				
+				if(isSamePage && isTextType)
+				{
+					boolean isSameY 	= (item.y == itemPrev.y);
+					boolean isAfterImg 	= (itemPrev.type == ContentItem.Type.IMAGE);
+		  		
+			  		if(isSameY || isAfterImg)
+			  		{
+			  			if(item.content.trim().length()==0)
+			  			{
+			  				isInclude = false;
+			  			}
+			  		}
+		  		
+				}
+			}
+			itemPrev = item;
+			if(isInclude)
+				listUpdated.add(item);
+		}
+		return listUpdated;
     }
     
     // Capture text with position
@@ -193,6 +215,8 @@ public class PDFExtractor extends PDFTextStripper {
     protected void writeString(String string, List<TextPosition> textPositions) throws IOException 
     {
         if (string != null && !string.isEmpty()) {
+        	
+        	float doc_h = pdf_doc.getPage(0).getMediaBox().getHeight();
         	
             // take position of first character
             TextPosition textFirst 	= textPositions.get(0);
@@ -225,8 +249,6 @@ public class PDFExtractor extends PDFTextStripper {
 	            {
 	            	string = HEADING_3+" "+string;
 	            }
-            	
-	            
             }
             
             items.add(new ContentItem(
@@ -276,7 +298,7 @@ public class PDFExtractor extends PDFTextStripper {
                 {
 	                if(bimg.getWidth()>max_image_size || bimg.getHeight()>max_image_size)
 	            	{
-	            		bimg = resizeWithAspect(bimg, max_image_size);
+	            		bimg = PDFImgUtil.resizeWithAspect(bimg, max_image_size);
 	            	}
                 }
                 
@@ -293,12 +315,8 @@ public class PDFExtractor extends PDFTextStripper {
                 {
                 	sImgFileID += "."+IMG_FILEEXT;
                 	sImgContent = getOutputFolder().getAbsolutePath()+"/"+sImgFileID;
-                	 // Write image to file
-                	File fileImg = new File(sImgContent);
                 	try {
-                		bimg = convertToRGB(bimg);
-                		boolean isSaved = ImageIO.write(bimg, IMG_FILEEXT, fileImg);
-                		if(!isSaved)
+                		if(!PDFImgUtil.saveImage(bimg, IMG_FILEEXT, new File(sImgContent)))
                 			throw new IOException("Failed to save - "+sImgContent+"  bimg="+bimg);
                 	}catch(IOException ex)
                 	{
@@ -423,7 +441,29 @@ public class PDFExtractor extends PDFTextStripper {
     }
     
     //////////////////////////////////////
-    public File extractAsFile(File aOutputFile) throws IOException
+    public int renderAsImage() throws IOException
+    {
+    	this.extract();
+    	
+    	int iSaved = 0;
+    	JSONObject jsonMeta = metaDataAsJSON();
+    	int iWidth 	= jsonMeta.optInt(META_PAGE_WIDTH,0);
+    	int iHeight = jsonMeta.optInt(META_PAGE_HEIGHT,0);
+    	int iTotalPages = jsonMeta.optInt(META_TOTAL_PAGES,0);
+    	
+    	String sRenderFilePrefix = this.file_orig_pdf.getAbsolutePath();
+    	for(int iPageNo = 1; iPageNo<=iTotalPages; iPageNo++)
+    	{
+    		BufferedImage img = PDFImgUtil.renderContentByPage(
+    				iWidth, iHeight, Color.WHITE, getItems(), iPageNo);
+    		if(PDFImgUtil.saveImage(img, IMG_FILEEXT,
+    				new File(String.format(sRenderFilePrefix+"_rendered_page_%d.jpg", iPageNo))))
+    			iSaved++;
+    	}
+
+    	return iSaved;
+    }
+    private File extractAsFile(File aOutputFile) throws IOException
     {
     	this.extract();
     	
@@ -558,62 +598,6 @@ public class PDFExtractor extends PDFTextStripper {
     	super.setEndPage(iPageNo);
     }
     
-    private static BufferedImage convertToRGB(BufferedImage input) 
-    {
-    	if(input==null || input.getType()==BufferedImage.TYPE_INT_RGB)
-    		return input;
-    	
-    	
-    	BufferedImage imageNew = new BufferedImage(input.getWidth(), input.getHeight(), BufferedImage.TYPE_INT_RGB);
-    	Graphics2D g2d = null;
-        try
-        {
-	        g2d = imageNew.createGraphics();
-	        g2d.setColor(DEF_PADDING_COLOR); // padding color
-	        g2d.fillRect(0, 0, input.getWidth(), input.getHeight());
-	        g2d.drawImage(input, 0, 0, null);
-        }finally
-        {
-        	if(g2d!=null)
-        		g2d.dispose();
-        }
-    	
-    	return imageNew;
-    }
-    
-    private static BufferedImage resizeWithAspect(BufferedImage input, int targetSize) {
-        int origWidth = input.getWidth();
-        int origHeight = input.getHeight();
-
-        // scale factor to fit the longest side to targetSize
-        double scale = (double) targetSize / Math.max(origWidth, origHeight);
-
-        int newWidth = (int) Math.round(origWidth * scale);
-        int newHeight = (int) Math.round(origHeight * scale);
-
-        // resize image
-        Image scaled = input.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-        BufferedImage resized = new BufferedImage(targetSize, targetSize, BufferedImage.TYPE_INT_RGB);
-
-        Graphics2D g2d = null;
-        try
-        {
-	        g2d = resized.createGraphics();
-	        g2d.setColor(DEF_PADDING_COLOR); // padding color
-	        g2d.fillRect(0, 0, targetSize, targetSize);
-	
-	        // center the image
-	        int x = (targetSize - newWidth) / 2;
-	        int y = (targetSize - newHeight) / 2;
-	        g2d.drawImage(scaled, x, y, null);
-        }finally
-        {
-        	if(g2d!=null)
-        		g2d.dispose();
-        }
-
-        return resized;
-    }
     
     //=========================================================== 
     public static void main(String[] args) throws IOException{
@@ -683,6 +667,9 @@ public class PDFExtractor extends PDFTextStripper {
 				        System.out.println("  Extracted "+jsonMeta.getLong(META_TOTAL_PAGES)+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
 			        }
 	        		System.out.println();
+	        		
+	        		//pdfExtract.renderAsImage();
+	        		
 	        	}
         	}
         }
