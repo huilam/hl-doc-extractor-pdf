@@ -17,8 +17,6 @@ import org.apache.pdfbox.util.Matrix;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import hl.doc.extractor.pdf.PDFExtractor.ContentItem.Type;
-
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -42,19 +40,19 @@ import javax.imageio.ImageIO;
 
 public class PDFExtractor extends PDFTextStripper {
 	
-	private static String META_DOCNAME			= "docname";
-	private static String META_AUTHOR 			= "author";
-	private static String META_CREATION_DATE 	= "creationdate";
-	private static String META_VERSION 			= "version";
-	private static String META_TOTAL_PAGES 		= "totalpages";
-	private static String META_ENCRYPTED 		= "encrypted";
-	private static String META_TOTAL_IMAGES 	= "totalimages";
+	public static String META_DOCNAME			= "docname";
+	public static String META_AUTHOR 			= "author";
+	public static String META_CREATION_DATE 	= "creationdate";
+	public static String META_VERSION 			= "version";
+	public static String META_TOTAL_PAGES 		= "totalpages";
+	public static String META_ENCRYPTED 		= "encrypted";
+	public static String META_TOTAL_IMAGES 		= "totalimages";
 
-	private static String IMGTAG_PREFIX 	= "![IMAGE:";
-	private static String IMGTAG_SUFFIX 	= "]";
-	private static String IMG_FILEEXT		= "jpg";
-	private static String FONTBOLD_PREFIX	= "##";
-	private static Color DEF_PADDING_COLOR  = Color.BLACK;
+	protected static String IMGTAG_PREFIX 		= "![IMAGE:";
+	protected static String IMGTAG_SUFFIX 		= "]";
+	protected static String IMG_FILEEXT			= "jpg";
+	protected static String FONTBOLD_PREFIX		= "##";
+	protected static Color DEF_PADDING_COLOR  	= Color.BLACK;
 	
 	private PDDocument pdf_doc 	= null;
 	private File file_orig_pdf 	= null;
@@ -68,18 +66,19 @@ public class PDFExtractor extends PDFTextStripper {
 	
     protected final List<ContentItem> items = new ArrayList<>();
 
-    static class ContentItem {
-        enum Type { TEXT, IMAGE }
-        Type type		= Type.TEXT;
-        int doc_seq 	= 0;
-        int page_no 	= 0;
-        int pg_line_seq = 0;
-        String content 	= "";
-        float x, y		= 0;
-        float w, h  	= 0; 
+    
+    public class ContentItem {
+    	public enum Type { TEXT, IMAGE }
+    	public Type type		= Type.TEXT;
+    	public int doc_seq 		= 0;
+    	public int page_no 		= 0;
+    	public int pg_line_seq 	= 0;
+    	public String content 	= "";
+    	public float x, y		= 0;
+    	public float w, h  		= 0; 
 
         // For text & image
-        ContentItem(Type type, String content, int pageno, float x, float y, float w, float h) {
+    	public ContentItem(Type type, String content, int pageno, float x, float y, float w, float h) {
             this.type = type; this.page_no = pageno;
             this.x = x; this.y = y; this.w = w; this.h = h;
             this.content = content;
@@ -506,9 +505,9 @@ public class PDFExtractor extends PDFTextStripper {
 	        	}
 	        	else if (itemPrev!=null)
 	        	{
-	        		if(itemPrev.type == Type.IMAGE && item.content.trim().length()==0)
+	        		if(itemPrev.type == ContentItem.Type.IMAGE && item.content.trim().length()==0)
 	        		{
-	        			if(item.type == Type.TEXT)
+	        			if(item.type == ContentItem.Type.TEXT)
 	        				continue;
 	        		}
 	        		
@@ -526,7 +525,7 @@ public class PDFExtractor extends PDFTextStripper {
 	        	itemPrev = item;
 	        	listUpdated.add(item);
 	        	
-	        	if(item.type == Type.IMAGE)
+	        	if(item.type == ContentItem.Type.IMAGE)
 	        		iExtractedImgCount++;
 	        }
 	        
