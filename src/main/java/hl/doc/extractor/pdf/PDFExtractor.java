@@ -667,8 +667,8 @@ public class PDFExtractor extends PDFTextStripper {
 				        System.out.println("  Extracted "+jsonMeta.getLong(META_TOTAL_PAGES)+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
 			        }
 			        
-	        		int iRenderedPages = pdfExtract.renderAsImage();
-	        		System.out.println("Render pages :"+iRenderedPages);
+	        		//int iRenderedPages = pdfExtract.renderAsImage();
+	        		//System.out.println("Render pages :"+iRenderedPages);
 	        		
 	        	}
         	}
