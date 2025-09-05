@@ -3,6 +3,7 @@ package hl.doc.extractor.pdf;
 import hl.doc.extractor.pdf.PDFExtractor.ContentItem;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -16,10 +17,20 @@ public class PDFImgUtil  {
 	
 	private static Color DEF_PADDING_COLOR  = Color.BLACK;
 	
+	public static BufferedImage renderContentByPage(int aPageWidth, int aPageHeight, 
+	    		Color aBackgroundColor, final List<ContentItem> aContentList, int aPageNo)
+    {
+		return renderContentByPage(aPageWidth, aPageHeight, aBackgroundColor, false, aContentList, aPageNo);
+    }
     public static BufferedImage renderContentByPage(int aPageWidth, int aPageHeight, 
-    		Color aBackgroundColor, final List<ContentItem> aContentList, int aPageNo)
+    		Color aBackgroundColor, boolean isRenderText, 
+    		final List<ContentItem> aContentList, int aPageNo)
     {
     	BufferedImage img = new BufferedImage(aPageWidth, aPageHeight, BufferedImage.TYPE_INT_RGB);
+    	
+    	img = new BufferedImage(aPageWidth, aPageHeight, BufferedImage.TYPE_INT_RGB);
+    	
+    	
     	Graphics2D g2d = null;
         try
         {
@@ -33,17 +44,26 @@ public class PDFImgUtil  {
 	        {
 	        	if(item.page_no==aPageNo)
 	        	{
+	        		int x = Math.round(item.x);
+	        		int y = Math.round(item.y);
+	        		int w = Math.round(item.w);
+	        		int h = Math.round(item.h);
+	        		
 		        	if(item.type == ContentItem.Type.IMAGE)
 		        	{
 		        		g2d.setColor(Color.RED);
 		        	}
 		        	else if(item.type == ContentItem.Type.TEXT)
 		        	{
-		        		g2d.setColor(Color.BLACK);
-		        		g2d.drawString(item.content, (int)item.x, (int)item.y);
+		        		if(isRenderText)
+		        		{
+			        		Font awt = new Font("Helvetica", Font.PLAIN, h);
+			        		g2d.setFont(awt);
+			        		g2d.drawString(item.content, x, y + h);
+		        		}
+		        		g2d.setColor(Color.LIGHT_GRAY);
 		        	}
-		        	
-	        		g2d.drawRect((int)item.x, (int)item.y, (int)item.w, (int)item.h);
+	        		g2d.drawRect(x, y, w, h);
 	        	}
 	        }
 	        

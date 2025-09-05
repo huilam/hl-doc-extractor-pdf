@@ -77,6 +77,7 @@ public class PDFExtractor extends PDFTextStripper {
     	public int page_no 		= 0;
     	public int pg_line_seq 	= 0;
     	public String content 	= "";
+    	public float seg		= 0;
     	public float x, y		= 0;
     	public float w, h  		= 0;
 
@@ -124,10 +125,9 @@ public class PDFExtractor extends PDFTextStripper {
 	        prop_meta.put(META_AUTHOR, sAuthor);
 	        
 	        PDPage page = pdf_doc.getPage(0);
-	        PDRectangle mediaBox = page.getMediaBox();
-	        float dpi = 80;
-	        float width  = Math.round((mediaBox.getWidth() / 72f) * dpi);
-	        float height = Math.round((mediaBox.getHeight() / 72f) * dpi);
+	        PDRectangle mediaBox = page.getCropBox();
+	        float width  = mediaBox.getWidth();
+	        float height = mediaBox.getHeight();
 	        
 	        prop_meta.put(META_PAGE_WIDTH, width);
 	        prop_meta.put(META_PAGE_HEIGHT, height);
@@ -140,12 +140,12 @@ public class PDFExtractor extends PDFTextStripper {
     	{
 	    	this.extracted = true;
     		super.writeText(pdf_doc, new StringWriter());
-
+    		
         	this.items.sort(Comparator
                     .comparingInt((ContentItem it) -> it.page_no)
+                    .thenComparing(it -> it.seg)
                     .thenComparing(it -> it.y)
                     .thenComparing(it -> it.x)
-                    
                     );
     		
     		List<ContentItem> listItems = processExtractedItems(this.items);
@@ -214,9 +214,7 @@ public class PDFExtractor extends PDFTextStripper {
     protected void writeString(String string, List<TextPosition> textPositions) throws IOException 
     {
         if (string != null && !string.isEmpty()) {
-        	
-        	float doc_h = pdf_doc.getPage(0).getMediaBox().getHeight();
-        	
+        
             // take position of first character
             TextPosition textFirst 	= textPositions.get(0);
             TextPosition textLast 	= textPositions.get(textPositions.size()-1);
@@ -224,11 +222,14 @@ public class PDFExtractor extends PDFTextStripper {
             PDFont fontFirst 	= textFirst.getFont();
             PDFont fontLast 	= textLast.getFont();
             
-            float x = textFirst.getXDirAdj();
-            float y = textFirst.getYDirAdj();
-            float w = textFirst.getWidthDirAdj();
-            float h = textFirst.getFontSizeInPt(); //pos.getHeightDir();
+            float x1 = textFirst.getXDirAdj();
+            float y1 = textFirst.getYDirAdj();
             
+            float x2 = textLast.getXDirAdj();
+            float w2 = textLast.getWidthDirAdj();
+            
+            float w = (x2+w2)-x1;
+            float h = textFirst.getFontSizeInPt();
             
             if(string.trim().isEmpty())
             {
@@ -253,7 +254,7 @@ public class PDFExtractor extends PDFTextStripper {
             items.add(new ContentItem(
             		ContentItem.Type.TEXT, string, 
             		getCurrentPageNo(), 
-            		x, y, w, h ));
+            		x1, y1, w, h ));
         }
     }
 
@@ -446,15 +447,15 @@ public class PDFExtractor extends PDFTextStripper {
     	
     	int iSaved = 0;
     	JSONObject jsonMeta = metaDataAsJSON();
-    	int iWidth 	= jsonMeta.optInt(META_PAGE_WIDTH,0);
-    	int iHeight = jsonMeta.optInt(META_PAGE_HEIGHT,0);
+    	int iPageWidth 	= jsonMeta.optInt(META_PAGE_WIDTH,0);
+    	int iPageHeight = jsonMeta.optInt(META_PAGE_HEIGHT,0);
     	int iTotalPages = jsonMeta.optInt(META_TOTAL_PAGES,0);
     	
     	String sRenderFilePrefix = this.file_orig_pdf.getAbsolutePath();
     	for(int iPageNo = 1; iPageNo<=iTotalPages; iPageNo++)
     	{
     		BufferedImage img = PDFImgUtil.renderContentByPage(
-    				iWidth, iHeight, Color.WHITE, getItems(), iPageNo);
+    				iPageWidth, iPageHeight, Color.WHITE, getItems(), iPageNo);
     		if(PDFImgUtil.saveImage(img, IMG_FILEEXT,
     				new File(String.format(sRenderFilePrefix+"_rendered_page_%d.jpg", iPageNo))))
     			iSaved++;
@@ -665,9 +666,9 @@ public class PDFExtractor extends PDFTextStripper {
 				        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
 				        System.out.println("  Extracted "+jsonMeta.getLong(META_TOTAL_PAGES)+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
 			        }
-	        		System.out.println();
-	        		
-	        		//pdfExtract.renderAsImage();
+			        
+	        		int iRenderedPages = pdfExtract.renderAsImage();
+	        		System.out.println("Render pages :"+iRenderedPages);
 	        		
 	        	}
         	}
