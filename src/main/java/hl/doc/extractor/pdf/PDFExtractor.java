@@ -557,6 +557,11 @@ public class PDFExtractor extends PDFTextStripper {
     	}
     }
     
+    public File getOrigPdfFile()
+    {
+    	return file_orig_pdf;
+    }
+    
     @Override
     public void setStartPage(int iPageNo)
     {
