@@ -18,6 +18,9 @@ import org.apache.pdfbox.util.Matrix;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import hl.doc.extractor.pdf.model.ContentItem;
+import hl.doc.extractor.pdf.util.PDFImgUtil;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
@@ -68,28 +71,6 @@ public class PDFExtractor extends PDFTextStripper {
 	private int max_image_size			= 0;
 	
     private final List<ContentItem> items = new ArrayList<>();
-
-    
-    public class ContentItem {
-    	public enum Type { TEXT, IMAGE }
-    	public Type type		= Type.TEXT;
-    	public int doc_seq 		= 0;
-    	public int page_no 		= 0;
-    	public int pg_line_seq 	= 0;
-    	public String content 	= "";
-    	public float seg		= 0;
-    	public float x, y		= 0;
-    	public float w, h  		= 0;
-
-        // For text & image
-    	public ContentItem(Type type, String content, int pageno, float x, float y, float w, float h) {
-            this.type = type; this.page_no = pageno;
-            this.x = x; this.y = y; this.w = w; this.h = h;
-            this.content = content;
-        }
-    }
-    
-    public List<ContentItem> getItems() { return items; }
     
     public PDFExtractor(File aPDFFile) throws IOException {
     	
@@ -134,6 +115,10 @@ public class PDFExtractor extends PDFTextStripper {
     	}
     }
     
+    public List<ContentItem> getItems() { 
+    	return items; 
+    }
+        
     private List<ContentItem> extract() throws IOException
     {
     	if(!this.extracted)
@@ -142,10 +127,10 @@ public class PDFExtractor extends PDFTextStripper {
     		super.writeText(pdf_doc, new StringWriter());
     		
         	this.items.sort(Comparator
-                    .comparingInt((ContentItem it) -> it.page_no)
-                    .thenComparing(it -> it.seg)
-                    .thenComparing(it -> it.y)
-                    .thenComparing(it -> it.x)
+                    .comparingInt((ContentItem it) -> it.getPage_no())
+                    .thenComparing(it -> it.getSeg())
+                    .thenComparing(it -> it.getY1())
+                    .thenComparing(it -> it.getX1())
                     );
     		
     		List<ContentItem> listItems = processExtractedItems(this.items);
@@ -159,15 +144,15 @@ public class PDFExtractor extends PDFTextStripper {
 	    	int iExtractedImgCount = 0;
 	        for(ContentItem item : this.getItems())
 	        {	
-	        	if(iLastPageNo != item.page_no)
+	        	if(iLastPageNo != item.getPage_no())
 	        	{
-	        		iLastPageNo = item.page_no;
+	        		iLastPageNo = item.getPage_no();
 	        		iPgLineSeq = 1;
 	        	}
-	        	item.doc_seq 		= iDocSeq++;
-	        	item.pg_line_seq 	= iPgLineSeq++;
+	        	item.setDoc_seq(iDocSeq++);
+	        	item.setPg_line_seq(iPgLineSeq++);
 	        	
-	        	if(item.type == ContentItem.Type.IMAGE)
+	        	if(item.getType() == ContentItem.Type.IMAGE)
 	        		iExtractedImgCount++;
 	        }
 	        updateMetaData(META_TOTAL_IMAGES, iExtractedImgCount);
@@ -185,17 +170,17 @@ public class PDFExtractor extends PDFTextStripper {
 			boolean isInclude = true;
 			if (itemPrev!=null)
 			{
-				boolean isSamePage = (itemPrev.page_no == item.page_no);
-				boolean isTextType = (item.type == ContentItem.Type.TEXT);
+				boolean isSamePage = (itemPrev.getPage_no() == item.getPage_no());
+				boolean isTextType = (item.getType() == ContentItem.Type.TEXT);
 				
 				if(isSamePage && isTextType)
 				{
-					boolean isSameY 	= (item.y == itemPrev.y);
-					boolean isAfterImg 	= (itemPrev.type == ContentItem.Type.IMAGE);
+					boolean isSameY 	= (item.getY1() == itemPrev.getY1());
+					boolean isAfterImg 	= (itemPrev.getType() == ContentItem.Type.IMAGE);
 		  		
 			  		if(isSameY || isAfterImg)
 			  		{
-			  			if(item.content.trim().length()==0)
+			  			if(item.getContent().trim().length()==0)
 			  			{
 			  				isInclude = false;
 			  			}
@@ -362,19 +347,19 @@ public class PDFExtractor extends PDFTextStripper {
     	
     	for (ContentItem it : this.getItems()) 
     	{	
-    		if(iLastPageNo!=it.page_no)
+    		if(iLastPageNo!=it.getPage_no())
     		{
     			listPDF.add(" ");
-    			iLastPageNo = it.page_no;
+    			iLastPageNo = it.getPage_no();
     		}
     		
     		String StrData = String.format(
     				"%0"+iLeadingZero+"d p%01d.%02d"+
     				//" y:%03.2f x:%03.2f"+
     				"   %s",
-    				it.doc_seq, it.page_no, it.pg_line_seq,
+    				it.getDoc_seq(), it.getPage_no(), it.getPg_line_seq(),
     				//it.y, it.x,
-    				it.content);
+    				it.getContent());
     		listPDF.add(StrData);
     	}
     	
@@ -410,15 +395,15 @@ public class PDFExtractor extends PDFTextStripper {
         for (ContentItem it : this.getItems()) {
 
         	JSONObject jsonPageData = new JSONObject();
-        	jsonPageData.put("doc_seq", it.doc_seq);
-        	jsonPageData.put("page_no", it.page_no);
-        	jsonPageData.put("page_line_seq", it.pg_line_seq);
-        	jsonPageData.put("data", it.content);
-        	jsonPageData.put("x", it.x);
-        	jsonPageData.put("y", it.y);
-        	jsonPageData.put("width", it.w);
-        	jsonPageData.put("height", it.h);
-        	if(it.type == ContentItem.Type.TEXT)
+        	jsonPageData.put("doc_seq", it.getDoc_seq());
+        	jsonPageData.put("page_no", it.getPage_no());
+        	jsonPageData.put("page_line_seq", it.getPg_line_seq());
+        	jsonPageData.put("data", it.getContent());
+        	jsonPageData.put("x", it.getX1());
+        	jsonPageData.put("y", it.getY1());
+        	jsonPageData.put("width", it.getWidth());
+        	jsonPageData.put("height", it.getHeight());
+        	if(it.getType() == ContentItem.Type.TEXT)
         		jsonPageData.put("type", "TEXT");
         	else 
         		jsonPageData.put("type", "IMAGE");

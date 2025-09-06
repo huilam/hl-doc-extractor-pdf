@@ -1,6 +1,4 @@
-package hl.doc.extractor.pdf;
-
-import hl.doc.extractor.pdf.PDFExtractor.ContentItem;
+package hl.doc.extractor.pdf.util;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -12,6 +10,8 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+
+import hl.doc.extractor.pdf.model.ContentItem;
 
 public class PDFImgUtil  {
 	
@@ -42,24 +42,24 @@ public class PDFImgUtil  {
 	        g2d.drawRect(0, 0, aPageWidth-1, aPageHeight-1);
 	        for(ContentItem item : aContentList)
 	        {
-	        	if(item.page_no==aPageNo)
+	        	if(item.getPage_no()==aPageNo)
 	        	{
-	        		int x = Math.round(item.x);
-	        		int y = Math.round(item.y);
-	        		int w = Math.round(item.w);
-	        		int h = Math.round(item.h);
+	        		int x = (int) Math.round(item.getX1());
+	        		int y = (int) Math.round(item.getY1());
+	        		int w = (int) Math.round(item.getWidth());
+	        		int h = (int) Math.round(item.getHeight());
 	        		
-		        	if(item.type == ContentItem.Type.IMAGE)
+		        	if(item.getType() == ContentItem.Type.IMAGE)
 		        	{
 		        		g2d.setColor(Color.RED);
 		        	}
-		        	else if(item.type == ContentItem.Type.TEXT)
+		        	else if(item.getType() == ContentItem.Type.TEXT)
 		        	{
 		        		if(isRenderText)
 		        		{
 			        		Font awt = new Font("Helvetica", Font.PLAIN, h);
 			        		g2d.setFont(awt);
-			        		g2d.drawString(item.content, x, y + h);
+			        		g2d.drawString(item.getContent(), x, y + h);
 		        		}
 		        		g2d.setColor(Color.LIGHT_GRAY);
 		        	}
