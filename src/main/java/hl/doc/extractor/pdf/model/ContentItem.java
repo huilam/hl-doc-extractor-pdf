@@ -77,12 +77,20 @@ public class ContentItem {
 		return x1;
 	}
 
+	public double getX2() {
+		return x1 + getWidth();
+	}
+
 	public void setX1(double x) {
 		this.x1 = x;
 	}
 
 	public double getY1() {
 		return y1;
+	}
+	
+	public double getY2() {
+		return y1 + getHeight();
 	}
 
 	public void setY1(double y) {
@@ -104,8 +112,5 @@ public class ContentItem {
 	public void setHeight(double h) {
 		this.h = h;
 	}
-	
-	
-	
 	
 }
