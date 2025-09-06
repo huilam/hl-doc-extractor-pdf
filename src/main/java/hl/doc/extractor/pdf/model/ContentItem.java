@@ -113,4 +113,16 @@ public class ContentItem {
 		this.h = h;
 	}
 	
+	public String toString()
+	{
+		boolean isText = getType()==Type.TEXT;
+		StringBuffer sb = new StringBuffer();
+		sb.append("p").append(getPage_no()).append(" ");
+		sb.append("{").append(getX1()).append(",").append(getY1()).append("} ");
+		sb.append(getWidth()).append("x").append(getHeight());
+		sb.append(" ").append(isText?"TEXT":"IMAGE");
+		sb.append(" ").append(getContent());
+		return sb.toString();
+	}
+	
 }
