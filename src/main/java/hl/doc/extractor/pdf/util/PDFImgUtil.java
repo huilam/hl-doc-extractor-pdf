@@ -93,6 +93,10 @@ public class PDFImgUtil  {
     	return img;
     }
     
+    public static boolean saveImage(BufferedImage aImage, File aOutputFile)
+    {
+    	return saveImage(aImage, "JPG", aOutputFile);
+    }
     public static boolean saveImage(BufferedImage aImage, String aImageExt, File aOutputFile)
     {
     	boolean isSaved = false;
