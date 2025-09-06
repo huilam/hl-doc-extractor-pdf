@@ -7,11 +7,13 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
 
 import hl.doc.extractor.pdf.model.ContentItem;
+
 
 public class PDFImgUtil  {
 	
@@ -20,17 +22,35 @@ public class PDFImgUtil  {
 	public static BufferedImage renderContentByPage(int aPageWidth, int aPageHeight, 
 	    		Color aBackgroundColor, final List<ContentItem> aContentList, int aPageNo)
     {
-		return renderContentByPage(aPageWidth, aPageHeight, aBackgroundColor, false, aContentList, aPageNo);
+		return renderContentByPage(aPageWidth, aPageHeight, 
+				aBackgroundColor, false, 
+				aContentList, aPageNo);
     }
-    public static BufferedImage renderContentByPage(int aPageWidth, int aPageHeight, 
+    public static BufferedImage renderContentByPage(
+    		int aPageWidth, int aPageHeight, 
     		Color aBackgroundColor, boolean isRenderText, 
     		final List<ContentItem> aContentList, int aPageNo)
     {
-    	BufferedImage img = new BufferedImage(aPageWidth, aPageHeight, BufferedImage.TYPE_INT_RGB);
-    	
-    	img = new BufferedImage(aPageWidth, aPageHeight, BufferedImage.TYPE_INT_RGB);
-    	
-    	
+    	List<ContentItem> listPageItem = new ArrayList<ContentItem>();
+    	for(ContentItem item : aContentList)
+        {
+    		if(item.getPage_no()==aPageNo)
+        	{
+    			listPageItem.add(item);
+        	}
+        }
+    	return renderContentByPage(aPageWidth, aPageHeight, 
+    			aBackgroundColor, isRenderText, listPageItem);
+    }
+    
+    public static BufferedImage renderContentByPage(
+    		int aPageWidth, int aPageHeight, 
+    		Color aBackgroundColor, boolean isRenderText, 
+    		final List<ContentItem> aContentList)
+    {
+    	BufferedImage img = new BufferedImage(
+    			aPageWidth, aPageHeight, 
+    			BufferedImage.TYPE_INT_RGB);
     	Graphics2D g2d = null;
         try
         {
@@ -42,29 +62,26 @@ public class PDFImgUtil  {
 	        g2d.drawRect(0, 0, aPageWidth-1, aPageHeight-1);
 	        for(ContentItem item : aContentList)
 	        {
-	        	if(item.getPage_no()==aPageNo)
+        		int x = (int) Math.round(item.getX1());
+        		int y = (int) Math.round(item.getY1());
+        		int w = (int) Math.round(item.getWidth());
+        		int h = (int) Math.round(item.getHeight());
+        		
+	        	if(item.getType() == ContentItem.Type.IMAGE)
 	        	{
-	        		int x = (int) Math.round(item.getX1());
-	        		int y = (int) Math.round(item.getY1());
-	        		int w = (int) Math.round(item.getWidth());
-	        		int h = (int) Math.round(item.getHeight());
-	        		
-		        	if(item.getType() == ContentItem.Type.IMAGE)
-		        	{
-		        		g2d.setColor(Color.RED);
-		        	}
-		        	else if(item.getType() == ContentItem.Type.TEXT)
-		        	{
-		        		if(isRenderText)
-		        		{
-			        		Font awt = new Font("Helvetica", Font.PLAIN, h);
-			        		g2d.setFont(awt);
-			        		g2d.drawString(item.getContent(), x, y + h);
-		        		}
-		        		g2d.setColor(Color.LIGHT_GRAY);
-		        	}
-	        		g2d.drawRect(x, y, w, h);
+	        		g2d.setColor(Color.RED);
 	        	}
+	        	else if(item.getType() == ContentItem.Type.TEXT)
+	        	{
+	        		if(isRenderText)
+	        		{
+		        		Font awt = new Font("Helvetica", Font.PLAIN, h);
+		        		g2d.setFont(awt);
+		        		g2d.drawString(item.getContent(), x, y + h);
+	        		}
+	        		g2d.setColor(Color.LIGHT_GRAY);
+	        	}
+        		g2d.drawRect(x, y, w, h);
 	        }
 	        
         }finally
