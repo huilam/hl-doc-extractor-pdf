@@ -426,9 +426,18 @@ public class PDFExtractor extends PDFTextStripper {
     }
     
     //////////////////////////////////////
-    public int renderAsImage() throws IOException
+    public int renderContentAsImage() throws IOException
     {
-    	this.extract();
+    	return renderAsImage(false);
+    }
+    public int renderLayoutAsImage() throws IOException
+    {
+    	return renderAsImage(true);
+    }
+    
+    private int renderAsImage(boolean isLayout) throws IOException
+    {
+   	this.extract();
     	
     	int iSaved = 0;
     	JSONObject jsonMeta = metaDataAsJSON();
@@ -436,18 +445,34 @@ public class PDFExtractor extends PDFTextStripper {
     	int iPageHeight = jsonMeta.optInt(META_PAGE_HEIGHT,0);
     	int iTotalPages = jsonMeta.optInt(META_TOTAL_PAGES,0);
     	
-    	String sRenderFilePrefix = this.file_orig_pdf.getAbsolutePath();
+    	String sRenderFilePrefix = this.file_orig_pdf.getParent()+"/rendered_"
+    			+this.file_orig_pdf.getName();
     	for(int iPageNo = 1; iPageNo<=iTotalPages; iPageNo++)
     	{
-    		BufferedImage img = PDFImgUtil.renderContentByPage(
-    				iPageWidth, iPageHeight, Color.WHITE, getItems(), iPageNo);
+    		BufferedImage img = null;
+    		List<ContentItem> listItems = new ArrayList<>();
+    		listItems.addAll(this.getItems());
+    		
+    		if(isLayout)
+    		{
+	    		img = PDFImgUtil.renderLayoutByPage(iPageWidth, iPageHeight, 
+	    				Color.WHITE, listItems, iPageNo);
+	    		sRenderFilePrefix += "_layout";
+    		}else
+    		{
+    			img = PDFImgUtil.renderContentByPage(iPageWidth, iPageHeight, 
+    					Color.WHITE, true, listItems, iPageNo);
+    			sRenderFilePrefix += "_content";
+    		}
+    		
     		if(PDFImgUtil.saveImage(img, IMG_FILEEXT,
-    				new File(String.format(sRenderFilePrefix+"_rendered_page_%d.jpg", iPageNo))))
+    				new File(String.format(sRenderFilePrefix+"_%d.%s", iPageNo, IMG_FILEEXT))))
     			iSaved++;
     	}
 
     	return iSaved;
     }
+    
     public File extractAsFile(File aOutputFile) throws IOException
     {
     	this.extract();
@@ -657,8 +682,8 @@ public class PDFExtractor extends PDFTextStripper {
 				        System.out.println("  Extracted "+jsonMeta.getLong(META_TOTAL_PAGES)+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
 			        }
 			        
-	        		//int iRenderedPages = pdfExtract.renderAsImage();
-	        		//System.out.println("Render pages :"+iRenderedPages);
+	        		int iRenderedPages = pdfExtract.renderLayoutAsImage();
+	        		System.out.println("Render pages :"+iRenderedPages);
 	        		
 	        	}
         	}

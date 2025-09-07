@@ -9,7 +9,7 @@ public class ContentItem {
 	private int page_no 	= 0;
 	private int pg_line_seq = 0;
 	private String content 	= "";
-	private double seg		= 0;
+	private double seg		= -1;
 	private double x1, y1	= 0;
 	//private double x2, y2	= 0;
 	private double w, h  	= 0;
@@ -19,6 +19,8 @@ public class ContentItem {
         this.page_no = pageno;
         this.x1 = x; 
         this.y1 = y; 
+        this.h = height;
+        this.w = width;
         //this.x2 = x1+width; 
         //this.y2 = y1+height; 
         this.content = content;
@@ -98,7 +100,7 @@ public class ContentItem {
 	}
 
 	public double getWidth() {
-		return w;
+		return this.w;
 	}
 
 	public void setWidth(double w) {
@@ -106,7 +108,7 @@ public class ContentItem {
 	}
 
 	public double getHeight() {
-		return h;
+		return this.h;
 	}
 
 	public void setHeight(double h) {
