@@ -135,7 +135,6 @@ public class PDFImgUtil  {
     			BufferedImage.TYPE_INT_RGB);
     	
     	
-System.out.println(" render -> "+aContentList.size());
     	if(aContentList!=null && aContentList.size()>0)
     	{
 	    	Graphics2D g2d = null;

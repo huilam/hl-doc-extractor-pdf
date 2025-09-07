@@ -445,8 +445,10 @@ public class PDFExtractor extends PDFTextStripper {
     	int iPageHeight = jsonMeta.optInt(META_PAGE_HEIGHT,0);
     	int iTotalPages = jsonMeta.optInt(META_TOTAL_PAGES,0);
     	
-    	String sRenderFilePrefix = this.file_orig_pdf.getParent()+"/rendered_"
-    			+this.file_orig_pdf.getName();
+    	File pdf = this.file_orig_pdf;
+    	String sRenderFilePrefix = pdf.getParent()+"/rendered_"+pdf.getName()+"_";
+    	sRenderFilePrefix += isLayout?"layout":"content";
+    	
     	for(int iPageNo = 1; iPageNo<=iTotalPages; iPageNo++)
     	{
     		BufferedImage img = null;
@@ -457,12 +459,10 @@ public class PDFExtractor extends PDFTextStripper {
     		{
 	    		img = PDFImgUtil.renderLayoutByPage(iPageWidth, iPageHeight, 
 	    				Color.WHITE, listItems, iPageNo);
-	    		sRenderFilePrefix += "_layout";
     		}else
     		{
     			img = PDFImgUtil.renderContentByPage(iPageWidth, iPageHeight, 
     					Color.WHITE, true, listItems, iPageNo);
-    			sRenderFilePrefix += "_content";
     		}
     		
     		if(PDFImgUtil.saveImage(img, IMG_FILEEXT,
@@ -683,7 +683,7 @@ public class PDFExtractor extends PDFTextStripper {
 			        }
 			        
 	        		int iRenderedPages = pdfExtract.renderLayoutAsImage();
-	        		System.out.println("Render pages :"+iRenderedPages);
+	        		System.out.println("  Rendered layout : "+iRenderedPages);
 	        		
 	        	}
         	}
