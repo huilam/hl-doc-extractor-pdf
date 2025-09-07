@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import hl.doc.extractor.pdf.model.ContentItem;
+import hl.doc.extractor.pdf.model.ContentItem.Type;
 import hl.doc.extractor.pdf.util.PDFImgUtil;
 
 import java.awt.Color;
@@ -118,6 +119,35 @@ public class PDFExtractor extends PDFTextStripper {
     public List<ContentItem> getItems() { 
     	return items; 
     }
+    
+    public List<ContentItem> getItemsByPage( List<ContentItem> aListItems, int aPageNo) { 
+    	
+    	List<ContentItem> listPageItems = new ArrayList<>();
+    	for(ContentItem it : aListItems)
+    	{
+    		if(it.getPage_no()==aPageNo)
+    		{
+    			listPageItems.add(it);
+    		}
+    	}
+    	return listPageItems; 
+    }
+    
+    public int getExtractedImageCount()
+    {
+    	int iImageCount = 0;
+    	for(ContentItem it : getItems())
+    	{
+    		if(it.getType() == Type.IMAGE)
+    			iImageCount++;
+    	}
+    	return iImageCount;
+    }
+    
+    public int getTotalPages()
+    {
+    	return pdf_doc.getNumberOfPages();
+    }
         
     private List<ContentItem> extract() throws IOException
     {
@@ -126,17 +156,16 @@ public class PDFExtractor extends PDFTextStripper {
 	    	this.extracted = true;
     		super.writeText(pdf_doc, new StringWriter());
     		
+    		List<ContentItem> listItems = processExtractedItems(this.items);
+    		this.items.clear();
+    		this.items.addAll(listItems);
+    		
         	this.items.sort(Comparator
                     .comparingInt((ContentItem it) -> it.getPage_no())
                     .thenComparing(it -> it.getSeg())
                     .thenComparing(it -> it.getY1())
                     .thenComparing(it -> it.getX1())
                     );
-    		
-    		List<ContentItem> listItems = processExtractedItems(this.items);
-    		this.items.clear();
-    		this.items.addAll(listItems);
-    		
         	///////////////////////
 	    	int iDocSeq 	= 1;
 	    	int iPgLineSeq 	= 1;
