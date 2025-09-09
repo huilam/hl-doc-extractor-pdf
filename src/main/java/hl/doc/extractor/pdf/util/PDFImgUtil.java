@@ -21,7 +21,7 @@ import hl.doc.extractor.pdf.model.ContentItem.Type;
 
 public class PDFImgUtil  {
 	
-	private static Color DEF_PADDING_COLOR  = Color.BLACK;
+	private static Color DEF_PADDING_COLOR  = Color.WHITE;
 	
     public static BufferedImage renderContentByPage(
     		int aPageWidth, int aPageHeight, 
@@ -49,9 +49,9 @@ public class PDFImgUtil  {
     			if(it.getType()==Type.TEXT)
     			{
     			
-    				if(it.getSeg()>-1)
+    				if(it.getSegNo()>-1)
     				{
-		    			Rectangle rect = mapSegment.get(it.getSeg());
+		    			Rectangle rect = mapSegment.get(it.getSegNo());
 		    			if(rect==null)
 		    				rect = new Rectangle(aPageWidth,aPageHeight,0,0);
 		    			
@@ -79,7 +79,7 @@ public class PDFImgUtil  {
 		    				rect.height = height;
 		    			}
 		    			
-		    			mapSegment.put(it.getSeg(), rect);
+		    			mapSegment.put(it.getSegNo(), rect);
     				}
     				else
     				{
@@ -159,6 +159,10 @@ public class PDFImgUtil  {
 		        	{
 		        		g2d.setColor(Color.RED);
 		        	}
+		        	else if(item.getType() == ContentItem.Type.RECT)
+		        	{
+		        		g2d.setColor(Color.GREEN);
+		        	}
 		        	else if(item.getType() == ContentItem.Type.TEXT)
 		        	{
 		        		g2d.setColor(Color.LIGHT_GRAY);
@@ -207,7 +211,7 @@ public class PDFImgUtil  {
     	return isSaved;
     }
     
-    private static BufferedImage convertToRGB(BufferedImage input) 
+    private static BufferedImage convertToRGB(final BufferedImage input) 
     {
     	if(input==null || input.getType()==BufferedImage.TYPE_INT_RGB)
     		return input;

@@ -2,7 +2,7 @@ package hl.doc.extractor.pdf.model;
 
 public class ContentItem {
 	//
-	public enum Type { TEXT, IMAGE }
+	public enum Type { TEXT, IMAGE, RECT }
 	//
 	private Type type		= Type.TEXT;
 	private int doc_seq 	= 0;
@@ -67,11 +67,11 @@ public class ContentItem {
 		this.content = content;
 	}
 
-	public double getSeg() {
+	public double getSegNo() {
 		return seg;
 	}
 
-	public void setSeg(double seg) {
+	public void setSegNo(double seg) {
 		this.seg = seg;
 	}
 
