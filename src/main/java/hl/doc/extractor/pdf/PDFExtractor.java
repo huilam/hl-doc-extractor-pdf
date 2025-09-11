@@ -193,12 +193,12 @@ public class PDFExtractor extends PDFTextStripper {
     	return this._sorting;
     }
     
-    public void sortPageItems(List<ContentItem> aListItem)
+    protected void sortPageItems(List<ContentItem> aListItem)
     {
     	sortPageItems(aListItem,this.getSortingOrder());
     }
     
-	private void sortPageItems(
+    public void sortPageItems(
     		List<ContentItem> aListItem, 
     		SORT ... aSortings)
     {
@@ -226,15 +226,10 @@ public class PDFExtractor extends PDFTextStripper {
     		
     		List<ContentItem> listItems = new ArrayList<>();
     		listItems.addAll(this.getItems());
-    		
-System.out.println("listItems.size()"+listItems.size());
-    		//sortPageItems(listItems);
-    		listItems = processExtractedItems(listItems);
-System.out.println("listItems.size()"+listItems.size());
+    		listItems = postProcessExtractedItems(listItems);
     		sortPageItems(listItems);
        		this._items.clear();
     		this._items.addAll(listItems);
-System.out.println("this.getItems().size()"+this.getItems().size());
 
         	///////////////////////
 	    	int iDocSeq 	= 1;
@@ -256,8 +251,10 @@ System.out.println("this.getItems().size()"+this.getItems().size());
         return this._items;
     }
     
-    public List<ContentItem> processExtractedItems(List<ContentItem> aList)
+    // Custom Post Process
+    public List<ContentItem> postProcessExtractedItems(List<ContentItem> aList)
     {
+    	//sortPageItems(aList, new SORT[] {SORT.BY_PAGE});
 		return aList;
     }
     
@@ -456,10 +453,9 @@ System.out.println("this.getItems().size()"+this.getItems().size());
     		
     		String StrData = String.format(
     				"%0"+iLeadingZero+"d p%01d.%02d [%.0f]"+
-    				"{x:%.0f, y:%.0f}   %s",
+    				"   %s",
     				it.getDoc_seq(), it.getPage_no(), it.getPg_line_seq(),
     				it.getSegment_no(),
-    				it.getX1(), it.getY1(),
     				it.getContent());
     		listPDF.add(StrData);
     	}
