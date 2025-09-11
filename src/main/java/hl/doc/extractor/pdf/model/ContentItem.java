@@ -9,7 +9,7 @@ public class ContentItem {
 	private int page_no 	= 0;
 	private int pg_line_seq = 0;
 	private String content 	= "";
-	private double seg		= -1;
+	private double seg		= 0;
 	private double x1, y1	= 0;
 	//private double x2, y2	= 0;
 	private double w, h  	= 0;
@@ -67,11 +67,11 @@ public class ContentItem {
 		this.content = content;
 	}
 
-	public double getSegNo() {
+	public double getSeg_no() {
 		return seg;
 	}
 
-	public void setSegNo(double seg) {
+	public void setSeg_no(double seg) {
 		this.seg = seg;
 	}
 

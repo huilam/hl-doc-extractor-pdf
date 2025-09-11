@@ -45,6 +45,24 @@ import javax.imageio.ImageIO;
 
 public class PDFExtractor extends PDFTextStripper {
 	
+	enum SORTING 
+	{
+	    BY_PAGE		(Comparator.comparing(ContentItem::getPage_no)),
+	    BY_X    	(Comparator.comparing(ContentItem::getX1)),
+	    BY_Y    	(Comparator.comparing(ContentItem::getY1)),
+	    BY_SEGMENT	(Comparator.comparing(ContentItem::getSeg_no));
+	
+	    private final Comparator<ContentItem> cmp;
+
+	    SORTING(Comparator<ContentItem> cmp) {
+	        this.cmp = cmp;
+	    }
+
+	    public Comparator<ContentItem> comparator() {
+	        return cmp;
+	    }
+	}
+	
 	public static String META_DOCNAME			= "docname";
 	public static String META_AUTHOR 			= "author";
 	public static String META_CREATION_DATE 	= "creationdate";
@@ -130,12 +148,12 @@ public class PDFExtractor extends PDFTextStripper {
     	return listPageItems; 
     }
     
-    public int getExtractedImageCount()
+    public int getExtractedTypeCount(Type aType)
     {
     	int iImageCount = 0;
     	for(ContentItem it : getItems())
     	{
-    		if(it.getType() == Type.IMAGE)
+    		if(it.getType() == aType)
     			iImageCount++;
     	}
     	return iImageCount;
@@ -155,7 +173,37 @@ public class PDFExtractor extends PDFTextStripper {
     {
     	return (int)Math.ceil(pdf_doc.getPage(0).getCropBox().getHeight());
     }
-        
+    
+    public List<ContentItem> sortPageItems(List<ContentItem> aListItem)
+    {
+    	return sortPageItems(aListItem
+    			,SORTING.BY_PAGE
+    			,SORTING.BY_SEGMENT
+       			,SORTING.BY_Y
+       			,SORTING.BY_X
+    			);
+    }
+    
+	public List<ContentItem> sortPageItems(
+    		List<ContentItem> aListItem, 
+    		SORTING ... sortings)
+    {
+		if(sortings.length>0)
+		{
+	    	Comparator<ContentItem> comparator = sortings[0].comparator();
+	    	
+	    	if(sortings.length>1)
+	    	{
+		    	for (int idx=1; idx<sortings.length; idx++)
+		    	{
+		    		comparator.thenComparing(sortings[idx].comparator());
+		    	}
+	    	}
+			aListItem.sort(comparator);
+		}
+    	return aListItem;
+    }
+    
     private List<ContentItem> extract() throws IOException
     {
     	if(!this.extracted)
@@ -164,20 +212,15 @@ public class PDFExtractor extends PDFTextStripper {
     		super.writeText(pdf_doc, new StringWriter());
     		
     		List<ContentItem> listItems = processExtractedItems(this._items);
-    		this._items.clear();
-    		this._items.addAll(listItems);
     		
-        	this._items.sort(Comparator
-                    .comparingInt((ContentItem it) -> it.getPage_no())
-                    .thenComparing(it -> it.getSegNo())
-                    .thenComparing(it -> it.getY1())
-                    .thenComparing(it -> it.getX1())
-                    );
+    		listItems = sortPageItems(listItems);
+       		this._items.clear();
+    		this._items.addAll(listItems);
+
         	///////////////////////
 	    	int iDocSeq 	= 1;
 	    	int iPgLineSeq 	= 1;
 	    	int iLastPageNo = 1;
-	    	int iExtractedImgCount = 0;
 	        for(ContentItem item : this.getItems())
 	        {	
 	        	if(iLastPageNo != item.getPage_no())
@@ -187,11 +230,8 @@ public class PDFExtractor extends PDFTextStripper {
 	        	}
 	        	item.setDoc_seq(iDocSeq++);
 	        	item.setPg_line_seq(iPgLineSeq++);
-	        	
-	        	if(item.getType() == ContentItem.Type.IMAGE)
-	        		iExtractedImgCount++;
 	        }
-	        updateMetaData(META_TOTAL_IMAGES, iExtractedImgCount);
+	        updateMetaData(META_TOTAL_IMAGES, getExtractedTypeCount(Type.IMAGE));
     	}
     	
         return this._items;
@@ -409,6 +449,12 @@ public class PDFExtractor extends PDFTextStripper {
     	
     	for (ContentItem it : this.getItems()) 
     	{	
+    		if(it.getType()==Type.RECT)
+    		{
+    			//ignore
+    			continue;
+    		}
+    		
     		if(iLastPageNo!=it.getPage_no())
     		{
     			listPDF.add(" ");
@@ -419,7 +465,7 @@ public class PDFExtractor extends PDFTextStripper {
     				"%0"+iLeadingZero+"d p%01d.%02d [%.0f]"+
     				"   %s",
     				it.getDoc_seq(), it.getPage_no(), it.getPg_line_seq(),
-    				it.getSegNo(),
+    				it.getSeg_no(),
     				it.getContent());
     		listPDF.add(StrData);
     	}
@@ -453,8 +499,14 @@ public class PDFExtractor extends PDFTextStripper {
     	
     	JSONArray jArrPages = new JSONArray();
         
-        for (ContentItem it : this.getItems()) {
-
+        for (ContentItem it : this.getItems()) 
+        {
+    		if(it.getType()==Type.RECT)
+    		{
+    			//ignore
+    			continue;
+    		}
+    		
         	JSONObject jsonPageData = new JSONObject();
         	jsonPageData.put("doc_seq", it.getDoc_seq());
         	jsonPageData.put("page_no", it.getPage_no());
@@ -507,7 +559,6 @@ public class PDFExtractor extends PDFTextStripper {
     	int iPageHeight = jsonMeta.optInt(META_PAGE_HEIGHT,0);
     	int iTotalPages = jsonMeta.optInt(META_TOTAL_PAGES,0);
     	
-    	File pdf = this.file_orig_pdf;
     	String sRenderFilePrefix = getOutputFolder()+"/rendered_";
     	sRenderFilePrefix += isLayout?"layout":"content";
     	
@@ -730,37 +781,50 @@ public class PDFExtractor extends PDFTextStripper {
         	}
         }
         
-        long lExecutionID = System.currentTimeMillis(); 
-        for(File f : folderInput.listFiles())
+        if(folderInput!=null)
         {
-        	if(f.isFile())
-        	{
-        		if(f.getName().toLowerCase().endsWith(".pdf"))
-        		{
-        			long lStartTimeMs = System.currentTimeMillis(); 
-        			System.out.println("Extracting "+f.getName()+" ...");
-        			
-			        PDFExtractor pdfExtract = new PDFExtractor(f);
-			        pdfExtract.setStartPage(0);
-			        pdfExtract.setEndPage(0);
-			        pdfExtract.setIsExportImageAsJPG(true);
-			        pdfExtract.setIsEmbedImageBase64(false);
-			        pdfExtract.setMaxImageSize(0);
-			        pdfExtract.setOutputFolder(new File(folderOutput.getParent()+"/"+lExecutionID+"/"+f.getName()));
-			        
-			        for(String sTypeExt : sOutputTypes)
-			        {
-				        File fileOutput = new File(pdfExtract.getOutputFolder().getAbsolutePath()+"/extracted_data."+sTypeExt);
-				        pdfExtract.extractAsFile(fileOutput);
-				        JSONObject jsonMeta = pdfExtract.metaDataAsJSON();
-				        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
-				        System.out.println("  Extracted "+jsonMeta.getLong(META_TOTAL_PAGES)+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
-			        }
-			        
-	        		int iRenderedPages = pdfExtract.renderLayoutAsImage();
-	        		System.out.println("  Rendered layout : "+iRenderedPages);
+            File files[] = folderInput.listFiles();
+            if(files==null)
+            	files = new File[] {};
+
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-DD_HHmm-SS.sss");
+	        String sExecID = df.format(System.currentTimeMillis()); 
+	        for(File f : files)
+	        {
+	        	if(f.isFile())
+	        	{
+	        		if(f.getName().toLowerCase().endsWith(".pdf"))
+	        		{
+	        			
+	        			long lStartTimeMs = System.currentTimeMillis(); 
+	        			System.out.println("Extracting "+f.getName()+" ...");
+	        			
+				        PDFExtractor pdfExtract = new PDFExtractor(f);
+				        pdfExtract.setStartPage(0);
+				        pdfExtract.setEndPage(0);
+				        pdfExtract.setIsExportImageAsJPG(true);
+				        pdfExtract.setIsEmbedImageBase64(false);
+				        pdfExtract.setMaxImageSize(0);
+				        pdfExtract.setOutputFolder(new File(folderOutput.getParent()+"/"+sExecID+"/"+f.getName()));
+				        
+				        for(String sTypeExt : sOutputTypes)
+				        {
+					        JSONObject jsonMeta = pdfExtract.metaDataAsJSON();
+					        
+					        File fileOutput = new File(pdfExtract.getOutputFolder().getAbsolutePath()
+					        		+"/extracted_data."+sTypeExt);
+					        pdfExtract.extractAsFile(fileOutput);
+					        
+					        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
+					        System.out.println("  Extracted "+jsonMeta.getLong(META_TOTAL_PAGES)
+					        					+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
+				        }
+				        
+		        		int iRenderedPages = pdfExtract.renderLayoutAsImage();
+		        		System.out.println("  Rendered layout : "+iRenderedPages);
+		        	}
 	        	}
-        	}
+	        }
         }
         
     }
