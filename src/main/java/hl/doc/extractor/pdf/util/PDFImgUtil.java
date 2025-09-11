@@ -49,9 +49,9 @@ public class PDFImgUtil  {
     			if(it.getType()==Type.TEXT)
     			{
     			
-    				if(it.getSeg_no()>-1)
+    				if(it.getSegment_no()>-1)
     				{
-		    			Rectangle rect = mapSegment.get(it.getSeg_no());
+		    			Rectangle rect = mapSegment.get(it.getSegment_no());
 		    			if(rect==null)
 		    				rect = new Rectangle(aPageWidth,aPageHeight,0,0);
 		    			
@@ -79,7 +79,7 @@ public class PDFImgUtil  {
 		    				rect.height = height;
 		    			}
 		    			
-		    			mapSegment.put(it.getSeg_no(), rect);
+		    			mapSegment.put(it.getSegment_no(), rect);
     				}
     				else
     				{

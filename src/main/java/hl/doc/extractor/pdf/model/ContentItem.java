@@ -1,5 +1,7 @@
 package hl.doc.extractor.pdf.model;
 
+import java.awt.Rectangle;
+
 public class ContentItem {
 	//
 	public enum Type { TEXT, IMAGE, RECT }
@@ -9,22 +11,28 @@ public class ContentItem {
 	private int page_no 	= 0;
 	private int pg_line_seq = 0;
 	private String content 	= "";
-	private double seg		= 0;
-	private double x1, y1	= 0;
-	//private double x2, y2	= 0;
-	private double w, h  	= 0;
+	private double segment	= 0;
+	private Rectangle rect= null;
 
-	public ContentItem(Type type, String content, int pageno, float x, float y, float width, float height) {
+	public ContentItem(Type type, String content, int pageno, 
+			float x, float y, float width, float height) {
+		Rectangle rect = new Rectangle(
+				Math.round(x), Math.round(y), 
+				Math.round(width), Math.round(height));
+		init(type, content, pageno, rect);
+    }
+	
+	public ContentItem(Type type, String content, int pageno, Rectangle rect2d) {
+		init(type, content, pageno, rect2d);
+    }
+	
+	private void init(Type type, String content, int pageno, Rectangle rect2d)
+	{
         this.type = type; 
         this.page_no = pageno;
-        this.x1 = x; 
-        this.y1 = y; 
-        this.h = height;
-        this.w = width;
-        //this.x2 = x1+width; 
-        //this.y2 = y1+height; 
+        this.rect = rect2d;
         this.content = content;
-    }
+	}
 
 	//
 	public Type getType() {
@@ -67,52 +75,36 @@ public class ContentItem {
 		this.content = content;
 	}
 
-	public double getSeg_no() {
-		return seg;
+	public double getSegment_no() {
+		return segment;
 	}
 
-	public void setSeg_no(double seg) {
-		this.seg = seg;
+	public void setSegment_no(double seg) {
+		this.segment = seg;
 	}
 
 	public double getX1() {
-		return x1;
+		return this.rect.getX();
 	}
 
 	public double getX2() {
-		return x1 + getWidth();
-	}
-
-	public void setX1(double x) {
-		this.x1 = x;
+		return this.rect.getMaxX();
 	}
 
 	public double getY1() {
-		return y1;
+		return this.rect.getY();
 	}
 	
 	public double getY2() {
-		return y1 + getHeight();
-	}
-
-	public void setY1(double y) {
-		this.y1 = y;
+		return this.rect.getMaxY();
 	}
 
 	public double getWidth() {
-		return this.w;
-	}
-
-	public void setWidth(double w) {
-		this.w = w;
+		return this.rect.width;
 	}
 
 	public double getHeight() {
-		return this.h;
-	}
-
-	public void setHeight(double h) {
-		this.h = h;
+		return this.rect.height;
 	}
 	
 	public String toString()

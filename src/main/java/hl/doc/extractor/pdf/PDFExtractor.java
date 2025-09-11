@@ -9,7 +9,6 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
@@ -23,8 +22,6 @@ import hl.doc.extractor.pdf.model.ContentItem.Type;
 import hl.doc.extractor.pdf.util.PDFImgUtil;
 
 import java.awt.Color;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -45,25 +42,7 @@ import java.util.Properties;
 import javax.imageio.ImageIO;
 
 public class PDFExtractor extends PDFTextStripper {
-	
-	enum SORTING 
-	{
-	    BY_PAGE		(Comparator.comparing(ContentItem::getPage_no)),
-	    BY_X    	(Comparator.comparing(ContentItem::getX1)),
-	    BY_Y    	(Comparator.comparing(ContentItem::getY1)),
-	    BY_SEGMENT	(Comparator.comparing(ContentItem::getSeg_no));
-	
-	    private final Comparator<ContentItem> cmp;
 
-	    SORTING(Comparator<ContentItem> cmp) {
-	        this.cmp = cmp;
-	    }
-
-	    public Comparator<ContentItem> comparator() {
-	        return cmp;
-	    }
-	}
-	
 	public static String META_DOCNAME			= "docname";
 	public static String META_AUTHOR 			= "author";
 	public static String META_CREATION_DATE 	= "creationdate";
@@ -81,11 +60,10 @@ public class PDFExtractor extends PDFTextStripper {
 	protected static String HEADING_2			= "##";
 	protected static String HEADING_3			= "###";
 
-	
-	private PDDocument pdf_doc 	= null;
-	private File file_orig_pdf 	= null;
-	private File folder_output 	= null;
-	private Properties prop_meta = null;
+	private PDDocument pdf_doc 		= null;
+	private File file_orig_pdf 		= null;
+	private File folder_output 		= null;
+	private Properties prop_meta 	= null;
 	
 	private boolean extracted 			= false;
 	private boolean export_image_jpg 	= true;
@@ -93,6 +71,26 @@ public class PDFExtractor extends PDFTextStripper {
 	private int max_image_size			= 0;
 	
     private final List<ContentItem> _items 	= new ArrayList<>();
+    private SORT _sorting[] = new SORT[] {SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X};
+    
+	enum SORT 
+	{
+	    BY_PAGE		(Comparator.comparing(ContentItem::getPage_no)),
+	    BY_X    	(Comparator.comparing(ContentItem::getX1)),
+	    BY_Y    	(Comparator.comparing(ContentItem::getY1)),
+	    BY_SEGMENT	(Comparator.comparing(ContentItem::getSegment_no));
+	
+	    private final Comparator<ContentItem> cmp;
+
+	    SORT(Comparator<ContentItem> cmp) {
+	        this.cmp = cmp;
+	    }
+
+	    public Comparator<ContentItem> comparator() {
+	        return cmp;
+	    }
+	}
+	
     
     public PDFExtractor(File aPDFFile) throws IOException {
     	
@@ -175,34 +173,48 @@ public class PDFExtractor extends PDFTextStripper {
     	return (int)Math.ceil(pdf_doc.getPage(0).getCropBox().getHeight());
     }
     
-    public List<ContentItem> sortPageItems(List<ContentItem> aListItem)
+    public void setSortingOrder(SORT ... aSorts )
     {
-    	return sortPageItems(aListItem
-    			,SORTING.BY_PAGE
-    			,SORTING.BY_SEGMENT
-       			,SORTING.BY_Y
-       			,SORTING.BY_X
-    			);
+   		if(aSorts==null)
+   			aSorts = new SORT[]{};
+    	
+    	this._sorting = new SORT[aSorts.length];
+   		if(aSorts.length>0)
+    	{
+ 	    	for (int idx=0; idx<aSorts.length; idx++)
+	    	{
+	    		this._sorting[idx] = aSorts[idx];
+	    	}
+    	}
     }
     
-	public List<ContentItem> sortPageItems(
-    		List<ContentItem> aListItem, 
-    		SORTING ... sortings)
+    public SORT[] getSortingOrder()
     {
-		if(sortings.length>0)
+    	return this._sorting;
+    }
+    
+    public void sortPageItems(List<ContentItem> aListItem)
+    {
+    	sortPageItems(aListItem,this.getSortingOrder());
+    }
+    
+	private void sortPageItems(
+    		List<ContentItem> aListItem, 
+    		SORT ... aSortings)
+    {
+		if(aSortings.length>0)
 		{
-	    	Comparator<ContentItem> comparator = sortings[0].comparator();
+	    	Comparator<ContentItem> cmp = aSortings[0].comparator();
 	    	
-	    	if(sortings.length>1)
+	    	if(aSortings.length>1)
 	    	{
-		    	for (int idx=1; idx<sortings.length; idx++)
+		    	for (int idx=1; idx<aSortings.length; idx++)
 		    	{
-		    		comparator.thenComparing(sortings[idx].comparator());
+		    		cmp = cmp.thenComparing(aSortings[idx].comparator());
 		    	}
 	    	}
-			aListItem.sort(comparator);
+			aListItem.sort(cmp);
 		}
-    	return aListItem;
     }
     
     private List<ContentItem> extract() throws IOException
@@ -212,11 +224,17 @@ public class PDFExtractor extends PDFTextStripper {
 	    	this.extracted = true;
     		super.writeText(pdf_doc, new StringWriter());
     		
-    		List<ContentItem> listItems = processExtractedItems(this._items);
+    		List<ContentItem> listItems = new ArrayList<>();
+    		listItems.addAll(this.getItems());
     		
-    		listItems = sortPageItems(listItems);
+System.out.println("listItems.size()"+listItems.size());
+    		//sortPageItems(listItems);
+    		listItems = processExtractedItems(listItems);
+System.out.println("listItems.size()"+listItems.size());
+    		sortPageItems(listItems);
        		this._items.clear();
     		this._items.addAll(listItems);
+System.out.println("this.getItems().size()"+this.getItems().size());
 
         	///////////////////////
 	    	int iDocSeq 	= 1;
@@ -238,37 +256,9 @@ public class PDFExtractor extends PDFTextStripper {
         return this._items;
     }
     
-    public List<ContentItem> processExtractedItems(final List<ContentItem> aList)
+    public List<ContentItem> processExtractedItems(List<ContentItem> aList)
     {
-		ContentItem itemPrev = null;
-		List<ContentItem> listUpdated = new ArrayList<>();
-		for(ContentItem item : aList)
-		{	
-			boolean isInclude = true;
-			if (itemPrev!=null)
-			{
-				boolean isSamePage = (itemPrev.getPage_no() == item.getPage_no());
-				boolean isTextType = (item.getType() == ContentItem.Type.TEXT);
-				
-				if(isSamePage && isTextType)
-				{
-					boolean isSameY 	= (item.getY1() == itemPrev.getY1());
-					boolean isAfterImg 	= (itemPrev.getType() == ContentItem.Type.IMAGE);
-		  		
-			  		if(isSameY || isAfterImg)
-			  		{
-			  			if(item.getContent().trim().length()==0)
-			  			{
-			  				isInclude = false;
-			  			}
-			  		}
-				}
-			}
-			itemPrev = item;
-			if(isInclude)
-				listUpdated.add(item);
-		}
-		return listUpdated;
+		return aList;
     }
     
     // Capture text with position
@@ -287,10 +277,10 @@ public class PDFExtractor extends PDFTextStripper {
             float x1 = textFirst.getXDirAdj();
             float y1 = textFirst.getYDirAdj();
             
-            float x2 = textLast.getXDirAdj();
-            float w2 = textLast.getWidthDirAdj();
+            float x2  = textLast.getXDirAdj();
+            float x2w = textLast.getWidthDirAdj();
             
-            float w = (x2+w2)-x1;
+            float w = (x2+x2w)-x1;
             float h = textFirst.getFontSizeInPt();
             
             if(string.trim().isEmpty())
@@ -398,6 +388,7 @@ public class PDFExtractor extends PDFTextStripper {
                 return;
             } 
         }
+        /**
         else if ("re".equals(op)) 
         {
             float x = ((COSNumber) operands.get(0)).floatValue();
@@ -422,6 +413,7 @@ public class PDFExtractor extends PDFTextStripper {
             		rect.x, rect.y, rect.width, rect.height));
             return;
         }
+        **/
         super.processOperator(operator, operands);
     }
     
@@ -464,9 +456,10 @@ public class PDFExtractor extends PDFTextStripper {
     		
     		String StrData = String.format(
     				"%0"+iLeadingZero+"d p%01d.%02d [%.0f]"+
-    				"   %s",
+    				"{x:%.0f, y:%.0f}   %s",
     				it.getDoc_seq(), it.getPage_no(), it.getPg_line_seq(),
-    				it.getSeg_no(),
+    				it.getSegment_no(),
+    				it.getX1(), it.getY1(),
     				it.getContent());
     		listPDF.add(StrData);
     	}
@@ -844,6 +837,7 @@ public class PDFExtractor extends PDFTextStripper {
 			        pdfExtract.setIsExportImageAsJPG(true);
 			        pdfExtract.setIsEmbedImageBase64(false);
 			        pdfExtract.setMaxImageSize(0);
+			        pdfExtract.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);
 			        pdfExtract.setOutputFolder(new File(folderOutput.getParent()+"/"+sExecID+"/"+f.getName()));
 			        
 			        for(String sTypeExt : sOutputTypes)
