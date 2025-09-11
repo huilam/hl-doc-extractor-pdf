@@ -29,6 +29,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -559,7 +560,7 @@ public class PDFExtractor extends PDFTextStripper {
     	int iPageHeight = jsonMeta.optInt(META_PAGE_HEIGHT,0);
     	int iTotalPages = jsonMeta.optInt(META_TOTAL_PAGES,0);
     	
-    	String sRenderFilePrefix = getOutputFolder()+"/rendered_";
+    	String sRenderFilePrefix = getOutputFolder()+"/layout/rendered_";
     	sRenderFilePrefix += isLayout?"layout":"content";
     	
     	for(int iPageNo = 1; iPageNo<=iTotalPages; iPageNo++)
@@ -578,7 +579,13 @@ public class PDFExtractor extends PDFTextStripper {
     					Color.WHITE, true, listItems, iPageNo);
     		}
     		
-    		File fileImage = new File(String.format(sRenderFilePrefix+"_%d.%s", iPageNo, IMG_FILEEXT.toLowerCase()));
+    		File fileImage = new File(String.format(sRenderFilePrefix+"_%d.%s", 
+    				iPageNo, IMG_FILEEXT.toLowerCase()));
+    		
+    		if(!fileImage.getParentFile().isDirectory())
+    		{
+    			fileImage.getParentFile().mkdirs();
+    		}
     		
     		if(PDFImgUtil.saveImage(img, IMG_FILEEXT, fileImage))
     		{
@@ -781,7 +788,6 @@ public class PDFExtractor extends PDFTextStripper {
     
     //=========================================================== 
     public static void main(String[] args) throws IOException{
-    	
         File folderInput 		= null;
         File folderOutput 		= null;
         boolean isRenderLayout  = true;
@@ -795,57 +801,71 @@ public class PDFExtractor extends PDFTextStripper {
         else
         {
         	folderInput 	= new File("test/");
-        	folderOutput	= new File("test/output");
+        	folderOutput	= new File(folderInput.getAbsolutePath()+"/output");
         }
-        
-        if(folderInput!=null)
-        {
-            File files[] = folderInput.listFiles();
-            if(files==null)
-            	files = new File[] {};
 
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-DD_HHmm-SS.sss");
-	        String sExecID = df.format(System.currentTimeMillis()); 
-	        for(File f : files)
-	        {
-	        	if(f.isFile())
-	        	{
-	        		if(f.getName().toLowerCase().endsWith(".pdf"))
-	        		{
-	        			
-	        			long lStartTimeMs = System.currentTimeMillis(); 
-	        			System.out.println("Extracting "+f.getName()+" ...");
-	        			
-				        PDFExtractor pdfExtract = new PDFExtractor(f);
-				        pdfExtract.setStartPage(0);
-				        pdfExtract.setEndPage(0);
-				        pdfExtract.setIsExportImageAsJPG(true);
-				        pdfExtract.setIsEmbedImageBase64(false);
-				        pdfExtract.setMaxImageSize(0);
-				        pdfExtract.setOutputFolder(new File(folderOutput.getParent()+"/"+sExecID+"/"+f.getName()));
-				        
-				        for(String sTypeExt : sOutputTypes)
-				        {
-					        JSONObject jsonMeta = pdfExtract.metaDataAsJSON();
-					        
-					        File fileOutput = new File(pdfExtract.getOutputFolder().getAbsolutePath()
-					        		+"/extracted_data."+sTypeExt);
-					        pdfExtract.extractAsFile(fileOutput);
-					        
-					        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
-					        System.out.println("  Extracted "+jsonMeta.getLong(META_TOTAL_PAGES)
-					        					+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
-				        }
-				        
-				        if(isRenderLayout)
-		        		{
-				        	int iRenderedPages = pdfExtract.renderLayoutAsImage();
-				        	System.out.println("  Rendered layout : "+iRenderedPages);
-		        		}
-		        	}
-	        	}
-	        }
+        if(!folderInput.isDirectory())
+        {
+        	System.err.println("Invalid input folder ! NULL");
+        	return;
         }
         
+        File files[] = folderInput.listFiles(new FileFilter() {
+			
+			@Override
+			public boolean accept(File pathname) {
+				return pathname.getName().toLowerCase().endsWith(".pdf");
+			}
+		});
+        if(files==null)
+        	files = new File[]{};
+
+        if(files.length==0)
+        {
+        	System.err.println("PDF file NOT found ! "+folderInput.getAbsolutePath());
+        	return;
+        }
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-DD_HHmm-SS.sss");
+        String sExecID = df.format(System.currentTimeMillis()); 
+        for(File f : files)
+        {
+        	if(f.isFile())
+        	{
+        		if(f.getName().toLowerCase().endsWith(".pdf"))
+        		{
+        			
+        			long lStartTimeMs = System.currentTimeMillis(); 
+        			System.out.println("Extracting "+f.getName()+" ...");
+        			
+			        PDFExtractor pdfExtract = new PDFExtractor(f);
+			        pdfExtract.setStartPage(0);
+			        pdfExtract.setEndPage(0);
+			        pdfExtract.setIsExportImageAsJPG(true);
+			        pdfExtract.setIsEmbedImageBase64(false);
+			        pdfExtract.setMaxImageSize(0);
+			        pdfExtract.setOutputFolder(new File(folderOutput.getParent()+"/"+sExecID+"/"+f.getName()));
+			        
+			        for(String sTypeExt : sOutputTypes)
+			        {
+				        Properties propMeta = pdfExtract.getMetaData();
+				        
+				        File fileOutput = new File(pdfExtract.getOutputFolder().getAbsolutePath()
+				        		+"/extracted_data."+sTypeExt);
+				        pdfExtract.extractAsFile(fileOutput);
+				        
+				        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
+				        System.out.println("  Extracted "+propMeta.getProperty(META_TOTAL_PAGES)
+				        					+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
+			        }
+			        
+			        if(isRenderLayout)
+	        		{
+			        	int iRenderedPages = pdfExtract.renderLayoutAsImage();
+			        	System.out.println("  Rendered layout : "+iRenderedPages);
+	        		}
+	        	}
+        	}
+        }
     }
 }
