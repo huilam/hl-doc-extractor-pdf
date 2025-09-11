@@ -740,35 +740,31 @@ public class PDFExtractor extends PDFTextStripper {
     	super.setEndPage(iPageNo);
     }
     
-    //=========================================================== 
-    public static void main(String[] args) throws IOException{
-    	
-        File folderInput 	= new File("test/");
-        File folderOutput 	= new File("test/output");
-        String[] sOutputTypes  = new String[]{"json","txt"};
+    public static boolean isConsoleSyntaxOK(String[] args)
+    {
+    	boolean isSyntaxOK = false;
         
         if(args.length>0)
         {
-        	boolean isSyntaxErr = false;
         	
-        	folderInput = new File(args[0]);
+        	File folderInput = new File(args[0]);
         	if(!folderInput.isDirectory())
         	{
-        		isSyntaxErr = true;
+        		isSyntaxOK = false;
         		System.err.println("Invalid <input-folder> !");
         	}
         	
         	if(args.length>1)
         	{
-        		folderOutput = new File(args[1]);
+        		File folderOutput = new File(args[1]);
         		if(!folderOutput.isDirectory())
             	{
-            		isSyntaxErr = true;
+        			isSyntaxOK = false;
             		System.err.println("Invalid <output-folder> !");
             	}
         	}
         	
-        	if(isSyntaxErr)
+        	if(!isSyntaxOK)
         	{
         		System.err.println("Syntax :");
         		System.err.println("   PDFExtractor <input-folder> [output-folder]");
@@ -777,8 +773,29 @@ public class PDFExtractor extends PDFTextStripper {
         		System.err.println("   PDFExtractor test ");
         		System.err.println("   PDFExtractor test output");
         		System.err.println("   PDFExtractor test test/output");
-        		return;
         	}
+        	
+        }
+        return isSyntaxOK;
+    }
+    
+    //=========================================================== 
+    public static void main(String[] args) throws IOException{
+    	
+        File folderInput 		= null;
+        File folderOutput 		= null;
+        boolean isRenderLayout  = true;
+        String[] sOutputTypes  	= new String[]{"json","txt"};
+        
+        if(PDFExtractor.isConsoleSyntaxOK(args))
+        {
+        	folderInput 	= new File(args[0]);
+    		folderOutput	= new File(args[1]);
+        }
+        else
+        {
+        	folderInput 	= new File("test/");
+        	folderOutput	= new File("test/output");
         }
         
         if(folderInput!=null)
@@ -820,8 +837,11 @@ public class PDFExtractor extends PDFTextStripper {
 					        					+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
 				        }
 				        
-		        		int iRenderedPages = pdfExtract.renderLayoutAsImage();
-		        		System.out.println("  Rendered layout : "+iRenderedPages);
+				        if(isRenderLayout)
+		        		{
+				        	int iRenderedPages = pdfExtract.renderLayoutAsImage();
+				        	System.out.println("  Rendered layout : "+iRenderedPages);
+		        		}
 		        	}
 	        	}
 	        }
