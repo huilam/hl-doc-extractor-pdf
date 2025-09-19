@@ -216,7 +216,6 @@ public class PDFImgUtil  {
     	if(input==null || input.getType()==BufferedImage.TYPE_INT_RGB)
     		return input;
     	
-    	
     	BufferedImage imageNew = new BufferedImage(input.getWidth(), input.getHeight(), BufferedImage.TYPE_INT_RGB);
     	Graphics2D g2d = null;
         try

@@ -12,13 +12,19 @@ public class ContentItem {
 	private int pg_line_seq = 0;
 	private String content 	= "";
 	private double segment	= 0;
-	private Rectangle rect= null;
+	private Rectangle rect	= null;
 
 	public ContentItem(Type type, String content, int pageno, 
 			float x, float y, float width, float height) {
 		Rectangle rect = new Rectangle(
 				Math.round(x), Math.round(y), 
 				Math.round(width), Math.round(height));
+		init(type, content, pageno, rect);
+    }
+	
+	public ContentItem(Type type, String content, int pageno, 
+			int x, int y, int width, int height) {
+		Rectangle rect = new Rectangle(x, y, width, height);
 		init(type, content, pageno, rect);
     }
 	
@@ -79,8 +85,8 @@ public class ContentItem {
 		return segment;
 	}
 
-	public void setSegment_no(double seg) {
-		this.segment = seg;
+	public void setSegment_no(double segno) {
+		this.segment = segno;
 	}
 
 	public double getX1() {

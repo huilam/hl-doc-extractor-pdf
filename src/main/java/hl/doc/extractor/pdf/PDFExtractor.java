@@ -9,6 +9,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
@@ -22,6 +23,9 @@ import hl.doc.extractor.pdf.model.ContentItem.Type;
 import hl.doc.extractor.pdf.util.PDFImgUtil;
 
 import java.awt.Color;
+import java.awt.Rectangle;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -73,7 +77,7 @@ public class PDFExtractor extends PDFTextStripper {
     private final List<ContentItem> _items 	= new ArrayList<>();
     private SORT _sorting[] = new SORT[] {SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X};
     
-	enum SORT 
+    public enum SORT 
 	{
 	    BY_PAGE		(Comparator.comparing(ContentItem::getPage_no)),
 	    BY_X    	(Comparator.comparing(ContentItem::getX1)),
@@ -134,12 +138,48 @@ public class PDFExtractor extends PDFTextStripper {
     	return this._items; 
     }
     
-    public List<ContentItem> getItemsByPage( List<ContentItem> aListItems, int aPageNo) { 
+    public List<ContentItem> getItemsByPage(
+    		List<ContentItem> aListItems, int aPageNo) { 
+    	return getItemsByPageType(aListItems, aPageNo, null);
+    }
+    
+    public List<ContentItem> getItemsByPageType(
+    		List<ContentItem> aListItems, int aPageNo, Type aItemType) { 
+    	
+    	return getItemsByPageTypeRegion(aListItems, aPageNo, aItemType, null);
+    }
+    
+    public List<ContentItem> getItemsByPageRegion(
+    		List<ContentItem> aListItems, int aPageNo, Rectangle aRegion) { 
+    	return getItemsByPageTypeRegion(aListItems, aPageNo, null, aRegion);
+    }
+    
+    private List<ContentItem> getItemsByPageTypeRegion(
+    		List<ContentItem> aListItems, int aPageNo, Type aItemType, Rectangle aRegion) { 
     	
     	List<ContentItem> listPageItems = new ArrayList<>();
     	for(ContentItem it : aListItems)
     	{
-    		if(it.getPage_no()==aPageNo)
+    		boolean isWithinPage 	= (aPageNo==-1 || it.getPage_no()==aPageNo);
+    		boolean isSameType 		= (aItemType==null || aItemType==it.getType());
+    		boolean isWithinRegion 	= false;
+    		
+    		if(isWithinPage && isSameType)
+    		{
+        		if(aRegion==null)
+        		{
+        			isWithinRegion = true;
+        		}
+        		else
+        		{
+        			isWithinRegion = it.getX1()>aRegion.getX() 
+        					&& it.getX2()<aRegion.getMaxX() 
+        					&& it.getY1()>aRegion.getY() 
+        					&& it.getY2()<aRegion.getMaxY();
+        		}
+    		}
+    		
+    		if(isWithinRegion)
     		{
     			listPageItems.add(it);
     		}
@@ -223,14 +263,14 @@ public class PDFExtractor extends PDFTextStripper {
     	{
 	    	this.extracted = true;
     		super.writeText(pdf_doc, new StringWriter());
-    		
+    		///////////////////////
     		List<ContentItem> listItems = new ArrayList<>();
     		listItems.addAll(this.getItems());
     		listItems = postProcessExtractedItems(listItems);
     		sortPageItems(listItems);
+    		///////////////////////
        		this._items.clear();
     		this._items.addAll(listItems);
-
         	///////////////////////
 	    	int iDocSeq 	= 1;
 	    	int iPgLineSeq 	= 1;
@@ -385,7 +425,6 @@ public class PDFExtractor extends PDFTextStripper {
                 return;
             } 
         }
-        /**
         else if ("re".equals(op)) 
         {
             float x = ((COSNumber) operands.get(0)).floatValue();
@@ -405,12 +444,13 @@ public class PDFExtractor extends PDFTextStripper {
                     Math.abs(p1.y - p0.y)
                 );
             
-            
-            this._items.add(new ContentItem(ContentItem.Type.RECT, "", getCurrentPageNo(), 
-            		rect.x, rect.y, rect.width, rect.height));
-            return;
+            if(rect.width>100 && rect.height>100)
+            {            
+	            this._items.add(new ContentItem(ContentItem.Type.RECT, "", getCurrentPageNo(), 
+	            		rect.x, rect.y, rect.width, rect.height));
+	            return;
+            }
         }
-        **/
         super.processOperator(operator, operands);
     }
     
