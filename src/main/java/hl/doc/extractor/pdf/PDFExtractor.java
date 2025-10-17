@@ -69,8 +69,8 @@ public class PDFExtractor {
 	private File folder_output 		= null;
 	private Properties prop_meta 	= null;
 	
-	private int start_page_no 		= 1;
-	private int end_page_no 		= 1;
+	private int start_page_no 		= 0;
+	private int end_page_no 		= 0;
 	
 	private boolean extracted 			= false;
 	private boolean export_image_jpg 	= true;
