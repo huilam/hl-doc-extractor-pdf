@@ -507,6 +507,48 @@ public class PDFExtractor {
     			if(wrt!=null)
     				wrt.close();
     		}
+    		
+        	if(isExportImage())
+    		{
+        		int id = 1;
+        		
+        		File folderImages = new File(getOutputFolder().getAbsolutePath()+"/images/");
+        		folderImages.mkdirs();
+        		
+        		List<ContentItem> items = this.extract();
+    			for(ContentItem item : items)
+    			{
+    				if(item.getType()==Type.IMAGE)
+    				{
+	    				BufferedImage img = ContentItemExtractor.getImage(item);
+	    				
+	    				if(img!=null)
+	    				{
+	    					String sImgExt = "jpg";
+		    				String sImgFileName = 
+		    						getOrigPdfFile().getName()+"_"+"img"+(id++)
+		    						+"_"+item.getX1()+"_"+item.getY1()+"_"+item.getWidth()+"x"+item.getHeight()
+		    						+"."+sImgExt;
+		                	
+		                	try {
+		                		File fileImage = new File(folderImages.getAbsolutePath()+"/"+sImgFileName);
+		                		fileImage.getParentFile().mkdirs();
+		                		if(!PDFImgUtil.saveImage(img, sImgExt,fileImage))
+		                		{
+		                			throw new IOException("Failed to save - img="+img);
+		                		}
+		                		else
+		                		{
+		                			System.out.println("    saved "+fileImage.getName());
+		                		}
+		                	}catch(IOException ex)
+		                	{
+		                		System.err.println(ex.getMessage());
+		                	}
+	    				}
+    				}
+    			}
+    		}
     	}
     	
     	

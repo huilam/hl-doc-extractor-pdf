@@ -20,6 +20,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -27,10 +28,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.imageio.ImageIO;
 
 public class ContentItemExtractor {
 
+	private static Pattern pattImgPrefix = Pattern.compile("(data\\:image\\/(.+?)\\;base64\\,)");
+	
     // ---- TEXT BOUNDING BOXES ----
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException {
 		
@@ -134,7 +140,7 @@ public class ContentItemExtractor {
 	            ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ImageIO.write(img, sImgformat, baos);
                 byte[] imageBytes = baos.toByteArray();
-                String sImgContent = "image/"+sImgformat+";base64,"+Base64.getEncoder().encodeToString(imageBytes);
+                String sImgContent = "data:image/"+sImgformat+";base64,"+Base64.getEncoder().encodeToString(imageBytes);
 
 	            ContentItem item = new ContentItem(Type.IMAGE, sImgContent, 1, rect);
 	            contentItems.add(item);
@@ -158,6 +164,33 @@ public class ContentItemExtractor {
 	    ImagePositionEngine engine = new ImagePositionEngine(page);
 	    engine.processPage(page);
 	    return engine.contentItems;
+	}
+	
+	public static BufferedImage getImage(ContentItem aContentItem)
+	{
+		BufferedImage img = null;
+		if(aContentItem!=null && aContentItem.getType()==Type.IMAGE)
+		{
+			String sData = aContentItem.getContent();
+			if(sData.length()>25)
+			{
+				Matcher m = pattImgPrefix.matcher(sData.subSequence(0, 25));
+				if(m.find())
+				{
+					String sPrefix = m.group(1);
+					String sImgFormat = m.group(2);
+					String sImgData = sData.substring(sPrefix.length());
+				    try {
+				        byte[] decodedBytes = Base64.getDecoder().decode(sImgData);
+				        img = ImageIO.read(new ByteArrayInputStream(decodedBytes));
+				    } catch (IOException e) {
+				        e.printStackTrace();
+				    }
+				}
+			}
+		}
+		
+		return img;
 	}
 	
 	public static void main(String[] args) throws Exception {

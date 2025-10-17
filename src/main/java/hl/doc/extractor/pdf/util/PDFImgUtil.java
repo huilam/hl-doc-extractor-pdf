@@ -10,6 +10,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.imageio.ImageIO;
 
 import hl.doc.extractor.pdf.model.ContentItem;
@@ -121,7 +124,7 @@ public class PDFImgUtil  {
     	return img;
     }
     
-    public static boolean saveImage(BufferedImage aImage, File aOutputFile)
+    public static boolean saveImageAsJPG(BufferedImage aImage, File aOutputFile)
     {
     	return saveImage(aImage, "JPG", aOutputFile);
     }
@@ -193,6 +196,17 @@ public class PDFImgUtil  {
         }
 
         return resized;
+    }
+    
+    public static void main(String args[])
+    {
+    	String sBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4XmNgAAIAAAUAAQYUdaMAAAAASUVORK5CYII=";
+    	Pattern pattImgPrefix = Pattern.compile("(data\\:image\\/(.+?)\\;base64\\,)");
+    	
+    	Matcher m = pattImgPrefix.matcher(sBase64.subSequence(0, 30));
+    	System.out.println("sData="+sBase64);
+    					boolean found = m.find();
+    	System.out.println("found="+found);
     }
     
 }
