@@ -5,19 +5,14 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import javax.imageio.ImageIO;
 
 import hl.doc.extractor.pdf.model.ContentItem;
-import hl.doc.extractor.pdf.model.ContentItem.Type;
 
 
 public class PDFImgUtil  {
