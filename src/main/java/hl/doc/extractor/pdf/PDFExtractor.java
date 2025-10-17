@@ -382,6 +382,7 @@ public class PDFExtractor extends PDFTextStripper {
                
                 String sImgContent = sImgFileID;
                 BufferedImage bimg = image.getImage();
+                String sImgFormat  = image.getSuffix();
                 
                 if(max_image_size>0)
                 {
@@ -395,19 +396,19 @@ public class PDFExtractor extends PDFTextStripper {
                 {
                 	 // Write image data to a byte array
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    ImageIO.write(bimg, IMG_FILEEXT, baos);
+                    ImageIO.write(bimg, sImgFormat, baos);
                     byte[] imageBytes = baos.toByteArray();
-                    sImgContent = "image/"+IMG_FILEEXT+";base64,"+Base64.getEncoder().encodeToString(imageBytes);
+                    sImgContent = "image/"+sImgFormat+";base64,"+Base64.getEncoder().encodeToString(imageBytes);
                 }
                 
-                if(isExportImageAsJPG())
+                if(isExportImage())
                 {
-                	sImgFileID += "."+IMG_FILEEXT;
+                	sImgFileID += "."+sImgFormat;
                 	sImgContent = getOutputFolder().getAbsolutePath()+"/images/"+sImgFileID;
                 	try {
                 		File fileImage = new File(sImgContent);
                 		fileImage.getParentFile().mkdirs();
-                		if(!PDFImgUtil.saveImage(bimg, IMG_FILEEXT, fileImage))
+                		if(!PDFImgUtil.saveImage(bimg, sImgFormat, fileImage))
                 			throw new IOException("Failed to save - "+sImgContent+"  bimg="+bimg);
                 	}catch(IOException ex)
                 	{
@@ -683,11 +684,11 @@ public class PDFExtractor extends PDFTextStripper {
     	return aOutputFile;
     }
 
-    public void setIsExportImageAsJPG(boolean isExportJpg)
+    public void setIsExportImage(boolean isExportJpg)
     {
     	this.export_image_jpg = isExportJpg;
     }
-    public boolean isExportImageAsJPG()
+    public boolean isExportImage()
     {
     	return this.export_image_jpg;
     }
@@ -870,7 +871,7 @@ public class PDFExtractor extends PDFTextStripper {
 			        PDFExtractor pdfExtract = new PDFExtractor(f);
 			        pdfExtract.setStartPage(0);
 			        pdfExtract.setEndPage(0);
-			        pdfExtract.setIsExportImageAsJPG(true);
+			        pdfExtract.setIsExportImage(true);
 			        pdfExtract.setIsEmbedImageBase64(false);
 			        pdfExtract.setMaxImageSize(0);
 			        pdfExtract.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);
