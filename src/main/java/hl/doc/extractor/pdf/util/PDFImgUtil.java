@@ -6,9 +6,11 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +22,7 @@ import hl.doc.extractor.pdf.model.ContentItem;
 
 public class PDFImgUtil  {
 	
+	private static Pattern pattImgPrefix = Pattern.compile("(data\\:image\\/(.+?)\\;base64\\,)");
 	private static Color DEF_PADDING_COLOR  = Color.WHITE;
 	
     public static BufferedImage renderContentByPage(
@@ -132,7 +135,10 @@ public class PDFImgUtil  {
     {
     	boolean isSaved = false;
     	try {
-    		aImage = convertToRGB(aImage);
+    		if(!aImageExt.endsWith("PNG"))
+    		{
+    			aImage = convertToRGB(aImage);
+    		}
     		isSaved = ImageIO.write(aImage, aImageExt, aOutputFile);
     		
     	}catch(IOException ex)
@@ -140,6 +146,38 @@ public class PDFImgUtil  {
     		System.err.println(ex.getMessage());
     	}
     	return isSaved;
+    }
+    
+    public static File saveBase64AsImage(String aImageBase64, File aOutputFile)
+    {
+    	String sImgFormat = "JPG";
+    	BufferedImage img = null;
+    	Matcher m = pattImgPrefix.matcher(aImageBase64.subSequence(0, 25));
+		if(m.find())
+		{
+			String sPrefix = m.group(1);
+			sImgFormat = m.group(2);
+			String sImgData = aImageBase64.substring(sPrefix.length());
+			try {
+		        byte[] decodedBytes = Base64.getDecoder().decode(sImgData);
+		        img = ImageIO.read(new ByteArrayInputStream(decodedBytes));
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		    }
+		}
+		
+		if(img!=null)
+		{
+			String sFileName = aOutputFile.getAbsolutePath();
+			if(!sFileName.toLowerCase().endsWith(sImgFormat.toLowerCase()))
+			{
+				aOutputFile = new File(sFileName+"."+sImgFormat.toLowerCase());
+			}
+			
+			if(saveImage(img, sImgFormat, aOutputFile))
+				return aOutputFile;
+		}
+		return null;
     }
     
     private static BufferedImage convertToRGB(final BufferedImage input) 

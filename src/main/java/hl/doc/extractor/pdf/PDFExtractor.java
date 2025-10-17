@@ -520,9 +520,9 @@ public class PDFExtractor {
     			{
     				if(item.getType()==Type.IMAGE)
     				{
-	    				BufferedImage img = ContentItemExtractor.getImage(item);
+	    				String sImgBase64 = item.getContent();
 	    				
-	    				if(img!=null)
+	    				if(sImgBase64!=null && sImgBase64.length()>20)
 	    				{
 	    					String sImgExt = "jpg";
 		    				String sImgFileName = 
@@ -533,13 +533,18 @@ public class PDFExtractor {
 		                	try {
 		                		File fileImage = new File(folderImages.getAbsolutePath()+"/"+sImgFileName);
 		                		fileImage.getParentFile().mkdirs();
-		                		if(!PDFImgUtil.saveImage(img, sImgExt,fileImage))
+		                		
+		                		
+		                		
+		                		File fileSaved = PDFImgUtil.saveBase64AsImage(sImgBase64,fileImage);
+		                		
+		                		if(!fileSaved.exists())
 		                		{
-		                			throw new IOException("Failed to save - img="+img);
+		                			throw new IOException("Failed to save - fileName="+fileImage.getAbsolutePath());
 		                		}
 		                		else
 		                		{
-		                			System.out.println("    saved "+fileImage.getName());
+		                			System.out.println("    saved "+fileSaved.getName());
 		                		}
 		                	}catch(IOException ex)
 		                	{
