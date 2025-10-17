@@ -2,6 +2,7 @@ package hl.doc.extractor.pdf.util;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -38,78 +39,10 @@ public class PDFImgUtil  {
     		Color aBackgroundColor, 
     		List<ContentItem> aContentList, int aPageNo)
     {
-    	List<ContentItem> listLayout = new ArrayList<>();
     	List<ContentItem> listPageItem = filterItemsByPage(aContentList, aPageNo);
-    	
-    	if(listPageItem.size()>0)
-    	{
-    		Map<Double, Rectangle> mapSegment = new HashMap<Double, Rectangle>();
-    		for(ContentItem it : listPageItem)
-    		{
-    			if(it.getType()==Type.TEXT)
-    			{
-    			
-    				if(it.getSegment_no()>-1)
-    				{
-		    			Rectangle rect = mapSegment.get(it.getSegment_no());
-		    			if(rect==null)
-		    				rect = new Rectangle(aPageWidth,aPageHeight,0,0);
-		    			
-		    			int x1 = (int)Math.ceil(it.getX1());
-		    			int y1 = (int)Math.ceil(it.getY1());
-		    			if(x1 < rect.x)
-		    			{
-		    				rect.x = x1;
-		    			}
-		    			if(y1 < rect.y)
-		    			{
-		    				rect.y = y1;
-		    			}
-		    			//////////////////////////
-		    			int x2 = (int)Math.ceil(it.getX2());
-		    			int y2 = (int)Math.ceil(it.getY2());
-		    			int width 	= x2-x1;
-		    			int height 	= y2-y1;
-		    			if(width > rect.width)
-		    			{
-		    				rect.width = width;
-		    			}
-		    			if(height > rect.height)
-		    			{
-		    				rect.height = height;
-		    			}
-		    			
-		    			mapSegment.put(it.getSegment_no(), rect);
-    				}
-    				else
-    				{
-    					//outlier
-    					listLayout.add(it);
-    				}
-    			}
-    			else
-    			{
-    				listLayout.add(it);
-    			}
-    		}
-    		
-    		if(mapSegment.size()>0)
-    		{
-	    		for(double dSeg : mapSegment.keySet())
-	    		{
-	    			Rectangle rect = mapSegment.get(dSeg);
-	    			if(rect.width>0 && rect.height>0)
-	    			{
-		    			ContentItem item = new ContentItem(Type.TEXT,"", aPageNo,
-		    					rect.x, rect.y, rect.width, rect.height);
-		    			listLayout.add(item);
-	    			}
-	    			
-	    		}
-    		}
-    	}
+
     	return render(aPageWidth, aPageHeight, 
-    			aBackgroundColor, false, listLayout);
+    			aBackgroundColor, false, listPageItem);
     }
     
     private static List<ContentItem> filterItemsByPage(List<ContentItem> aContentList, int aPageNo)
@@ -148,13 +81,9 @@ public class PDFImgUtil  {
 		        g2d.setColor(Color.BLACK); 
 		        g2d.drawRect(0, 0, aPageWidth-1, aPageHeight-1);
 		        
+		        FontMetrics fm = g2d.getFontMetrics();
 		        for(ContentItem item : aContentList)
 		        {
-	        		int x = (int) Math.round(item.getX1());
-	        		int y = (int) Math.round(item.getY1());
-	        		int w = (int) Math.round(item.getWidth());
-	        		int h = (int) Math.round(item.getHeight());
-	        		
 		        	if(item.getType() == ContentItem.Type.IMAGE)
 		        	{
 		        		g2d.setColor(Color.RED);
@@ -175,13 +104,17 @@ public class PDFImgUtil  {
 		        			else if(sText.startsWith("# "))
 		        				sText = sText.substring(1);
 		        			
-			        		Font awt = new Font("Helvetica", Font.PLAIN, h);
+			        		Font awt = new Font("Helvetica", Font.PLAIN, (int)item.getHeight());
 			        		g2d.setFont(awt);
-			        		g2d.drawString(sText, x, y + h);
+			        		fm = g2d.getFontMetrics();
+			        		
+			        		float textX = (float) item.getX1();
+			                float textY = (float) item.getY1() + fm.getAscent();
+			                g2d.drawString(item.getContent(), textX, textY);
 		        		}
 		        	}
 		        	
-	        		g2d.drawRect(x, y, w, h);
+		        	g2d.draw(item.getRect2D());
 		        }
 		        
 	        }finally

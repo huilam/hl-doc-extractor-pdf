@@ -45,7 +45,7 @@ import java.util.Properties;
 
 import javax.imageio.ImageIO;
 
-public class PDFExtractor extends PDFTextStripper {
+public class PDFExtractor {
 
 	public static String META_DOCNAME			= "docname";
 	public static String META_AUTHOR 			= "author";
@@ -68,6 +68,9 @@ public class PDFExtractor extends PDFTextStripper {
 	private File file_orig_pdf 		= null;
 	private File folder_output 		= null;
 	private Properties prop_meta 	= null;
+	
+	private int start_page_no 		= 1;
+	private int end_page_no 		= 1;
 	
 	private boolean extracted 			= false;
 	private boolean export_image_jpg 	= true;
@@ -97,17 +100,12 @@ public class PDFExtractor extends PDFTextStripper {
 	
     
     public PDFExtractor(File aPDFFile) throws IOException {
-    	
-    	super.setAddMoreFormatting(true);
-    	super.setSortByPosition(true);
-    	super.setShouldSeparateByBeads(true);
-    	
     	pdf_doc = Loader.loadPDF(aPDFFile);
     	
     	if(pdf_doc!=null)
     	{
- 	    	super.setStartPage(1);
-	    	super.setEndPage(pdf_doc.getNumberOfPages());
+ 	    	setStartPageNo(1);
+	    	setEndPageNo(pdf_doc.getNumberOfPages());
 
 	   		this.file_orig_pdf = aPDFFile;
 
@@ -262,10 +260,18 @@ public class PDFExtractor extends PDFTextStripper {
     	if(!this.extracted)
     	{
 	    	this.extracted = true;
-    		super.writeText(pdf_doc, new StringWriter());
+	    	///////////////////////
+	    	List<ContentItem> listItems = new ArrayList<>();
+	    	for(int iPageNo=getStartPageNo(); iPageNo<=getEndPageNo(); iPageNo++)
+	    	{
+		    	List<ContentItem> listText = ContentItemExtractor.extractTextContent(pdf_doc, iPageNo-1);
+		    	listItems.addAll(listText);
+		    	
+		    	List<ContentItem> listImage = ContentItemExtractor.extractImageContent(pdf_doc, iPageNo-1);
+		    	listItems.addAll(listImage);
+	    	}
+	    	
     		///////////////////////
-    		List<ContentItem> listItems = new ArrayList<>();
-    		listItems.addAll(this.getItems());
     		listItems = postProcessExtractedItems(listItems);
     		sortPageItems(listItems);
     		///////////////////////
@@ -297,164 +303,6 @@ public class PDFExtractor extends PDFTextStripper {
     	//sortPageItems(aList, new SORT[] {SORT.BY_PAGE});
 		return aList;
     }
-    
-    // Capture text with position
-    @Override
-    protected void writeString(String string, List<TextPosition> textPositions) throws IOException 
-    {
-        if (string != null && !string.isEmpty()) {
-        
-            // take position of first character
-            TextPosition textFirst 	= textPositions.get(0);
-            TextPosition textLast 	= textPositions.get(textPositions.size()-1);
-            
-            PDFont fontFirst 	= textFirst.getFont();
-            PDFont fontLast 	= textLast.getFont();
-            
-            float x1 = textFirst.getXDirAdj();
-            float y1 = textFirst.getYDirAdj();
-            
-            float x2  = textLast.getXDirAdj();
-            float x2w = textLast.getWidthDirAdj();
-            
-            float w = (x2+x2w)-x1;
-            float h = textFirst.getFontSizeInPt();
-            
-            if(string.trim().isEmpty())
-            {
-            	string = "";
-            }
-            else
-            {
-            	String sFirstFontName = fontFirst.getName().toLowerCase();
-            	String sLastFontName = fontLast.getName().toLowerCase();
-            	
-            	if(sFirstFontName.contains("bold") && sLastFontName.contains("bold"))
-	            {
-	            	string = HEADING_2+" "+string;
-	            }
-            	else if((sFirstFontName.contains("italic") || sFirstFontName.contains("oblique"))
-            			&& (sLastFontName.contains("italic") || sLastFontName.contains("oblique")))
-	            {
-	            	string = HEADING_3+" "+string;
-	            }
-            }
-            
-            this._items.add(new ContentItem(
-            		ContentItem.Type.TEXT, string, 
-            		getCurrentPageNo(), 
-            		x1, y1, w, h ));
-        }
-    }
-
-    // Capture images with bounding box
-    @Override
-    protected void processOperator(Operator operator, List<COSBase> operands) throws IOException {
-        String op = operator.getName();
-        if ("Do".equals(op)) {
-            COSName objectName = (COSName) operands.get(0);
-            PDXObject xobject = getResources().getXObject(objectName);
-
-            if (xobject instanceof PDImageXObject image) {
-                Matrix ctm = getGraphicsState().getCurrentTransformationMatrix();
-               
-                // Position (PDF bottom-left)
-                float x = ctm.getTranslateX();
-                float y = ctm.getTranslateY();
-                float w = ctm.getScalingFactorX();
-                float h = ctm.getScalingFactorY();
-                
-                if(w<1 || h<1)
-                {
-                	//skip if just 1 pixel
-                	return;
-                }
-
-                // If you need top-left UI coordinates, adjust with crop box:
-                PDRectangle crop = getCurrentPage().getCropBox();
-                float pageHeight = crop.getHeight();
-                x = x - crop.getLowerLeftX();
-                y = pageHeight - ((y - crop.getLowerLeftY()) + h);
-                
-                String sImgFileID = String.format("extracted_p%02d_%d_%d_%dx%d",
-                		getCurrentPageNo(), 
-                		(int)x, (int)y, (int)w, (int)h);
-               
-                String sImgContent = sImgFileID;
-                BufferedImage bimg = image.getImage();
-                String sImgFormat  = image.getSuffix();
-                
-                if(max_image_size>0)
-                {
-	                if(bimg.getWidth()>max_image_size || bimg.getHeight()>max_image_size)
-	            	{
-	            		bimg = PDFImgUtil.resizeWithAspect(bimg, max_image_size);
-	            	}
-                }
-                
-                if(isEmbedImageBase64())
-                {
-                	 // Write image data to a byte array
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    ImageIO.write(bimg, sImgFormat, baos);
-                    byte[] imageBytes = baos.toByteArray();
-                    sImgContent = "image/"+sImgFormat+";base64,"+Base64.getEncoder().encodeToString(imageBytes);
-                }
-                
-                if(isExportImage())
-                {
-                	sImgFileID += "."+sImgFormat;
-                	sImgContent = getOutputFolder().getAbsolutePath()+"/images/"+sImgFileID;
-                	try {
-                		File fileImage = new File(sImgContent);
-                		fileImage.getParentFile().mkdirs();
-                		if(!PDFImgUtil.saveImage(bimg, sImgFormat, fileImage))
-                			throw new IOException("Failed to save - "+sImgContent+"  bimg="+bimg);
-                	}catch(IOException ex)
-                	{
-                		System.err.println(ex.getMessage());
-                	}
-                }
-                
-                StringBuffer sbImgContent = new StringBuffer();
-                sbImgContent.append(IMGTAG_PREFIX).append(sImgContent).append(IMGTAG_SUFFIX);
-                
-                this._items.add(new ContentItem(ContentItem.Type.IMAGE, sbImgContent.toString(), getCurrentPageNo(), x, y, w, h));
-                return;
-            } else if (xobject instanceof PDFormXObject form) {
-                showForm(form);
-                return;
-            } 
-        }
-        else if ("re".equals(op)) 
-        {
-            float x = ((COSNumber) operands.get(0)).floatValue();
-            float y = ((COSNumber) operands.get(1)).floatValue();
-            float w = ((COSNumber) operands.get(2)).floatValue();
-            float h = ((COSNumber) operands.get(3)).floatValue();
-            
-            // transform with current matrix
-            Matrix ctm = getGraphicsState().getCurrentTransformationMatrix();
-            Point2D.Float p0 = ctm.transformPoint(x, y);
-            Point2D.Float p1 = ctm.transformPoint(x + w, y + h);
-            
-            Rectangle2D.Float rect = new Rectangle2D.Float(
-                    Math.min(p0.x, p1.x),
-                    Math.min(p0.y, p1.y),
-                    Math.abs(p1.x - p0.x),
-                    Math.abs(p1.y - p0.y)
-                );
-            
-            if(rect.width>100 && rect.height>100)
-            {            
-	            this._items.add(new ContentItem(ContentItem.Type.RECT, "", getCurrentPageNo(), 
-	            		rect.x, rect.y, rect.width, rect.height));
-	            return;
-            }
-        }
-        super.processOperator(operator, operands);
-    }
-    
     
     //////////////////////////////////////
     protected List<String> metaDataAsPlainText() throws IOException
@@ -751,8 +599,7 @@ public class PDFExtractor extends PDFTextStripper {
     	return file_orig_pdf;
     }
     
-    @Override
-    public void setStartPage(int iPageNo)
+    public void setStartPageNo(int iPageNo)
     {
     	int iLastPageNo = pdf_doc.getNumberOfPages();
     	
@@ -761,11 +608,15 @@ public class PDFExtractor extends PDFTextStripper {
     	else if(iPageNo>iLastPageNo)
     		iPageNo = 1;
     	
-    	super.setStartPage(iPageNo);
+    	this.start_page_no = iPageNo;
     }
     
-    @Override
-    public void setEndPage(int iPageNo)
+    public int getStartPageNo()
+    {
+    	return this.start_page_no;
+    }
+    
+    public void setEndPageNo(int iPageNo)
     {
     	int iLastPageNo = pdf_doc.getNumberOfPages();
     	
@@ -774,7 +625,12 @@ public class PDFExtractor extends PDFTextStripper {
     	else if(iPageNo>iLastPageNo)
     		iPageNo = iLastPageNo;
     	
-    	super.setEndPage(iPageNo);
+    	this.end_page_no = iPageNo;
+    }
+    
+    public int getEndPageNo()
+    {
+    	return this.end_page_no;
     }
     
     public static boolean isConsoleSyntaxOK(String[] args)
@@ -869,8 +725,8 @@ public class PDFExtractor extends PDFTextStripper {
         			System.out.println("Extracting "+f.getName()+" ...");
         			
 			        PDFExtractor pdfExtract = new PDFExtractor(f);
-			        pdfExtract.setStartPage(0);
-			        pdfExtract.setEndPage(0);
+			        pdfExtract.setStartPageNo(0);
+			        pdfExtract.setEndPageNo(0);
 			        pdfExtract.setIsExportImage(true);
 			        pdfExtract.setIsEmbedImageBase64(false);
 			        pdfExtract.setMaxImageSize(0);
