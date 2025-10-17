@@ -1,6 +1,7 @@
 package hl.doc.extractor.pdf.model;
 
 import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 
 public class ContentItem {
 	//
@@ -12,13 +13,66 @@ public class ContentItem {
 	private int pg_line_seq = 0;
 	private String content 	= "";
 	private double segment	= 0;
-	private Rectangle rect	= null;
+	private Rectangle2D rect= null;
 
 	public ContentItem(Type type, String content, int pageno, 
 			float x, float y, float width, float height) {
-		Rectangle rect = new Rectangle(
-				Math.round(x), Math.round(y), 
-				Math.round(width), Math.round(height));
+		Rectangle2D rect = new Rectangle2D() {
+			
+			@Override
+			public boolean isEmpty() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+			
+			@Override
+			public double getY() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+			
+			@Override
+			public double getX() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+			
+			@Override
+			public double getWidth() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+			
+			@Override
+			public double getHeight() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+			
+			@Override
+			public void setRect(double x, double y, double w, double h) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public int outcode(double x, double y) {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+			
+			@Override
+			public Rectangle2D createUnion(Rectangle2D r) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			public Rectangle2D createIntersection(Rectangle2D r) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		};
 		init(type, content, pageno, rect);
     }
 	
@@ -28,11 +82,11 @@ public class ContentItem {
 		init(type, content, pageno, rect);
     }
 	
-	public ContentItem(Type type, String content, int pageno, Rectangle rect2d) {
+	public ContentItem(Type type, String content, int pageno, Rectangle2D rect2d) {
 		init(type, content, pageno, rect2d);
     }
 	
-	private void init(Type type, String content, int pageno, Rectangle rect2d)
+	private void init(Type type, String content, int pageno, Rectangle2D rect2d)
 	{
         this.type = type; 
         this.page_no = pageno;
@@ -106,11 +160,16 @@ public class ContentItem {
 	}
 
 	public double getWidth() {
-		return this.rect.width;
+		return this.rect.getWidth();
 	}
 
 	public double getHeight() {
-		return this.rect.height;
+		return this.rect.getHeight();
+	}
+	
+	public Rectangle2D getRect2D()
+	{
+		return this.rect;
 	}
 	
 	public String toString()
