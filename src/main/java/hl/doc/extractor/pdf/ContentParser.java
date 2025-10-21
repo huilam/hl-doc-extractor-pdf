@@ -29,7 +29,7 @@ import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-public class ContentItemExtractor {
+public class ContentParser {
 	
     // ---- TEXT BOUNDING BOXES ----
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException {

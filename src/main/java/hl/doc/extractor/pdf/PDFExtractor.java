@@ -245,10 +245,10 @@ public class PDFExtractor {
 	    	List<ContentItem> listItems = new ArrayList<>();
 	    	for(int iPageNo=getStartPageNo(); iPageNo<=getEndPageNo(); iPageNo++)
 	    	{
-		    	List<ContentItem> listText = ContentItemExtractor.extractTextContent(pdf_doc, iPageNo-1);
+		    	List<ContentItem> listText = ContentParser.extractTextContent(pdf_doc, iPageNo-1);
 		    	listItems.addAll(listText);
 		    	
-		    	List<ContentItem> listImage = ContentItemExtractor.extractImageContent(pdf_doc, iPageNo-1);
+		    	List<ContentItem> listImage = ContentParser.extractImageContent(pdf_doc, iPageNo-1);
 		    	listItems.addAll(listImage);
 	    	}
 	    	
