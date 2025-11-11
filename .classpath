@@ -8,10 +8,11 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="lib/pdfbox/commons-logging-1.3.5.jar"/>
 	<classpathentry kind="lib" path="lib/json-20250517.jar"/>
-	<classpathentry kind="lib" path="lib/pdfbox/fontbox-3.0.6.jar"/>
-	<classpathentry kind="lib" path="lib/pdfbox/pdfbox-3.0.6.jar"/>
-	<classpathentry kind="lib" path="lib/pdfbox/pdfbox-io-3.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/hl-common_jdk17_20251103-1008-52.jar"/>
+	<classpathentry kind="lib" path="lib/pdfbox/3.0.6/commons-logging-1.3.5.jar"/>
+	<classpathentry kind="lib" path="lib/pdfbox/3.0.6/fontbox-3.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/pdfbox/3.0.6/pdfbox-3.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/pdfbox/3.0.6/pdfbox-io-3.0.6.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

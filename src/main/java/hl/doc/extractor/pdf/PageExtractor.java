@@ -1,6 +1,5 @@
 package hl.doc.extractor.pdf;
 
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -8,28 +7,22 @@ import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
-import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.util.Matrix;
 
 import hl.doc.extractor.pdf.model.ContentItem;
 import hl.doc.extractor.pdf.model.ContentItem.Type;
 
-import java.awt.Color;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-public class ContentParser {
+public class PageExtractor {
 	
     // ---- TEXT BOUNDING BOXES ----
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException {
@@ -136,7 +129,7 @@ public class ContentParser {
                 byte[] imageBytes = baos.toByteArray();
                 String sImgContent = "data:image/"+sImgformat+";base64,"+Base64.getEncoder().encodeToString(imageBytes);
 
-	            ContentItem item = new ContentItem(Type.IMAGE, sImgContent, 1, rect);
+	            ContentItem item = new ContentItem(Type.IMAGE, sImgContent, pageIndex+1, rect);
 	            contentItems.add(item);
 	        }
 
@@ -160,6 +153,7 @@ public class ContentParser {
 	    return engine.contentItems;
 	}
 	
+/**
 	public static void main(String[] args) throws Exception {
 	   
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-DD_HHmm-SS.sss");
@@ -190,7 +184,6 @@ public class ContentParser {
 		            List<ContentItem> imageBoxes = extractImageContent(doc, pageIndex);
 
 		            // Render page
-		            BufferedImage image = renderer.renderImage(pageIndex);
 		            
 		            // --- Create blank image ---
 		            float pageWidth = page.getMediaBox().getWidth();
@@ -198,7 +191,7 @@ public class ContentParser {
 		            int imgWidth = (int) Math.ceil(pageWidth);  // 1 point = 1 pixel for simplicity
 		            int imgHeight = (int) Math.ceil(pageHeight);
 
-		            image = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
+		            BufferedImage image = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
 
 		            // Fill white background
 		            Graphics2D g = null;
@@ -241,4 +234,5 @@ public class ContentParser {
 			}
 		}
     }
+**/
 }

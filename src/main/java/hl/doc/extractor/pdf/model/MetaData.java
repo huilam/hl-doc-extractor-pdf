@@ -1,0 +1,152 @@
+package hl.doc.extractor.pdf.model;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Properties;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+
+public class MetaData {
+	//
+	private static String META_SOURCE_FILENAME	= "sourcefilename";
+	private static String META_DOCNAME			= "docname";
+	private static String META_AUTHOR 			= "author";
+	private static String META_CREATION_DATE 	= "creationdate";
+	private static String META_VERSION 			= "version";
+	private static String META_ENCRYPTED 		= "encrypted";
+	private static String META_PAGE_WIDTH 		= "pagewidth";
+	private static String META_PAGE_HEIGHT 		= "pageheight";
+	private static String META_TOTAL_PAGES 		= "totalpages";
+	private static String META_TOTAL_IMAGES 	= "totalimages";
+	
+	private Properties prop_meta = new Properties();
+	
+	public MetaData(PDDocument aPDDocument)
+	{
+		PDDocumentInformation pdfInfo = aPDDocument.getDocumentInformation();
+        setDocCreationDate(pdfInfo.getCreationDate());
+        setAuthorName(pdfInfo.getAuthor());
+        setDocVersion(aPDDocument.getVersion());
+        setIsEncryted(aPDDocument.isEncrypted());
+        setTotalPages(aPDDocument.getNumberOfPages());
+        
+        PDRectangle cropBox = aPDDocument.getPage(0).getCropBox();
+        setPageWidth((int)Math.ceil(cropBox.getWidth()));
+        setPageHeight((int)Math.ceil(cropBox.getHeight()));
+	}
+	
+	
+	public void clear()
+	{
+		prop_meta.clear();
+	}
+	public void setSourceFileName(String aSourceFileName)
+	{
+		prop_meta.setProperty(META_SOURCE_FILENAME, aSourceFileName);
+	}
+	
+	public String getSourceFileName()
+	{
+		return prop_meta.getProperty(META_SOURCE_FILENAME);
+	}
+	/////
+	public void setDocName(String aDocName)
+	{
+		prop_meta.setProperty(META_DOCNAME, aDocName);
+	}
+	
+	public String getDocName()
+	{
+		return prop_meta.getProperty(META_DOCNAME);
+	}
+	//////
+	public void setAuthorName(String aAuthorName)
+	{
+		if(aAuthorName==null)
+			aAuthorName = "-";
+		prop_meta.setProperty(META_AUTHOR, aAuthorName);
+	}
+	
+	public String getAuthorName()
+	{
+		return prop_meta.getProperty(META_AUTHOR);
+	}
+	//////
+	public void setDocCreationDate(Calendar aCalendar)
+	{
+        String sTimeZone =  aCalendar.getTimeZone().getDisplayName();
+        DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:MM:ss");
+        String sCreationDate = df.format(aCalendar.getTime())+" "+sTimeZone;
+		prop_meta.setProperty(META_CREATION_DATE, sCreationDate);
+	}
+	public String getDocCreationDate()
+	{
+		return prop_meta.getProperty(META_CREATION_DATE);
+	}
+	//////
+	public void setDocVersion(float aDocVersion)
+	{
+		prop_meta.setProperty(META_VERSION, String.valueOf(aDocVersion));
+	}
+	
+	public String getDocVersion()
+	{
+		return prop_meta.getProperty(META_VERSION);
+	}
+	//////
+	public void setIsEncryted(boolean aIsEncrypted)
+	{
+		prop_meta.setProperty(META_ENCRYPTED, String.valueOf(aIsEncrypted));
+	}
+	
+	public String isEncryted()
+	{
+		return prop_meta.getProperty(META_ENCRYPTED);
+	}
+	
+	//////
+	public void setPageWidth(int aPageWidth)
+	{
+		prop_meta.setProperty(META_PAGE_WIDTH, String.valueOf(aPageWidth));
+	}
+	
+	public String getPageWidth()
+	{
+		return prop_meta.getProperty(META_PAGE_WIDTH);
+	}
+	//////
+	public void setPageHeight(int aPageHeight)
+	{
+		prop_meta.setProperty(META_PAGE_HEIGHT, String.valueOf(aPageHeight));
+	}
+	
+	public String getPageHeight()
+	{
+		return prop_meta.getProperty(META_PAGE_HEIGHT);
+	}
+
+	//////
+	public void setTotalPages(int aTotal)
+	{
+		prop_meta.setProperty(META_TOTAL_PAGES, String.valueOf(aTotal));
+	}
+	
+	public String getTotalPages()
+	{
+		return prop_meta.getProperty(META_TOTAL_PAGES);
+	}
+	
+	//////
+	public void setTotalImages(int aTotal)
+	{
+		prop_meta.setProperty(META_TOTAL_IMAGES, String.valueOf(aTotal));
+	}
+	
+	public String getTotalImages()
+	{
+		return prop_meta.getProperty(META_TOTAL_IMAGES);
+	}
+}
