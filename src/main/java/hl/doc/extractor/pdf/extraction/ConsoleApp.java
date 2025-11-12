@@ -1,9 +1,8 @@
-package hl.doc.extractor.pdf;
+package hl.doc.extractor.pdf.extraction;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import hl.doc.extractor.pdf.extraction.PDFExtractor;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
