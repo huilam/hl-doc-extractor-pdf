@@ -3,12 +3,13 @@ package hl.doc.extractor.pdf;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import hl.doc.extractor.pdf.model.ContentItem;
-import hl.doc.extractor.pdf.model.ContentItem.Type;
-import hl.doc.extractor.pdf.model.ExtractedContent;
-import hl.doc.extractor.pdf.model.MetaData;
-import hl.doc.extractor.pdf.util.ContentUtil;
-import hl.doc.extractor.pdf.util.ContentUtil.SORT;
+import hl.doc.extractor.pdf.extraction.PDFExtractor;
+import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
+import hl.doc.extractor.pdf.extraction.model.MetaData;
+import hl.doc.extractor.pdf.extraction.util.ContentUtil;
+import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -223,8 +224,9 @@ public class ConsoleApp {
 			        {
 			        	MetaData metaData = content.getMetaData();
 				        
-				        File fileOutput = new File(folderSaveOutput.getAbsolutePath()
-				        		+"/extracted_data."+sTypeExt);
+				        File fileOutput = new File(
+				        		folderSaveOutput.getAbsolutePath()
+				        		+"/extracted_"+metaData.getSourceFileName()+"."+sTypeExt);
 				        
 				        saveAsFile(content, fileOutput);
 				        

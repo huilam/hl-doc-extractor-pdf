@@ -1,15 +1,14 @@
-package hl.doc.extractor.pdf;
+package hl.doc.extractor.pdf.extraction;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import hl.doc.extractor.pdf.model.ContentItem;
-import hl.doc.extractor.pdf.model.ExtractedContent;
-import hl.doc.extractor.pdf.model.MetaData;
-import hl.doc.extractor.pdf.util.ContentUtil;
-import hl.doc.extractor.pdf.util.ContentUtil.SORT;
+import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
+import hl.doc.extractor.pdf.extraction.model.MetaData;
+import hl.doc.extractor.pdf.extraction.util.ContentUtil;
+import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
+import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -118,10 +117,10 @@ public class PDFExtractor {
     	
     	for(int iPageNo=aStartPageNo; iPageNo<=aEndPageNo; iPageNo++)
     	{
-	    	List<ContentItem> listText = PageExtractor.extractTextContent(pdf_doc, iPageNo-1);
+	    	List<ContentItem> listText = ExtractionUtil.extractTextContent(pdf_doc, iPageNo-1);
 	    	listItems.addAll(listText);
 	    	
-	    	List<ContentItem> listImage = PageExtractor.extractImageContent(pdf_doc, iPageNo-1);
+	    	List<ContentItem> listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
 	    	listItems.addAll(listImage);
     	}
     	
@@ -149,17 +148,5 @@ public class PDFExtractor {
     }
     
     //////////////////
-    
-    public BufferedImage renderPageLayout(ExtractedContent aExtractedContent, int aPageNo) throws IOException
-    {
-    	List<ContentItem> listPageItems = aExtractedContent.getContentItemListByPageNo(aPageNo);
-    	
-    	BufferedImage img = ContentUtil.renderPageLayout(
-    			this.pdf_meta.getPageWidth(), this.pdf_meta.getPageHeight(), 
-    			Color.WHITE, false, listPageItems);
-    	
-    	return img;
-    }
-    
 
 }

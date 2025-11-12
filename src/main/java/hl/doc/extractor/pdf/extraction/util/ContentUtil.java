@@ -1,4 +1,4 @@
-package hl.doc.extractor.pdf.util;
+package hl.doc.extractor.pdf.extraction.util;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -11,8 +11,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
-import hl.doc.extractor.pdf.model.ContentItem;
-import hl.doc.extractor.pdf.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
 public class ContentUtil  {
 

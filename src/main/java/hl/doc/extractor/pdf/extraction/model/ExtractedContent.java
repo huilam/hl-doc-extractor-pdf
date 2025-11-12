@@ -1,4 +1,4 @@
-package hl.doc.extractor.pdf.model;
+package hl.doc.extractor.pdf.extraction.model;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
-import hl.doc.extractor.pdf.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
 public class ExtractedContent {
 
@@ -91,7 +91,7 @@ public class ExtractedContent {
 					if(img!=null)
 					{
 						String sImgFileName = getMetaData().getSourceFileName()
-								+"_p"+iPageNo+"_"+iX+"-"+iY+"_"+iW+"x"+iH+"."+sImgFormat;
+								+"_image_p"+iPageNo+"_"+iX+"-"+iY+"_"+iW+"x"+iH+"."+sImgFormat;
 						
 						String sImgTagName = "![image "+iImgCount+"]("+sImgFileName+")";
 						

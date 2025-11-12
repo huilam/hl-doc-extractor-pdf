@@ -1,16 +1,4 @@
-package hl.doc.extractor.pdf;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.text.TextPosition;
-import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
-import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
-import org.apache.pdfbox.util.Matrix;
-
-import hl.doc.extractor.pdf.model.ContentItem;
-import hl.doc.extractor.pdf.model.ContentItem.Type;
+package hl.doc.extractor.pdf.extraction.util;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -20,10 +8,23 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+
 import javax.imageio.ImageIO;
 
-public class PageExtractor {
-	
+import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
+import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.text.TextPosition;
+import org.apache.pdfbox.util.Matrix;
+
+import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+
+public class ExtractionUtil  {
+
     // ---- TEXT BOUNDING BOXES ----
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException {
 		
@@ -152,87 +153,4 @@ public class PageExtractor {
 	    engine.processPage(page);
 	    return engine.contentItems;
 	}
-	
-/**
-	public static void main(String[] args) throws Exception {
-	   
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-DD_HHmm-SS.sss");
-        String sExecID = df.format(System.currentTimeMillis()); 
-        
-		File folderInput 	= new File("./test/");
-		String sOutputFolder = folderInput.getAbsoluteFile()+"/"+sExecID;
-       
-
-		for(File f : folderInput.listFiles())
-		{
-			if(f.getName().toLowerCase().endsWith(".pdf"))
-			{
-				PDDocument doc = Loader.loadPDF(f);
-				File folderOutput 	= new File(sOutputFolder+"/"+f.getName());
-				folderOutput.mkdirs();
-				System.out.println("Processing "+f.getName()+" ...");
-
-		        PDFRenderer renderer = new PDFRenderer(doc);
-
-		        for (int pageIndex = 0; pageIndex < doc.getNumberOfPages(); pageIndex++) {
-		            PDPage page = doc.getPage(pageIndex);
-
-		            // Extract text bounding boxes
-		            List<ContentItem> textBoxes = extractTextContent(doc, pageIndex);
-
-		            // Extract image bounding boxes
-		            List<ContentItem> imageBoxes = extractImageContent(doc, pageIndex);
-
-		            // Render page
-		            
-		            // --- Create blank image ---
-		            float pageWidth = page.getMediaBox().getWidth();
-		            float pageHeight = page.getMediaBox().getHeight();
-		            int imgWidth = (int) Math.ceil(pageWidth);  // 1 point = 1 pixel for simplicity
-		            int imgHeight = (int) Math.ceil(pageHeight);
-
-		            BufferedImage image = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
-
-		            // Fill white background
-		            Graphics2D g = null;
-		            
-		            try {
-			            g = image.createGraphics();
-			            g.setColor(Color.WHITE);
-			            g.fillRect(0, 0, imgWidth, imgHeight);
-			            g.setColor(Color.BLACK); 
-			            g.draw(new Rectangle2D.Float(0,0,(image.getWidth()-1f),(image.getHeight())-1f));
-	
-			           
-			            g.setColor(Color.RED); // red for text
-			            FontMetrics fm = g.getFontMetrics();
-			            for (ContentItem item : textBoxes) {
-			                g.draw(item.getRect2D());
-			                
-			                float textX = (float) item.getX1();
-			                float textY = (float) item.getY1() + fm.getAscent();
-			                g.drawString(item.getContent(), textX, textY);
-			            }
-	
-			            g.setColor(Color.BLUE); // blue for images
-			            for (ContentItem item : imageBoxes) {
-			            	 g.draw(item.getRect2D());
-			            }
-		            }finally
-		            {
-		            	if(g!=null)
-		            		g.dispose();
-		            }
-
-		            String sOutputFileName = "pg_" + (pageIndex + 1) + "_layout.jpg";
-		            File fileOutput = new File(folderOutput.getAbsolutePath()+"/"+sOutputFileName);
-		            ImageIO.write(image, "JPG", fileOutput);
-		            System.out.println("Saved: "+fileOutput.getAbsolutePath());
-		        }
-
-		        doc.close();
-			}
-		}
-    }
-**/
 }
