@@ -8,6 +8,8 @@ import hl.doc.extractor.pdf.model.MetaData;
 import hl.doc.extractor.pdf.util.ContentUtil;
 import hl.doc.extractor.pdf.util.ContentUtil.SORT;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,22 +17,26 @@ import java.util.List;
 
 public class PDFExtractor {
 
-	private File file_orig_pdf 		= null;	
-	private int start_page_no 		= 0;
-	private int end_page_no 		= 0;
+	private File file_orig_pdf 	= null;
+	private MetaData pdf_meta    = null;
+	private int start_page_no 	= 0;
+	private int end_page_no 	= 0;
 	//
-	private PDDocument pdf_doc 		= null;
-	private SORT[] sortings 		= new SORT[] {SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X};
+	private PDDocument pdf_doc 	= null;
+	private SORT[] sortings 	= new SORT[] {SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X};
 	//
 	
     public PDFExtractor(File aPDFFile) throws IOException {
-    	pdf_doc = Loader.loadPDF(aPDFFile);
+    	this.pdf_doc = Loader.loadPDF(aPDFFile);
     	
-    	if(pdf_doc!=null)
+    	if(this.pdf_doc!=null)
     	{
  	    	setStartPageNo(1);
 	    	setEndPageNo(pdf_doc.getNumberOfPages());
 	   		this.file_orig_pdf = aPDFFile;
+	   		
+	   		this.pdf_meta = new MetaData(this.pdf_doc);
+	   		this.pdf_meta.setSourceFileName(aPDFFile.getName());
     	}
     }
 
@@ -137,12 +143,23 @@ public class PDFExtractor {
         	item.setPg_line_seq(iPgLineSeq++);
         }
         
-        MetaData meta = new MetaData(this.pdf_doc);
-        meta.setSourceFileName(this.file_orig_pdf.getName());
-        
-        ExtractedContent extracted = new ExtractedContent(meta);
+        ExtractedContent extracted = new ExtractedContent(this.pdf_meta);
         extracted.setContentItemList(listItems);
         return extracted;
     }
     
+    //////////////////
+    
+    public BufferedImage renderPageLayout(ExtractedContent aExtractedContent, int aPageNo) throws IOException
+    {
+    	List<ContentItem> listPageItems = aExtractedContent.getContentItemListByPageNo(aPageNo);
+    	
+    	BufferedImage img = ContentUtil.renderPageLayout(
+    			this.pdf_meta.getPageWidth(), this.pdf_meta.getPageHeight(), 
+    			Color.WHITE, false, listPageItems);
+    	
+    	return img;
+    }
+    
+
 }

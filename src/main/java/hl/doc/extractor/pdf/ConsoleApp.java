@@ -10,11 +10,13 @@ import hl.doc.extractor.pdf.model.MetaData;
 import hl.doc.extractor.pdf.util.ContentUtil;
 import hl.doc.extractor.pdf.util.ContentUtil.SORT;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -59,14 +61,38 @@ public class ConsoleApp {
         return isSyntaxOK;
     }
     
-    public static File saveAsFile(ExtractedContent aExtractedContent, File aOutputFile)
+    public static File saveAsFile(ExtractedContent aExtractData, File aOutputFile)
     {
     	boolean isJsonFormat = aOutputFile.getName().toLowerCase().endsWith(".json");
-    	ContentItem[] aContentItems = aExtractedContent.getContentItems();
+    	List<ContentItem> aContentItems = aExtractData.getContentItemList();
     	String sContent = isJsonFormat? toJsonFormat(aContentItems): toPlainTextFormat(aContentItems);
     	
     	try {
-			ContentUtil.saveAsFile(aOutputFile, sContent);
+			if(ContentUtil.saveAsFile(aOutputFile, sContent))
+			{
+				System.out.println("    [saved] "+aOutputFile.getAbsolutePath());
+			}
+			
+			MetaData metaData = aExtractData.getMetaData();
+			for(int iPageNo = aExtractData.getStartPageNo(); iPageNo<=aExtractData.getEndPageNo(); iPageNo++)
+			{
+				List<ContentItem> listPageItems = aExtractData.getContentItemListByPageNo(iPageNo);
+				BufferedImage img = ContentUtil.renderPageLayout(
+						metaData.getPageWidth(), metaData.getPageHeight(), 
+						Color.WHITE, false, listPageItems);
+				
+				if(img!=null)
+				{
+					String sImgLayoutFileName = metaData.getSourceFileName()+"_layout_p"+iPageNo+".jpg";
+					File fileImg = new File(aOutputFile.getParent()+"/"+sImgLayoutFileName);
+					
+					if(ImageIO.write(img, "jpg", fileImg))
+					{
+						System.out.println("    [saved] "+fileImg.getName());
+					}
+				}
+			}
+			
 			
 			for(ContentItem it: aContentItems)
 			{
@@ -76,15 +102,18 @@ public class ConsoleApp {
 					if(!ContentUtil.isEmbededBase64Image(it))
 					{
 						String sImgTagName = it.getContent();
-						BufferedImage img = aExtractedContent.getBufferedImage(sImgTagName);
+						BufferedImage img = aExtractData.getBufferedImage(sImgTagName);
 						
 						if(img!=null)
 						{
-							String sImgFileName = aExtractedContent.getImageFileName(sImgTagName);
+							String sImgFileName = aExtractData.getImageFileName(sImgTagName);
 							String sImgFormat = sImgFileName.substring(sImgFileName.lastIndexOf(".")+1);
 							File fileImg = new File(aOutputFile.getParent()+"/"+sImgFileName);
 							
-							ImageIO.write(img, sImgFormat, fileImg);
+							if(ImageIO.write(img, sImgFormat, fileImg))
+							{
+								System.out.println("    [saved] "+fileImg.getName());
+							}
 						}
 					}
 				}
@@ -97,7 +126,7 @@ public class ConsoleApp {
     	
     }
     
-    private static String toPlainTextFormat(ContentItem[] aContentItems)
+    private static String toPlainTextFormat(List<ContentItem> aContentItems)
     {
     	StringBuffer sb = new StringBuffer();
     	for(ContentItem it : aContentItems)
@@ -109,7 +138,7 @@ public class ConsoleApp {
     	return sb.toString();
     }
     
-    private static String toJsonFormat(ContentItem[] aContentItems)
+    private static String toJsonFormat(List<ContentItem> aContentItems)
     {
     	JSONArray jArrItems = new JSONArray();
     	for(ContentItem it : aContentItems)

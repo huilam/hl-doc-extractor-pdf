@@ -11,16 +11,16 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 
 public class MetaData {
 	//
-	private static String META_SOURCE_FILENAME	= "sourcefilename";
+	private static String META_SOURCE_FILENAME	= "source_filename";
 	private static String META_DOCNAME			= "docname";
 	private static String META_AUTHOR 			= "author";
-	private static String META_CREATION_DATE 	= "creationdate";
+	private static String META_CREATION_DATE 	= "creation_date";
 	private static String META_VERSION 			= "version";
 	private static String META_ENCRYPTED 		= "encrypted";
-	private static String META_PAGE_WIDTH 		= "pagewidth";
-	private static String META_PAGE_HEIGHT 		= "pageheight";
-	private static String META_TOTAL_PAGES 		= "totalpages";
-	private static String META_TOTAL_IMAGES 	= "totalimages";
+	private static String META_PAGE_WIDTH 		= "page_width";
+	private static String META_PAGE_HEIGHT 		= "page_height";
+	private static String META_TOTAL_PAGES 		= "total_pages";
+	private static String META_TOTAL_IMAGES 	= "total_images";
 	
 	private Properties prop_meta = new Properties();
 	
@@ -113,9 +113,9 @@ public class MetaData {
 		prop_meta.setProperty(META_PAGE_WIDTH, String.valueOf(aPageWidth));
 	}
 	
-	public String getPageWidth()
+	public int getPageWidth()
 	{
-		return prop_meta.getProperty(META_PAGE_WIDTH);
+		return Integer.parseInt(prop_meta.getProperty(META_PAGE_WIDTH));
 	}
 	//////
 	public void setPageHeight(int aPageHeight)
@@ -123,9 +123,9 @@ public class MetaData {
 		prop_meta.setProperty(META_PAGE_HEIGHT, String.valueOf(aPageHeight));
 	}
 	
-	public String getPageHeight()
+	public int getPageHeight()
 	{
-		return prop_meta.getProperty(META_PAGE_HEIGHT);
+		return Integer.parseInt(prop_meta.getProperty(META_PAGE_HEIGHT));
 	}
 
 	//////

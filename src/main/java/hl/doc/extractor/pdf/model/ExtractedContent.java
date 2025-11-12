@@ -17,9 +17,14 @@ import hl.doc.extractor.pdf.model.ContentItem.Type;
 
 public class ExtractedContent {
 
-	private List<ContentItem> content_list 			= null;
+	private Map<Integer, List<ContentItem>> page_content_list = new HashMap<>();
+	private List<ContentItem> full_content_list 			  = null;
+	
+	private MetaData pdf_meta 	= null;
+	private int min_pageno 		= 1000;
+	private int max_pageno 		= 1;
+	
 	private Map<String, BufferedImage> image_list 	= new HashMap<String, BufferedImage>();
-	private MetaData pdf_meta 						= null;
 	//
 	private static Pattern pattImgPrefix = Pattern.compile("(data\\:image\\/(.+?)\\;base64\\,)");
 	private static Pattern pattImgTag 	= Pattern.compile("(\\!\\[image .+?\\]\\((.+?)\\))");
@@ -34,10 +39,22 @@ public class ExtractedContent {
 		return this.pdf_meta;
 	}
 	
+	public int getStartPageNo()
+	{
+		return this.min_pageno;
+	}
+	
+	public int getEndPageNo()
+	{
+		return this.max_pageno;
+	}
+	
 	public void setContentItemList(List<ContentItem> aContentItemList)
 	{
 		if(aContentItemList==null)
 			aContentItemList = new ArrayList<ContentItem>();
+		
+		page_content_list.clear();
 
 		int iImgCount = 0;
 		image_list.clear();
@@ -82,15 +99,36 @@ public class ExtractedContent {
 						it.setContent(sImgTagName);
 					}
 				}
-				
-				
-				
 			}
 			
-			this.pdf_meta.setTotalImages(iImgCount);;
+			int iPageNo = it.getPage_no();
+			
+			if(iPageNo<this.min_pageno)
+				this.min_pageno = iPageNo;
+			
+			if(iPageNo>this.max_pageno)
+				this.max_pageno = iPageNo;
+			
+			List<ContentItem> listPageItem = page_content_list.get(iPageNo);
+			if(listPageItem==null)
+			{
+				listPageItem = new ArrayList<ContentItem>();
+			}
+			listPageItem.add(it);
+			page_content_list.put(iPageNo, listPageItem);
 		}
-		
-		this.content_list = aContentItemList;
+		this.pdf_meta.setTotalImages(iImgCount);;
+		this.full_content_list = aContentItemList;
+	}
+	
+	public List<ContentItem> getContentItemList()
+	{
+		return this.full_content_list;
+	}
+	
+	public List<ContentItem> getContentItemListByPageNo(int aPageNo)
+	{
+		return page_content_list.get(aPageNo);
 	}
 	
 	public String getImageFileName(String aImageTagName)
@@ -107,16 +145,17 @@ public class ExtractedContent {
 	
 	public BufferedImage getBufferedImage(String aImageTagName)
 	{
-		return this.image_list.get(aImageTagName);
+		BufferedImage img = this.image_list.get(aImageTagName);
+		if(img==null)
+		{
+			//trying to extract the filename only if the tagName is failed
+			String sImgFileName = getImageFileName(aImageTagName);
+			if(sImgFileName!=null)
+			{
+				img = this.image_list.get(sImgFileName);
+			}
+		}
+		return img;
 	}
 	
-	public List<ContentItem> getContentItemList()
-	{
-		return this.content_list;
-	}
-	
-	public ContentItem[] getContentItems()
-	{
-		return this.content_list.toArray(new ContentItem[this.content_list.size()]);
-	}
 }
