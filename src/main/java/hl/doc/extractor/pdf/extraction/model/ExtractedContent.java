@@ -82,7 +82,7 @@ public class ExtractedContent {
 					//
 					this.imgbase64_cache.put(sImgFileName, sBase64Img);
 					//
-					String sImgContent = "![image "+iImgCount+"]("+sImgFileName+")";
+					String sImgContent = "![image]("+sImgFileName+")";
 					it.setContent(sImgContent);
 				}
 			}
