@@ -192,7 +192,7 @@ public class ExtractedContent {
     	return jArrItems.toString(4);
     }
     
-    public Map<String, String> getImageMapping()
+    public Map<String, String> getExtractedImageBase64()
     {
     	return this.imgbase64_cache;
     }

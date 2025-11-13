@@ -9,11 +9,14 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -91,20 +94,33 @@ public class ConsoleApp {
 			}
 			
 			//PDF Images
-			for(ContentItem it: aExtractData.getContentItemList())
+			Map<String,String> mapImgBase64Cache = aExtractData.getExtractedImageBase64();
+			for(String sFileName : mapImgBase64Cache.keySet())
 			{
-				if(it.getType()==Type.IMAGE)
+				File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
+				String sImgBase64 = mapImgBase64Cache.get(sFileName);
+				if(sImgBase64!=null)
 				{
-					BufferedImage img = aExtractData.getBufferedImage(it);
+					BufferedImage img = null;
+					byte[] byteImg = Base64.getDecoder().decode(sImgBase64);
+					
+					try {
+						img = ImageIO.read(new ByteArrayInputStream(byteImg));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
 					if(img!=null)
 					{
-						String sImgFileName = it.getTagName(); //filename
-						String sImgFormat = it.getContentFormat(); //image-format
-						File fileImg = new File(aOutputFile.getParent()+"/"+sImgFileName);
-						
-						if(ImageIO.write(img, sImgFormat, fileImg))
+						int iPos = sFileName.lastIndexOf(".");
+						if(iPos>-1)
 						{
-							System.out.println("    [saved] "+fileImg.getName());
+							String sImgFormat = sFileName.substring(iPos+1);
+							if(ImageIO.write(img, sImgFormat, fileImg))
+							{
+								System.out.println("    [saved] "+fileImg.getName());
+							}
 						}
 					}
 				}
