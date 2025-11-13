@@ -13,6 +13,6 @@ ExtractedContent data = extractor.extractAll();<br>
 //## Export to JSON<br>
 JSONObject jsonData = data.toJsonFormat(true);   //## true to include image base64<br>
 <br>
-//## Export to Plain text & Images Map(FileName, BufferedImage)<br>
+//## Export to Plain Text & Images<br>
 JSONObject jsonData = data.toPlainTextFormat(true);   //## true to indicate page number<br>
-Map<String,BufferedImage> mapImages = data.getExtractedBufferedImages();<br>
+Map<String,BufferedImage> mapImages = data.getExtractedBufferedImages();   //## <FileName, BufferedImage><br>
