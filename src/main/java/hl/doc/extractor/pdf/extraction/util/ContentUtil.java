@@ -11,12 +11,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
 public class ContentUtil  {
 
-	private static String IMGTAG_PREFIX = "![image ";
+	public static String TAGNAME_BASE64 = "base64";
+	
+	private static Pattern pattImgBase64Prefix 	= Pattern.compile("(data\\:image\\/(.+?)\\;base64\\,)");
+//	private static Pattern pattImgMarkupTag 	= Pattern.compile("(\\!\\[image.+?\\]\\((.+?)\\))");
+
 	
 	public enum SORT 
 	{
@@ -75,16 +81,15 @@ public class ContentUtil  {
     		int iContentSize = aContentItem.getContent().length();
     		
     		String sData100 = "";
-    		if(iContentSize>100)
+    		if(iContentSize>50)
     		{
-    			sData100 = aContentItem.getContent().substring(0, 100);
+    			sData100 = aContentItem.getContent().substring(0, 50);
     		}
     		else
     		{
     			sData100 = aContentItem.getContent();
     		}
-    		
-    		return !sData100.startsWith(IMGTAG_PREFIX);
+    		return pattImgBase64Prefix.matcher(sData100).find();
     	}
     	return false;
     }
@@ -111,8 +116,21 @@ public class ContentUtil  {
     			wrt.close();
     	}
     	
-    	return aFile.isFile();
+    	return aFile!=null?aFile.isFile():null;
     }
+	
+	public static String getImageBase64(ContentItem aContentItem)
+	{
+		String sBase64 = null;
+		if(aContentItem.getType()==Type.IMAGE)
+		{
+			if(aContentItem.getTagName()==TAGNAME_BASE64)
+			{
+				sBase64 = aContentItem.getContent();
+			}
+		}
+		return sBase64;
+	}
     
     ////////////
     public static BufferedImage renderPageLayout(

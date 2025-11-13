@@ -8,6 +8,8 @@ public class ContentItem {
 	public enum Type { TEXT, IMAGE, RECT }
 	//
 	private Type type		= Type.TEXT;
+	private String format	= null;
+	private String tagname 	= null;
 	private int doc_seq 	= 0;
 	private int page_no 	= 0;
 	private int pg_line_seq = 0;
@@ -102,7 +104,22 @@ public class ContentItem {
 	public void setType(Type type) {
 		this.type = type;
 	}
+	
+	public String getTagName() {
+		return this.tagname;
+	}
 
+	public void setTagName(String aTagName) {
+		this.tagname = aTagName;
+	}
+	
+	public String getContentFormat() {
+		return this.format;
+	}
+
+	public void setContentFormat(String aFormat) {
+		this.format = aFormat;
+	}
 	public int getDoc_seq() {
 		return doc_seq;
 	}

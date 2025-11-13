@@ -8,12 +8,13 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.imageio.ImageIO;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 public class ExtractedContent {
 
@@ -24,10 +25,8 @@ public class ExtractedContent {
 	private int min_pageno 		= 1000;
 	private int max_pageno 		= 1;
 	
-	private Map<String, BufferedImage> image_list 	= new HashMap<String, BufferedImage>();
+	private Map<String, String> imgbase64_cache = new HashMap<String, String>();
 	//
-	private static Pattern pattImgPrefix = Pattern.compile("(data\\:image\\/(.+?)\\;base64\\,)");
-	private static Pattern pattImgTag 	= Pattern.compile("(\\!\\[image .+?\\]\\((.+?)\\))");
 	
 	public ExtractedContent(MetaData aPDFMeta)
 	{
@@ -57,7 +56,7 @@ public class ExtractedContent {
 		page_content_list.clear();
 
 		int iImgCount = 0;
-		image_list.clear();
+		imgbase64_cache.clear();
 		
 		for(ContentItem it : aContentItemList)
 		{
@@ -69,35 +68,20 @@ public class ExtractedContent {
 				int iW = (int)Math.round(it.getWidth());
 				int iH = (int)Math.round(it.getHeight());
 				
-				String sContentData = it.getContent();
-				String sImgFormat = null;
-				Matcher m = pattImgPrefix.matcher(sContentData);
-				if(m.find())
+				String sBase64Img = ContentUtil.getImageBase64(it);
+				if(sBase64Img!=null)
 				{
 					iImgCount++;
-					String sBase64Prefix 	= m.group(1);
-					sImgFormat 				= m.group(2);
-					
-					String sBase64Img = sContentData.substring(sBase64Prefix.length());
-					byte[] byteImg = Base64.getDecoder().decode(sBase64Img);
-					BufferedImage img = null;
-					try {
-						img = ImageIO.read(new ByteArrayInputStream(byteImg));
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-					if(img!=null)
-					{
-						String sImgFileName = getMetaData().getSourceFileName()
-								+"_image_p"+iPageNo+"_"+iX+"-"+iY+"_"+iW+"x"+iH+"."+sImgFormat;
-						
-						String sImgTagName = "![image "+iImgCount+"]("+sImgFileName+")";
-						
-						this.image_list.put(sImgTagName, img);
-						it.setContent(sImgTagName);
-					}
+					//
+					String sImgFormat = it.getContentFormat();
+					String sImgFileName = "image_"+iImgCount+"_p"+iPageNo+"_"+iX+"-"+iY+"_"+iW+"x"+iH+"."+sImgFormat;
+					//
+					it.setTagName(sImgFileName);
+					it.setContentFormat(sImgFormat);
+					//
+					String sImgContent = "![image "+iImgCount+"]("+sImgFileName+")";
+					it.setContent(sImgContent);
+					this.imgbase64_cache.put(sImgContent, sBase64Img);
 				}
 			}
 			
@@ -121,6 +105,33 @@ public class ExtractedContent {
 		this.full_content_list = aContentItemList;
 	}
 	
+	public BufferedImage getBufferedImage(ContentItem aContentItem)
+	{
+		BufferedImage img = null;
+		if(aContentItem.getType() == Type.IMAGE)
+		{
+			String sImgBase64 = ContentUtil.getImageBase64(aContentItem);
+			if(sImgBase64==null)
+			{
+				//get from cache
+				sImgBase64 = this.imgbase64_cache.get(aContentItem.getContent());
+			}
+			//
+			if(sImgBase64!=null)
+			{
+				byte[] byteImg = Base64.getDecoder().decode(sImgBase64);
+				
+				try {
+					img = ImageIO.read(new ByteArrayInputStream(byteImg));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return img;
+	}
+	
 	public List<ContentItem> getContentItemList()
 	{
 		return this.full_content_list;
@@ -131,31 +142,59 @@ public class ExtractedContent {
 		return page_content_list.get(aPageNo);
 	}
 	
-	public String getImageFileName(String aImageTagName)
-	{
-		Matcher m = pattImgTag.matcher(aImageTagName);
-		if(m.find())
-		{
-			String sFileName = m.group(2);
-			return sFileName;
-		}
-		
-		return null;
-	}
-	
-	public BufferedImage getBufferedImage(String aImageTagName)
-	{
-		BufferedImage img = this.image_list.get(aImageTagName);
-		if(img==null)
-		{
-			//trying to extract the filename only if the tagName is failed
-			String sImgFileName = getImageFileName(aImageTagName);
-			if(sImgFileName!=null)
-			{
-				img = this.image_list.get(sImgFileName);
-			}
-		}
-		return img;
-	}
+
+	public String toPlainTextFormat(boolean isShowPageNo)
+    {
+    	StringBuffer sb = new StringBuffer();
+    	int iPageNo = 0;
+    	for(ContentItem it : getContentItemList())
+    	{
+    		if(iPageNo==0 || iPageNo!=it.getPage_no())
+    		{
+    			iPageNo = it.getPage_no();
+    			if(iPageNo>1)
+    				sb.append("\n\n");
+    			//
+    			if(isShowPageNo)
+    				sb.append("----[ page ").append(iPageNo).append(" ]----\n");
+    			//
+    		}
+    		
+    		sb.append(it.getContent());
+    		sb.append("\n");
+    	}
+    	
+    	if(isShowPageNo && sb.length()>0)
+			sb.append("----[ end ]----");
+    	
+    	return sb.toString();
+    }
+    
+    public String toJsonFormat()
+    {
+    	JSONArray jArrItems = new JSONArray();
+    	for(ContentItem it : getContentItemList())
+    	{
+    		JSONObject json = new JSONObject();
+    		
+    		json.put("page_no", it.getPage_no());
+    		json.put("line_seq", it.getPg_line_seq());
+    		json.put("x", it.getX1());
+    		json.put("y", it.getY1());
+    		json.put("width", it.getWidth());
+    		json.put("height", it.getHeight());
+    		json.put("type", it.getType());
+       		json.put("content", it.getContent());
+       	    		
+    		jArrItems.put(json);
+    	}
+    	
+    	return jArrItems.toString(4);
+    }
+    
+    public Map<String, String> getImageMapping()
+    {
+    	return this.imgbase64_cache;
+    }
 	
 }

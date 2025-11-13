@@ -128,9 +128,12 @@ public class ExtractionUtil  {
 	            ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ImageIO.write(img, sImgformat, baos);
                 byte[] imageBytes = baos.toByteArray();
-                String sImgContent = "data:image/"+sImgformat+";base64,"+Base64.getEncoder().encodeToString(imageBytes);
-
+                String sImgContent = Base64.getEncoder().encodeToString(imageBytes);
+                //
 	            ContentItem item = new ContentItem(Type.IMAGE, sImgContent, pageIndex+1, rect);
+	            item.setTagName(ContentUtil.TAGNAME_BASE64);
+	            item.setContentFormat(sImgformat);
+	            //
 	            contentItems.add(item);
 	        }
 

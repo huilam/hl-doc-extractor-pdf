@@ -5,6 +5,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
+import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class PDFExtractor {
 
 	private File file_orig_pdf 	= null;
@@ -131,15 +133,15 @@ public class PDFExtractor {
     	int iDocSeq 	= 1;
     	int iPgLineSeq 	= 1;
     	int iLastPageNo = 1;
-        for(ContentItem item : listItems)
+        for(ContentItem it : listItems)
         {	
-        	if(iLastPageNo != item.getPage_no())
+        	if(iLastPageNo != it.getPage_no())
         	{
-        		iLastPageNo = item.getPage_no();
+        		iLastPageNo = it.getPage_no();
         		iPgLineSeq = 1;
         	}
-        	item.setDoc_seq(iDocSeq++);
-        	item.setPg_line_seq(iPgLineSeq++);
+        	it.setDoc_seq(iDocSeq++);
+        	it.setPg_line_seq(iPgLineSeq++);
         }
         
         ExtractedContent extracted = new ExtractedContent(this.pdf_meta);

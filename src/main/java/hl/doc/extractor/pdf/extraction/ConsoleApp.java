@@ -1,8 +1,5 @@
 package hl.doc.extractor.pdf.extraction;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
@@ -64,8 +61,7 @@ public class ConsoleApp {
     public static File saveAsFile(ExtractedContent aExtractData, File aOutputFile)
     {
     	boolean isJsonFormat = aOutputFile.getName().toLowerCase().endsWith(".json");
-    	List<ContentItem> aContentItems = aExtractData.getContentItemList();
-    	String sContent = isJsonFormat? toJsonFormat(aContentItems): toPlainTextFormat(aContentItems);
+    	String sContent = isJsonFormat? aExtractData.toJsonFormat(): aExtractData.toPlainTextFormat(true);
     	
     	try {
 			if(ContentUtil.saveAsFile(aOutputFile, sContent))
@@ -73,6 +69,7 @@ public class ConsoleApp {
 				System.out.println("    [saved] "+aOutputFile.getAbsolutePath());
 			}
 			
+			//PDF Layout
 			MetaData metaData = aExtractData.getMetaData();
 			for(int iPageNo = aExtractData.getStartPageNo(); iPageNo<=aExtractData.getEndPageNo(); iPageNo++)
 			{
@@ -83,7 +80,7 @@ public class ConsoleApp {
 				
 				if(img!=null)
 				{
-					String sImgLayoutFileName = metaData.getSourceFileName()+"_layout_p"+iPageNo+".jpg";
+					String sImgLayoutFileName = "layout_p"+iPageNo+".jpg";
 					File fileImg = new File(aOutputFile.getParent()+"/"+sImgLayoutFileName);
 					
 					if(ImageIO.write(img, "jpg", fileImg))
@@ -93,27 +90,21 @@ public class ConsoleApp {
 				}
 			}
 			
-			
-			for(ContentItem it: aContentItems)
+			//PDF Images
+			for(ContentItem it: aExtractData.getContentItemList())
 			{
 				if(it.getType()==Type.IMAGE)
 				{
-					//if not base64 then save
-					if(!ContentUtil.isEmbededBase64Image(it))
+					BufferedImage img = aExtractData.getBufferedImage(it);
+					if(img!=null)
 					{
-						String sImgTagName = it.getContent();
-						BufferedImage img = aExtractData.getBufferedImage(sImgTagName);
+						String sImgFileName = it.getTagName(); //filename
+						String sImgFormat = it.getContentFormat(); //image-format
+						File fileImg = new File(aOutputFile.getParent()+"/"+sImgFileName);
 						
-						if(img!=null)
+						if(ImageIO.write(img, sImgFormat, fileImg))
 						{
-							String sImgFileName = aExtractData.getImageFileName(sImgTagName);
-							String sImgFormat = sImgFileName.substring(sImgFileName.lastIndexOf(".")+1);
-							File fileImg = new File(aOutputFile.getParent()+"/"+sImgFileName);
-							
-							if(ImageIO.write(img, sImgFormat, fileImg))
-							{
-								System.out.println("    [saved] "+fileImg.getName());
-							}
+							System.out.println("    [saved] "+fileImg.getName());
 						}
 					}
 				}
@@ -124,40 +115,6 @@ public class ConsoleApp {
 		}
     	return aOutputFile;
     	
-    }
-    
-    private static String toPlainTextFormat(List<ContentItem> aContentItems)
-    {
-    	StringBuffer sb = new StringBuffer();
-    	for(ContentItem it : aContentItems)
-    	{
-    		sb.append(it.getPage_no()).append("     ").append(it.getContent());
-    		sb.append("\n");
-    	}
-    	
-    	return sb.toString();
-    }
-    
-    private static String toJsonFormat(List<ContentItem> aContentItems)
-    {
-    	JSONArray jArrItems = new JSONArray();
-    	for(ContentItem it : aContentItems)
-    	{
-    		JSONObject json = new JSONObject();
-    		
-    		json.put("page_no", it.getPage_no());
-    		json.put("line_seq", it.getPg_line_seq());
-    		json.put("x", it.getX1());
-    		json.put("y", it.getY1());
-    		json.put("width", it.getWidth());
-    		json.put("height", it.getHeight());
-    		json.put("type", it.getType());
-       		json.put("content", it.getContent());
-       	    		
-    		jArrItems.put(json);
-    	}
-    	
-    	return jArrItems.toString(4);
     }
     
     //=========================================================== 
@@ -199,7 +156,7 @@ public class ConsoleApp {
         	return;
         }
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-DD_HHmm-SS.sss");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HHmm-SS.sss");
         String sExecID = df.format(System.currentTimeMillis()); 
         for(File f : files)
         {
