@@ -1,7 +1,6 @@
 package hl.doc.extractor.pdf.extraction;
 
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
@@ -9,12 +8,10 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -64,9 +61,10 @@ public class ConsoleApp {
     public static File saveAsFile(ExtractedContent aExtractData, File aOutputFile)
     {
     	boolean isJsonFormat = aOutputFile.getName().toLowerCase().endsWith(".json");
-    	String sContent = isJsonFormat? aExtractData.toJsonFormat(): aExtractData.toPlainTextFormat(true);
-    	
-    	try {
+    	String sContent = isJsonFormat? 
+    			aExtractData.toJsonFormat(false).toString(4): 
+    			aExtractData.toPlainTextFormat(true);
+
 			if(ContentUtil.saveAsFile(aOutputFile, sContent))
 			{
 				System.out.println("    [saved] "+aOutputFile.getAbsolutePath());
@@ -86,49 +84,43 @@ public class ConsoleApp {
 					String sImgLayoutFileName = "layout_p"+iPageNo+".jpg";
 					File fileImg = new File(aOutputFile.getParent()+"/"+sImgLayoutFileName);
 					
-					if(ImageIO.write(img, "jpg", fileImg))
-					{
-						System.out.println("    [saved] "+fileImg.getName());
+					try {
+						if(ImageIO.write(img, "jpg", fileImg))
+						{
+							System.out.println("    [saved] "+fileImg.getName());
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 			}
 			
 			//PDF Images
-			Map<String,String> mapImgBase64Cache = aExtractData.getExtractedImageBase64();
-			for(String sFileName : mapImgBase64Cache.keySet())
+			Map<String,BufferedImage> mapImages = aExtractData.getExtractedBufferedImages();
+			for(String sFileName : mapImages.keySet())
 			{
 				File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
-				String sImgBase64 = mapImgBase64Cache.get(sFileName);
-				if(sImgBase64!=null)
+				BufferedImage img = mapImages.get(sFileName);
+				if(img!=null)
 				{
-					BufferedImage img = null;
-					byte[] byteImg = Base64.getDecoder().decode(sImgBase64);
-					
-					try {
-						img = ImageIO.read(new ByteArrayInputStream(byteImg));
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-					if(img!=null)
+					int iPos = sFileName.lastIndexOf(".");
+					if(iPos>-1)
 					{
-						int iPos = sFileName.lastIndexOf(".");
-						if(iPos>-1)
-						{
-							String sImgFormat = sFileName.substring(iPos+1);
+						String sImgFormat = sFileName.substring(iPos+1);
+						try {
 							if(ImageIO.write(img, sImgFormat, fileImg))
 							{
 								System.out.println("    [saved] "+fileImg.getName());
 							}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 					}
 				}
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
     	return aOutputFile;
     	
     }

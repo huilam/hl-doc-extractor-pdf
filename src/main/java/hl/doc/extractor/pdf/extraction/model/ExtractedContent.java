@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -25,7 +26,7 @@ public class ExtractedContent {
 	private int min_pageno 		= 1000;
 	private int max_pageno 		= 1;
 	
-	private Map<String, String> imgbase64_cache = new HashMap<String, String>();
+	private Map<String, String> imgbase64_cache = new LinkedHashMap<String, String>();
 	//
 	
 	public ExtractedContent(MetaData aPDFMeta)
@@ -170,31 +171,79 @@ public class ExtractedContent {
     	return sb.toString();
     }
     
-    public String toJsonFormat()
+    public JSONObject toJsonFormat(boolean isIncludeImages)
     {
-    	JSONArray jArrItems = new JSONArray();
+    	JSONObject jsonDoc = new JSONObject();
+    	
+    	JSONArray jArrItem = new JSONArray();
     	for(ContentItem it : getContentItemList())
     	{
-    		JSONObject json = new JSONObject();
+    		JSONObject jsonItem = new JSONObject();
     		
-    		json.put("page_no", it.getPage_no());
-    		json.put("line_seq", it.getPg_line_seq());
-    		json.put("x", it.getX1());
-    		json.put("y", it.getY1());
-    		json.put("width", it.getWidth());
-    		json.put("height", it.getHeight());
-    		json.put("type", it.getType());
-       		json.put("content", it.getContent());
-       	    		
-    		jArrItems.put(json);
+    		jsonItem.put("page_no", it.getPage_no());
+    		jsonItem.put("line_seq", it.getPg_line_seq());
+    		jsonItem.put("x", it.getX1());
+    		jsonItem.put("y", it.getY1());
+    		jsonItem.put("width", it.getWidth());
+    		jsonItem.put("height", it.getHeight());
+    		jsonItem.put("type", it.getType());
+    		jsonItem.put("content", it.getContent());
+    		
+    		jArrItem.put(jsonItem);
+    	}
+    	jsonDoc.put("content", jArrItem);
+    	if(isIncludeImages)
+    	{
+    		jsonDoc.put("images", getExtractedImagesJson());
     	}
     	
-    	return jArrItems.toString(4);
+    	return jsonDoc;
     }
     
-    public Map<String, String> getExtractedImageBase64()
+    public Map<String, String> getExtractedBase64Images()
     {
     	return this.imgbase64_cache;
     }
 	
+    public Map<String, BufferedImage> getExtractedBufferedImages()
+    {
+    	Map<String, BufferedImage> mapImages = new LinkedHashMap<>();
+    	
+    	Map<String, String> mapBase64Images = getExtractedBase64Images();
+    	for(String sFileName : mapBase64Images.keySet())
+		{
+			String sImgBase64 = mapBase64Images.get(sFileName);
+			if(sImgBase64!=null)
+			{
+				BufferedImage img = null;
+				byte[] byteImg = Base64.getDecoder().decode(sImgBase64);
+				
+				try {
+					img = ImageIO.read(new ByteArrayInputStream(byteImg));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				if(img!=null)
+				{
+					mapImages.put(sFileName, img);
+				}
+			}
+		}
+    	return mapImages;
+    }
+    
+    public JSONObject getExtractedImagesJson()
+    {
+    	JSONObject jsonImages = new JSONObject();
+    	
+    	Map<String, String> mapBase64Images = getExtractedBase64Images();
+    	for(String sFileName : mapBase64Images.keySet())
+    	{
+    		String sImgBase64 = mapBase64Images.get(sFileName);
+    		jsonImages.put(sFileName, sImgBase64);
+    	}
+    	return jsonImages;
+    }
 }

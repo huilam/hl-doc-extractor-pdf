@@ -94,7 +94,7 @@ public class ContentUtil  {
     	return false;
     }
     
-    public static boolean saveAsFile(File aFile, String aContent) throws IOException
+    public static boolean saveAsFile(File aFile, String aContent)
     {
     	aFile.getParentFile().mkdirs();
     	
@@ -107,13 +107,25 @@ public class ContentUtil  {
     		wrt.write(aContent);
     		wrt.flush();
     	}
+    	catch(IOException ioEx)
+    	{
+    		ioEx.printStackTrace();
+    	}
     	finally
     	{
     		if(f!=null)
-    			f.close();
+				try {
+					f.close();
+				} catch (IOException e) {
+					//do nothing
+				}
     		
     		if(wrt!=null)
-    			wrt.close();
+				try {
+					wrt.close();
+				} catch (IOException e) {
+					//do nothing
+				}
     	}
     	
     	return aFile!=null?aFile.isFile():null;
