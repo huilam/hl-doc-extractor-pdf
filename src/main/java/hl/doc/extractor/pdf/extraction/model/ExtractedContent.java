@@ -79,9 +79,10 @@ public class ExtractedContent {
 					it.setTagName(sImgFileName);
 					it.setContentFormat(sImgFormat);
 					//
+					this.imgbase64_cache.put(sImgFileName, sBase64Img);
+					//
 					String sImgContent = "![image "+iImgCount+"]("+sImgFileName+")";
 					it.setContent(sImgContent);
-					this.imgbase64_cache.put(sImgContent, sBase64Img);
 				}
 			}
 			
@@ -114,7 +115,7 @@ public class ExtractedContent {
 			if(sImgBase64==null)
 			{
 				//get from cache
-				sImgBase64 = this.imgbase64_cache.get(aContentItem.getContent());
+				sImgBase64 = this.imgbase64_cache.get(aContentItem.getTagName());
 			}
 			//
 			if(sImgBase64!=null)
@@ -142,7 +143,6 @@ public class ExtractedContent {
 		return page_content_list.get(aPageNo);
 	}
 	
-
 	public String toPlainTextFormat(boolean isShowPageNo)
     {
     	StringBuffer sb = new StringBuffer();
