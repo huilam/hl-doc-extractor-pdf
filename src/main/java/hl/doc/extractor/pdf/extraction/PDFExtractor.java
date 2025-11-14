@@ -19,12 +19,12 @@ import java.util.List;
 public class PDFExtractor {
 
 	private File file_orig_pdf 	= null;
-	private MetaData pdf_meta    = null;
+	private MetaData pdf_meta   = null;
 	private int start_page_no 	= 0;
 	private int end_page_no 	= 0;
 	//
 	private PDDocument pdf_doc 	= null;
-	private SORT[] sortings 	= new SORT[] {SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X};
+	private SORT[] sortings 	= null; 
 	//
 	
     public PDFExtractor(File aPDFFile) throws IOException {
@@ -39,6 +39,8 @@ public class PDFExtractor {
 	   		this.pdf_meta = new MetaData(this.pdf_doc);
 	   		this.pdf_meta.setSourceFileName(aPDFFile.getName());
     	}
+    	
+    	initExtractor();
     }
 
     
@@ -98,6 +100,10 @@ public class PDFExtractor {
     
     public SORT[] getSortingOrder()
     {
+    	if(this.sortings==null || this.sortings.length==0)
+    	{
+    		return new SORT[] {SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X};
+    	}
     	return this.sortings;
     }
     
@@ -126,9 +132,13 @@ public class PDFExtractor {
 	    	listItems.addAll(listImage);
     	}
     	
+    	preSortProcess(listItems);
+		///
 		///
     	listItems = ContentUtil.sortContentItems(listItems, getSortingOrder());
         ///
+        ///
+        postSortProcess(listItems);
 
     	int iDocSeq 	= 1;
     	int iPgLineSeq 	= 1;
@@ -149,6 +159,20 @@ public class PDFExtractor {
         return extracted;
     }
     
+    //////////////////
+    public void initExtractor()
+    {
+    }
+    
+    public List<ContentItem> preSortProcess(List<ContentItem> aContentList)
+    {
+    	return aContentList;
+    }
+    
+    public List<ContentItem> postSortProcess(List<ContentItem> aContentList)
+    {
+    	return aContentList;
+    }
     //////////////////
 
 }
