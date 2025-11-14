@@ -36,7 +36,7 @@
 		<copy todir="${build}/${ant.project.name}_${buildno}/lib">
 			<fileset dir="${build}" includes="${ant.project.name}_*.jar" />
 			<fileset dir="${basedir}/lib" includes="*.jar" />
-			<fileset dir="${basedir}/lib/pdfbox" includes="*.jar" />
+			<fileset dir="${basedir}/lib/pdfbox/3.0.6" includes="*.jar" />
 		</copy>
 		<copy todir="${build}/${ant.project.name}_${buildno}/test">
 			<fileset dir="${basedir}/test" includes="PDF-TEST-*.pdf" />
