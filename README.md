@@ -12,14 +12,16 @@ extractor.setEndPageNo(0);<br>
 //## Extract all selected pages<br>
 ExtractedContent data = extractor.extractAll();<br>
 <br>
-//## Export to JSON<br>
+//## Export to JSON <sup>[sample](samples/json/sample_extracted-json.json)</sup><br>
 JSONObject jsonData = data.toJsonFormat(true);   //## true to include image base64<br>
 <br>
-//## Export to Plain Text & Images<br>
+<br>
+//## Export to Plain Text <sup>[sample](samples/plaintext/sample_extracted-plaintext.txt)</sup> & Images <sup>[sample](samples/plaintext/image_1_p1_74-540_146x205.jpg)</sup><br>
 JSONObject jsonData = data.toPlainTextFormat(true);   //## true to indicate page number<br>
 Map<String,BufferedImage> mapImages = data.getExtractedBufferedImages();   //## <FileName, BufferedImage><br>
-<br><br>
-//## Render page layout as BufferedImage<br>
+<br>
+<br>
+//## Render page layout <sup>[sample](samples/layout/sample_page_layout.jpg)</sup> as BufferedImage<br>
 MetaData meta = data.getMetaData();<br>
 List<ContentItem> page1Data = aExtractData.getContentItemListByPageNo(1);<br>
 BufferedImage imgLayout = ContentUtil.renderPageLayout(<br>
@@ -31,4 +33,4 @@ BufferedImage imgLayout = ContentUtil.renderPageLayout(<br>
 <br>
 <br>
 Sample Rendered Page Layout:<br>
-![image](sample_page_layout.jpg)
+![image](samples/sample_page_layout_preview.jpg)

@@ -62,7 +62,7 @@ public class ConsoleApp {
     {
     	boolean isJsonFormat = aOutputFile.getName().toLowerCase().endsWith(".json");
     	String sContent = isJsonFormat? 
-    			aExtractData.toJsonFormat(false).toString(4): 
+    			aExtractData.toJsonFormat(true).toString(4): 
     			aExtractData.toPlainTextFormat(true);
 
 			if(ContentUtil.saveAsFile(aOutputFile, sContent))

@@ -1,0 +1,36 @@
+{
+    "images": {
+		"image_1_p1_74-540_146x205.jpg": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"},
+    "content": [	
+        {
+            "x": 72,
+            "width": 244.107421875,
+            "y": 75.2724609375,
+            "line_seq": 1,
+            "page_no": 1,
+            "type": "TEXT",
+            "content": "https://github.com/huilam/hl-doc-extractor-pdf ",
+            "height": 7.9833984375
+        },
+        {
+            "x": 72,
+            "width": 230.068359375,
+            "y": 106.62890625,
+            "line_seq": 3,
+            "page_no": 1,
+            "type": "TEXT",
+            "content": "PDF-TEST-03: 1-Page-Portrait-Text-Image ",
+            "height": 8.3642578125
+        },
+        {
+            "x": 72,
+            "width": 411.515625,
+            "y": 192.744140625,
+            "line_seq": 6,
+            "page_no": 1,
+            "type": "TEXT",
+            "content": "A simple lightweight (250 KB on disk) Java PDF extractor based on PDFBox. ",
+            "height": 7.9833984375
+        }
+    ]
+}
