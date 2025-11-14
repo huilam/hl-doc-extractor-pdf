@@ -1,8 +1,7 @@
 # hl-doc-extractor-pdf<br>
 
-**A simple lightweight (250 KB\*) Java PDF extractor based on [PDFBox](https://github.com/apache/pdfbox).**<br>
+**A simple lightweight (&ast; 250 KB) Java PDF extractor based on [PDFBox](https://github.com/apache/pdfbox).**<br>
 <sub>* 250 KB including PDFBox jar files.<br>
-<br>
 <br>
 **Sample Code:**<br>
 <br>
@@ -31,6 +30,5 @@
 &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;page1Data\); //# page's extracted item<br>
 <br>
 <br>
-<br>
-Sample Rendered Page Layout:<br>
+**Sample Rendered Page Layout:**<br>
 ![image](samples/sample_page_layout_preview.jpg)
