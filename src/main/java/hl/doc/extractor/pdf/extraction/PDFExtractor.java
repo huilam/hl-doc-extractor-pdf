@@ -132,13 +132,13 @@ public class PDFExtractor {
 	    	listItems.addAll(listImage);
     	}
     	
-    	preSortProcess(listItems);
+    	listItems = preSortProcess(listItems);
 		///
 		///
     	listItems = ContentUtil.sortContentItems(listItems, getSortingOrder());
         ///
         ///
-        postSortProcess(listItems);
+    	listItems = postSortProcess(listItems);
 
     	int iDocSeq 	= 1;
     	int iPgLineSeq 	= 1;
