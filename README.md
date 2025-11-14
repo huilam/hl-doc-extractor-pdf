@@ -28,3 +28,7 @@ BufferedImage imgLayout = ContentUtil.renderPageLayout(<br>
 &nbsp;&nbsp;&nbsp;&nbsp;Color.WHITE, //# background color<br>
 &nbsp;&nbsp;&nbsp;&nbsp;false, //# render text<br>
 &nbsp;&nbsp;&nbsp;&nbsp;page1Data); //# page's extracted item<br>
+<br>
+<br>
+Sample Rendered Page Layout:<br>
+![image](sample_page_layout.jpg)
