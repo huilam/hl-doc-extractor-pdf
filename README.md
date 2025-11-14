@@ -9,6 +9,7 @@
 &nbsp;&nbsp;PDFExtractor extractor = new PDFExtractor\(new File\("file.pdf"\)\);<br>
 &nbsp;&nbsp;extractor\.setStartPageNo\(0\);<br>
 &nbsp;&nbsp;extractor\.setEndPageNo\(0\);<br>
+&nbsp;&nbsp;extractor\.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);<br>
 <br>
 &nbsp;&nbsp;//## Extract all selected pages<br>
 &nbsp;&nbsp;ExtractedContent data = extractor\.extractAll();<br>
