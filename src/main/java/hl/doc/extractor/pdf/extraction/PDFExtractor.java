@@ -28,6 +28,7 @@ public class PDFExtractor {
 	//
 	
     public PDFExtractor(File aPDFFile) throws IOException {
+    	
     	this.pdf_doc = Loader.loadPDF(aPDFFile);
     	
     	if(this.pdf_doc!=null)
@@ -43,7 +44,6 @@ public class PDFExtractor {
     	initExtractor();
     }
 
-    
     public File getOrigPdfFile()
     {
     	return file_orig_pdf;

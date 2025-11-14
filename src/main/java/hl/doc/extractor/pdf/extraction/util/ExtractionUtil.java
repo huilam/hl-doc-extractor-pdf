@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 
@@ -99,7 +101,10 @@ public class ExtractionUtil  {
 	    class ImagePositionEngine extends PDFGraphicsStreamEngine {
 	        final List<ContentItem> contentItems = new ArrayList<>();
 
-	        ImagePositionEngine(PDPage page) { super(page); }
+	        ImagePositionEngine(PDPage page) { 
+	        	super(page); 
+	        	Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
+	        }
 
 	        @Override
 	        public void drawImage(PDImage pdImage) throws IOException {

@@ -67,7 +67,7 @@ public class ConsoleApp {
 
 			if(ContentUtil.saveAsFile(aOutputFile, sContent))
 			{
-				System.out.println("    [saved] "+aOutputFile.getAbsolutePath());
+				System.out.println("\t[saved] "+aOutputFile.getAbsolutePath());
 			}
 			
 			//PDF Layout
@@ -87,7 +87,7 @@ public class ConsoleApp {
 					try {
 						if(ImageIO.write(img, "jpg", fileImg))
 						{
-							System.out.println("    [saved] "+fileImg.getName());
+							System.out.println("\t[saved] "+fileImg.getName());
 						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
@@ -111,7 +111,7 @@ public class ConsoleApp {
 						try {
 							if(ImageIO.write(img, sImgFormat, fileImg))
 							{
-								System.out.println("    [saved] "+fileImg.getName());
+								System.out.println("\t[saved] "+fileImg.getName());
 							}
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
@@ -166,6 +166,7 @@ public class ConsoleApp {
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HHmm-SS.sss");
         String sExecID = df.format(System.currentTimeMillis()); 
+        int iFileSeq = 1;
         for(File f : files)
         {
         	if(f.isFile())
@@ -176,7 +177,7 @@ public class ConsoleApp {
         			
         			
         			long lStartTimeMs = System.currentTimeMillis(); 
-        			System.out.println("\nExtracting "+f.getName()+" ...");
+        			System.out.println("\n "+(iFileSeq++)+". Extracting "+f.getName()+" ...");
         			
 			        PDFExtractor pdfExtract = new PDFExtractor(f);
 			        pdfExtract.setStartPageNo(0);
@@ -186,8 +187,8 @@ public class ConsoleApp {
 			        
 			        for(String sTypeExt : sOutputTypes)
 			        {
+			        	System.out.println("    - Export to "+sTypeExt);
 			        	MetaData metaData = content.getMetaData();
-				        
 				        File fileOutput = new File(
 				        		folderSaveOutput.getAbsolutePath()
 				        		+"/extracted_"+metaData.getSourceFileName()+"."+sTypeExt);
@@ -195,8 +196,9 @@ public class ConsoleApp {
 				        saveAsFile(content, fileOutput);
 				        
 				        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
-				        System.out.println("  Extracted "+metaData.getTotalPages()
+				        System.out.println("    - Extracted "+metaData.getTotalPages()
 				        					+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
+				        System.out.println();
 			        }
 			        
 	        	}
