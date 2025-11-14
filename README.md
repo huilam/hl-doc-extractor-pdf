@@ -1,6 +1,8 @@
 # hl-doc-extractor-pdf<br>
 
-**A simple lightweight (250 KB on disk) Java PDF extractor based on PDFBox.**<br>
+**A simple lightweight (250 KB*) Java PDF extractor based on [PDFBox](https://github.com/apache/pdfbox).**<br>
+<sub>* 250 KB including PDFBox jar files.<br>
+<br>
 <br>
 **Sample Code:**<br>
 <br>
