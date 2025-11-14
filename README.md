@@ -18,3 +18,13 @@ JSONObject jsonData = data.toJsonFormat(true);   //## true to include image base
 //## Export to Plain Text & Images<br>
 JSONObject jsonData = data.toPlainTextFormat(true);   //## true to indicate page number<br>
 Map<String,BufferedImage> mapImages = data.getExtractedBufferedImages();   //## <FileName, BufferedImage><br>
+<br><br>
+//## Render page layout as BufferedImage<br>
+MetaData meta = data.getMetaData();<br>
+List<ContentItem> page1Data = aExtractData.getContentItemListByPageNo(1);<br>
+BufferedImage imgLayout = ContentUtil.renderPageLayout(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;meta.getPageWidth(), <br>
+&nbsp;&nbsp;&nbsp;&nbsp;meta.getPageHeight(), <br>
+&nbsp;&nbsp;&nbsp;&nbsp;Color.WHITE, //# background color<br>
+&nbsp;&nbsp;&nbsp;&nbsp;false, //# render text<br>
+&nbsp;&nbsp;&nbsp;&nbsp;page1Data); //# page's extracted item<br>

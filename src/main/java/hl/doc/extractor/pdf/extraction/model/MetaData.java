@@ -77,10 +77,13 @@ public class MetaData {
 	//////
 	public void setDocCreationDate(Calendar aCalendar)
 	{
-        String sTimeZone =  aCalendar.getTimeZone().getDisplayName();
-        DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:MM:ss");
-        String sCreationDate = df.format(aCalendar.getTime())+" "+sTimeZone;
-		prop_meta.setProperty(META_CREATION_DATE, sCreationDate);
+		if(aCalendar!=null && aCalendar.getTimeZone()!=null)
+	    {
+			String sTimeZone =  aCalendar.getTimeZone().getDisplayName();
+	        DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:MM:ss");
+	        String sCreationDate = df.format(aCalendar.getTime())+" "+sTimeZone;
+			prop_meta.setProperty(META_CREATION_DATE, sCreationDate);
+        }
 	}
 	public String getDocCreationDate()
 	{

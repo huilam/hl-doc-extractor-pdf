@@ -39,7 +39,7 @@
 			<fileset dir="${basedir}/lib/pdfbox" includes="*.jar" />
 		</copy>
 		<copy todir="${build}/${ant.project.name}_${buildno}/test">
-			<fileset dir="${basedir}/test" includes="Wikipedia_Apache_PDFBox.pdf" />
+			<fileset dir="${basedir}/test" includes="PDF-TEST-*.pdf" />
 		</copy>
 		
 		<zip destfile="${releases}/${ant.project.name}-${buildno}.zip" 

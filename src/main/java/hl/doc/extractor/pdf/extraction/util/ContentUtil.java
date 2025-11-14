@@ -181,11 +181,15 @@ public class ContentUtil  {
 		        	}
 		        	else if(item.getType() == ContentItem.Type.TEXT)
 		        	{
-		        		g2d.setColor(Color.LIGHT_GRAY);
+	        			String sText = item.getContent();
+	        			
+	        			//skip if linebreak only
+	        			if(sText.trim().length()==0)
+	        				continue;
+
+	        			g2d.setColor(Color.LIGHT_GRAY);
 		        		if(isRenderText)
 		        		{
-		        			String sText = item.getContent();
-		        			
 		        			if(sText.startsWith("## "))
 		        				sText = sText.substring(2);
 		        			else if(sText.startsWith("# "))
