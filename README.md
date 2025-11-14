@@ -18,7 +18,7 @@
 &nbsp;&nbsp;JSONObject jsonData = data\.toJsonFormat(true);   //## true to include image base64<br>
 <br>
 &nbsp;&nbsp;//## Export to Plain Text <sup>[sample](samples/plaintext/sample_extracted-plaintext.txt)</sup> & Images <sup>[sample](samples/plaintext/image_1_p1_74-540_146x205.jpg)</sup><br>
-&nbsp;&nbsp;JSONObject jsonData = data\.toPlainTextFormat\(true\);   //## true to indicate page number<br>
+&nbsp;&nbsp;JSONObject jsonData = data\.toPlainTextFormat\(true\);   //## true to include page number<br>
 &nbsp;&nbsp;Map<String,BufferedImage> mapImages = data.getExtractedBufferedImages\(\);   //## <FileName, BufferedImage><br>
 <br>
 &nbsp;&nbsp;//## Render page layout <sup>[sample](samples/layout/sample_page_layout.jpg)</sup> as BufferedImage<br>
