@@ -4,6 +4,7 @@
 	<property name="build" location="build"/>
 	<property name="releases" location="releases"/>
 	<property name="jdk.ver" value="17"/>
+	<property name="standalone.appname" value="pdf-extractor-consoleApp"/>
 	
 	<tstamp>
 	    <format property="buildno" pattern="yyyyMMdd-HHmm-ss"/>
@@ -42,7 +43,7 @@
 			<fileset dir="${basedir}/test" includes="PDF-TEST-*.pdf" />
 		</copy>
 		
-		<zip destfile="${releases}/${ant.project.name}-${buildno}.zip" 
+		<zip destfile="${releases}/${standalone.appname}-${buildno}.zip" 
 			basedir="${build}/${ant.project.name}_${buildno}" />
 	</target>
 	
