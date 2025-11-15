@@ -184,10 +184,11 @@ public class ConsoleApp {
 			        pdfExtract.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);
 			        ExtractedContent content = pdfExtract.extractAll();
 			        
+			        MetaData metaData = content.getMetaData();
 			        for(String sTypeExt : sOutputTypes)
 			        {
 			        	System.out.println("    - Export to "+sTypeExt+" ...");
-			        	MetaData metaData = content.getMetaData();
+			        	
 				        File fileOutput = new File(
 				        		folderSaveOutput.getAbsolutePath()
 				        		+"/extracted_"+metaData.getSourceFileName()+"."+sTypeExt);
@@ -200,6 +201,20 @@ public class ConsoleApp {
 				        System.out.println();
 			        }
 			        
+			        for(int iPageNo=1; iPageNo <= metaData.getTotalPages(); iPageNo++)
+			        {
+				        BufferedImage img = pdfExtract.renderPagePreview(iPageNo, 0.50);
+				        if(img!=null)
+				        {
+				        	File fileImg = new File(
+				        			folderSaveOutput.getAbsolutePath()
+				        			+"/preview_page_"+iPageNo+".jpg");
+					        if(ImageIO.write(img, "jpg", fileImg))
+							{
+								System.out.println("    - [saved] "+fileImg.getName());
+							}
+				        }
+			        }
 	        	}
         	}
         }

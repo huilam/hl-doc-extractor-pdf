@@ -118,7 +118,7 @@ public class MetaData {
 	
 	public int getPageWidth()
 	{
-		return Integer.parseInt(prop_meta.getProperty(META_PAGE_WIDTH));
+		return getPropValAsInt(META_PAGE_WIDTH);
 	}
 	//////
 	public void setPageHeight(int aPageHeight)
@@ -128,7 +128,7 @@ public class MetaData {
 	
 	public int getPageHeight()
 	{
-		return Integer.parseInt(prop_meta.getProperty(META_PAGE_HEIGHT));
+		return getPropValAsInt(META_PAGE_HEIGHT);
 	}
 
 	//////
@@ -137,9 +137,9 @@ public class MetaData {
 		prop_meta.setProperty(META_TOTAL_PAGES, String.valueOf(aTotal));
 	}
 	
-	public String getTotalPages()
+	public int getTotalPages()
 	{
-		return prop_meta.getProperty(META_TOTAL_PAGES);
+		return getPropValAsInt(META_TOTAL_PAGES);
 	}
 	
 	//////
@@ -148,8 +148,25 @@ public class MetaData {
 		prop_meta.setProperty(META_TOTAL_IMAGES, String.valueOf(aTotal));
 	}
 	
-	public String getTotalImages()
+	public int getTotalImages()
 	{
-		return prop_meta.getProperty(META_TOTAL_IMAGES);
+		return getPropValAsInt(META_TOTAL_IMAGES);
+	}
+	//////
+	//////
+	public int getPropValAsInt(String aPropKey)
+	{
+		int iVal = 0;
+		String sValue = prop_meta.getProperty(aPropKey);
+		if(sValue==null || sValue.trim().length()==0)
+			return 0;
+		try {
+			iVal = Integer.parseInt(sValue);
+		}catch(NumberFormatException ex)
+		{
+			iVal = 0;
+		}
+		
+		return iVal;
 	}
 }

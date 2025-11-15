@@ -2,6 +2,9 @@ package hl.doc.extractor.pdf.extraction;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
+
+import hl.common.ImgUtil;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
@@ -10,6 +13,8 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
 
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,8 +41,6 @@ public class PDFExtractor {
 	   		this.pdf_meta = new MetaData(this.pdf_doc);
 	   		this.pdf_meta.setSourceFileName(aPDFFile.getName());
     	}
-    	
-    	initExtractor();
     }
 
     public File getOrigPdfFile()
@@ -127,10 +130,29 @@ public class PDFExtractor {
         return extracted;
     }
     
-    //////////////////
-    public void initExtractor()
+    public BufferedImage renderPagePreview(int iPageNo, double aRenderScale) 
     {
+    	PDFRenderer pdfRenderer = new PDFRenderer(this.pdf_doc);
+    	BufferedImage pageImage = null;
+		try {
+			int iPageIndex = iPageNo-1; //index start with 0
+			pageImage = pdfRenderer.renderImageWithDPI(iPageIndex, 150);
+			
+			if(aRenderScale>0 && aRenderScale!=0)
+				pageImage = ImgUtil.resizeImg(pageImage, 
+						Math.round(pageImage.getHeight()*aRenderScale), 
+						Math.round(pageImage.getHeight()*aRenderScale), 
+						true);
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return pageImage;
     }
+    
+    //////////////////
     
     public List<ContentItem> preSortProcess(List<ContentItem> aContentList)
     {
