@@ -12,8 +12,8 @@
 &nbsp;&nbsp;//## Extract PDF content by page<br>
 &nbsp;&nbsp;ExtractedContent data = null;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data = extractor\.extractAll(); //## all pages<br>
-&nbsp;&nbsp;&nbsp;&nbsp;data = extractor\.extractPage(2); //## specified page<br>
-&nbsp;&nbsp;&nbsp;&nbsp;data = extractor\.extractPages(1,3); //## page range<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data = extractor\.extractPage(2); //## specified page - 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data = extractor\.extractPages(1,3); //## page range - 1 to 3<br>
 <br>
 &nbsp;&nbsp;//## Export to JSON <sup>[sample](samples/json/sample_extracted-json.json)</sup><br>
 &nbsp;&nbsp;JSONObject jsonData = data\.toJsonFormat(true);   //## true to include image base64<br>
