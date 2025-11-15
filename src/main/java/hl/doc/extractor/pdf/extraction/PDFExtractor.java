@@ -20,8 +20,6 @@ public class PDFExtractor {
 
 	private File file_orig_pdf 	= null;
 	private MetaData pdf_meta   = null;
-	private int start_page_no 	= 0;
-	private int end_page_no 	= 0;
 	//
 	private PDDocument pdf_doc 	= null;
 	private SORT[] sortings 	= null; 
@@ -33,8 +31,6 @@ public class PDFExtractor {
     	
     	if(this.pdf_doc!=null)
     	{
- 	    	setStartPageNo(1);
-	    	setEndPageNo(pdf_doc.getNumberOfPages());
 	   		this.file_orig_pdf = aPDFFile;
 	   		
 	   		this.pdf_meta = new MetaData(this.pdf_doc);
@@ -47,40 +43,6 @@ public class PDFExtractor {
     public File getOrigPdfFile()
     {
     	return file_orig_pdf;
-    }
-    
-    public void setStartPageNo(int iPageNo)
-    {
-    	int iLastPageNo = pdf_doc.getNumberOfPages();
-    	
-    	if(iPageNo<1)
-    		iPageNo = 1;
-    	else if(iPageNo>iLastPageNo)
-    		iPageNo = 1;
-    	
-    	this.start_page_no = iPageNo;
-    }
-    
-    public int getStartPageNo()
-    {
-    	return this.start_page_no;
-    }
-    
-    public void setEndPageNo(int iPageNo)
-    {
-    	int iLastPageNo = pdf_doc.getNumberOfPages();
-    	
-    	if(iPageNo<1)
-    		iPageNo = iLastPageNo;
-    	else if(iPageNo>iLastPageNo)
-    		iPageNo = iLastPageNo;
-    	
-    	this.end_page_no = iPageNo;
-    }
-    
-    public int getEndPageNo()
-    {
-    	return this.end_page_no;
     }
     
     public void setSortingOrder(SORT ... aSorts )
@@ -111,7 +73,7 @@ public class PDFExtractor {
 
     public ExtractedContent extractAll() throws IOException
     {
-    	return extractPages(getStartPageNo(), getEndPageNo());
+    	return extractPages(1, pdf_doc.getNumberOfPages());
     }
     
     public ExtractedContent extractPage(int aPageNo) throws IOException
@@ -122,6 +84,12 @@ public class PDFExtractor {
     public ExtractedContent extractPages(int aStartPageNo, int aEndPageNo) throws IOException
     {
     	List<ContentItem> listItems = new ArrayList<>();
+    	
+    	if(aStartPageNo==0)
+    		aStartPageNo = 1;
+    	
+    	if(aEndPageNo>pdf_doc.getNumberOfPages())
+    		aEndPageNo = pdf_doc.getNumberOfPages();
     	
     	for(int iPageNo=aStartPageNo; iPageNo<=aEndPageNo; iPageNo++)
     	{

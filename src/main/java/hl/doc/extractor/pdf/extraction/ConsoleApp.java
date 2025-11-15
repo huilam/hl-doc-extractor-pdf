@@ -65,9 +65,10 @@ public class ConsoleApp {
     			aExtractData.toJsonFormat(true).toString(4): 
     			aExtractData.toPlainTextFormat(true);
 
+    		System.out.println("\tFolder:["+aOutputFile.getParent()+"]");
 			if(ContentUtil.saveAsFile(aOutputFile, sContent))
 			{
-				System.out.println("\t[saved] "+aOutputFile.getAbsolutePath());
+				System.out.println("\t[saved] "+aOutputFile.getName());
 			}
 			
 			//PDF Layout
@@ -180,14 +181,12 @@ public class ConsoleApp {
         			System.out.println("\n "+(iFileSeq++)+". Extracting "+f.getName()+" ...");
         			
 			        PDFExtractor pdfExtract = new PDFExtractor(f);
-			        pdfExtract.setStartPageNo(0);
-			        pdfExtract.setEndPageNo(0);
 			        pdfExtract.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);
 			        ExtractedContent content = pdfExtract.extractAll();
 			        
 			        for(String sTypeExt : sOutputTypes)
 			        {
-			        	System.out.println("    - Export to "+sTypeExt);
+			        	System.out.println("    - Export to "+sTypeExt+" ...");
 			        	MetaData metaData = content.getMetaData();
 				        File fileOutput = new File(
 				        		folderSaveOutput.getAbsolutePath()
