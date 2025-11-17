@@ -206,7 +206,7 @@ public class ExtractedData {
     	jsonDoc.put(JSON_GROUP_CONTENT, jArrContent);
     	if(isIncludeImages)
     	{
-    		jsonDoc.put("JSON_GROUP_IMAGES", getExtractedImagesJson());
+    		jsonDoc.put(JSON_GROUP_IMAGES, getExtractedImagesJson());
     	}
     	
     	return jsonDoc;

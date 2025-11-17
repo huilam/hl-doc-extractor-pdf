@@ -4,7 +4,6 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ExtractedData;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
-import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -181,7 +180,6 @@ public class ConsoleApp {
         			System.out.println("\n "+(iFileSeq++)+". Extracting "+f.getName()+" ...");
         			
 			        PDFExtractor pdfExtract = new PDFExtractor(f);
-			        pdfExtract.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);
 			        ExtractedData content = pdfExtract.extractAll();
 			        
 			        MetaData metaData = content.getMetaData();
