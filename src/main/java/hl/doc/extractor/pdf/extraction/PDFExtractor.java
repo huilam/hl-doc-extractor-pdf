@@ -15,7 +15,7 @@ public class PDFExtractor extends AbstractExtractor
 		super(aPDFFile);
 		
 		//default config
-		super.setSortingOrder(new SORT[] {SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X});
+		setSortingOrder(new SORT[] {SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X});
 	}
 
 	@Override
