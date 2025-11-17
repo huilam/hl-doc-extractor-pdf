@@ -8,7 +8,7 @@
 <br>
 &nbsp;&nbsp;//## Initialize PDF Extract with a file<br>
 &nbsp;&nbsp;PDFExtractor extractor = new PDFExtractor\(new File\("file.pdf"\)\);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;extractor\.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;extractor\.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);  //## Optional item sorting order<br>
 <br>
 &nbsp;&nbsp;//## Extract PDF content by page<br>
 &nbsp;&nbsp;ExtractedContent data = null;<br>
