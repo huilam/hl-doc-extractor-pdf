@@ -175,7 +175,7 @@ public class ContentUtil  {
 		        	{
 		        		g2d.setColor(Color.RED);
 		        	}
-		        	else if(item.getType() == ContentItem.Type.RECT)
+		        	else if(item.getType() == ContentItem.Type.VECTOR)
 		        	{
 		        		g2d.setColor(Color.GREEN);
 		        	}

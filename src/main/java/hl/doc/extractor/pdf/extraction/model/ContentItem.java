@@ -5,7 +5,11 @@ import java.awt.geom.Rectangle2D;
 
 public class ContentItem {
 	//
-	public enum Type { TEXT, IMAGE, RECT }
+	public enum Type { 
+		TEXT 
+		,IMAGE 
+		,VECTOR 
+	}
 	//
 	private Type type		= Type.TEXT;
 	private String format	= null;

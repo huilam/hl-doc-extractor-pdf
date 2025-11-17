@@ -101,6 +101,11 @@ abstract public class AbstractExtractor {
 	    	
 	    	List<ContentItem> listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
 	    	listItems.addAll(listImage);
+
+	    	/**
+	    	List<ContentItem> listVector = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1);
+	    	listItems.addAll(listVector);
+	    	**/
     	}
     	
     	listItems = preSortProcess(listItems);

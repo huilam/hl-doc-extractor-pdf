@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
@@ -21,7 +22,6 @@ import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
-
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
@@ -154,11 +154,95 @@ public class ExtractionUtil  {
 	        @Override public void strokePath() {}
 	        @Override public void fillPath(int windingRule) {}
 	        @Override public void fillAndStrokePath(int windingRule) {}
-	        @Override public void shadingFill(org.apache.pdfbox.cos.COSName shadingName) throws IOException {}
+	        @Override public void shadingFill(COSName shadingName) throws IOException {}
 	    }
 
 	    ImagePositionEngine engine = new ImagePositionEngine(page);
 	    engine.processPage(page);
 	    return engine.contentItems;
 	}
+	
+	/** WIP
+	// ---- Drawing (Rectangle, Line) -----
+    public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex) throws IOException {
+        
+        PDPage page = doc.getPage(pageIndex);
+
+        class DrawingPositionEngine extends PDFGraphicsStreamEngine {
+
+            final List<ContentItem> contentItems = new ArrayList<>();
+            private GeneralPath currentPath = new GeneralPath();
+            private boolean pathIsEmpty = true;
+
+            DrawingPositionEngine(PDPage page) {
+                super(page);
+                // Silence verbose PDFBox logging
+                Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
+            }
+
+            @Override public void moveTo(float x, float y) { currentPath.moveTo(x, y); pathIsEmpty = false; }
+            @Override public void lineTo(float x, float y) { currentPath.lineTo(x, y); pathIsEmpty = false; }
+            @Override public void curveTo(float x1, float y1, float x2, float y2, float x3, float y3) 
+            {
+                currentPath.curveTo(x1, y1, x2, y2, x3, y3); pathIsEmpty = false;
+            }
+            @Override public void closePath() { currentPath.closePath(); }
+            @Override public Point2D getCurrentPoint() { return currentPath.getCurrentPoint(); }
+            @Override public void appendRectangle(Point2D p0, Point2D p1, Point2D p2, Point2D p3) 
+            {
+                currentPath.moveTo(p0.getX(), p0.getY());
+                currentPath.lineTo(p1.getX(), p1.getY());
+                currentPath.lineTo(p2.getX(), p2.getY());
+                currentPath.lineTo(p3.getX(), p3.getY());
+                currentPath.closePath();
+                pathIsEmpty = false;
+            }
+            
+            @Override public void strokePath() { savePath(true, false); }
+            @Override public void fillPath(int windingRule) { savePath(false, true); }
+            @Override public void fillAndStrokePath(int windingRule) { savePath(true, true); }
+            @Override public void endPath() { currentPath.reset(); pathIsEmpty = true; }
+
+            private void savePath(boolean stroked, boolean filled) {
+                if (pathIsEmpty) return;
+
+                PDGraphicsState gs = getGraphicsState();
+                Matrix ctm = gs.getCurrentTransformationMatrix();
+
+                // Transform to PDF User Space
+                Shape transformedShape = currentPath.createTransformedShape(ctm.createAffineTransform());
+
+                // Handle Line Thickness
+                if (stroked) {
+                    BasicStroke stroke = new BasicStroke(gs.getLineWidth());
+                    transformedShape = stroke.createStrokedShape(transformedShape);
+                }
+
+                Rectangle2D bounds = transformedShape.getBounds2D();
+
+                if (bounds.getWidth() > 0 && bounds.getHeight() > 0) {
+                    JSONObject jsonData = new JSONObject();
+                    jsonData.put("line_width", gs.getLineWidth());
+                    jsonData.put("type", stroked ? "stroke" : "fill");
+                    if (stroked) jsonData.put("color", gs.getStrokingColor().toString());
+                    if (filled) jsonData.put("fill_color", gs.getNonStrokingColor().toString());
+
+                    ContentItem item = new ContentItem(Type.VECTOR, jsonData.toString(), pageIndex + 1, bounds);
+                    contentItems.add(item);
+                }
+
+                currentPath.reset();
+                pathIsEmpty = true;
+            }
+
+            @Override public void clip(int windingRule) {}
+            @Override public void shadingFill(COSName shadingName) throws IOException {}
+            @Override public void drawImage(PDImage pdImage) throws IOException {}
+        }
+
+        DrawingPositionEngine engine = new DrawingPositionEngine(page);
+        engine.processPage(page);
+        return engine.contentItems;
+    }
+    **/
 }
