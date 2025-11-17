@@ -78,16 +78,16 @@ public class ContentUtil  {
     {
     	if(aContentItem.getType() == Type.IMAGE)
     	{
-    		int iContentSize = aContentItem.getContent().length();
+    		int iContentSize = aContentItem.getData().length();
     		
     		String sData100 = "";
     		if(iContentSize>50)
     		{
-    			sData100 = aContentItem.getContent().substring(0, 50);
+    			sData100 = aContentItem.getData().substring(0, 50);
     		}
     		else
     		{
-    			sData100 = aContentItem.getContent();
+    			sData100 = aContentItem.getData();
     		}
     		return pattImgBase64Prefix.matcher(sData100).find();
     	}
@@ -138,7 +138,7 @@ public class ContentUtil  {
 		{
 			if(aContentItem.getTagName()==TAGNAME_BASE64)
 			{
-				sBase64 = aContentItem.getContent();
+				sBase64 = aContentItem.getData();
 			}
 		}
 		return sBase64;
@@ -181,7 +181,7 @@ public class ContentUtil  {
 		        	}
 		        	else if(item.getType() == ContentItem.Type.TEXT)
 		        	{
-	        			String sText = item.getContent();
+	        			String sText = item.getData();
 	        			
 	        			//skip if linebreak only
 	        			if(sText.trim().length()==0)
@@ -201,7 +201,7 @@ public class ContentUtil  {
 			        		
 			        		float textX = (float) item.getX1();
 			                float textY = (float) item.getY1() + fm.getAscent();
-			                g2d.drawString(item.getContent(), textX, textY);
+			                g2d.drawString(item.getData(), textX, textY);
 		        		}
 		        	}
 		        	

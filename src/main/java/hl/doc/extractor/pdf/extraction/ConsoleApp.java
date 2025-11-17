@@ -1,7 +1,7 @@
 package hl.doc.extractor.pdf.extraction;
 
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
+import hl.doc.extractor.pdf.extraction.model.ExtractedData;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
@@ -58,7 +58,7 @@ public class ConsoleApp {
         return isSyntaxOK;
     }
     
-    public static File saveAsFile(ExtractedContent aExtractData, File aOutputFile)
+    public static File saveAsFile(ExtractedData aExtractData, File aOutputFile)
     {
     	boolean isJsonFormat = aOutputFile.getName().toLowerCase().endsWith(".json");
     	String sContent = isJsonFormat? 
@@ -182,7 +182,7 @@ public class ConsoleApp {
         			
 			        PDFExtractor pdfExtract = new PDFExtractor(f);
 			        pdfExtract.setSortingOrder(SORT.BY_PAGE, SORT.BY_Y, SORT.BY_X);
-			        ExtractedContent content = pdfExtract.extractAll();
+			        ExtractedData content = pdfExtract.extractAll();
 			        
 			        MetaData metaData = content.getMetaData();
 			        for(String sTypeExt : sOutputTypes)

@@ -13,7 +13,7 @@ public class ContentItem {
 	private int doc_seq 	= 0;
 	private int page_no 	= 0;
 	private int pg_line_seq = 0;
-	private String content 	= "";
+	private String data 	= "";
 	private double segment	= 0;
 	private Rectangle2D rect= null;
 
@@ -88,12 +88,12 @@ public class ContentItem {
 		init(type, content, pageno, rect2d);
     }
 	
-	private void init(Type type, String content, int pageno, Rectangle2D rect2d)
+	private void init(Type type, String data, int pageno, Rectangle2D rect2d)
 	{
         this.type = type; 
         this.page_no = pageno;
         this.rect = rect2d;
-        this.content = content;
+        this.data = data;
 	}
 
 	//
@@ -144,12 +144,12 @@ public class ContentItem {
 		this.pg_line_seq = pg_line_seq;
 	}
 
-	public String getContent() {
-		return content;
+	public String getData() {
+		return data;
 	}
 
-	public void setContent(String content) {
-		this.content = content;
+	public void setData(String data) {
+		this.data = data;
 	}
 
 	public double getSegment_no() {
@@ -197,7 +197,7 @@ public class ContentItem {
 		sb.append("{").append(getX1()).append(",").append(getY1()).append("} ");
 		sb.append(getWidth()).append("x").append(getHeight());
 		sb.append(" ").append(isText?"TEXT":"IMAGE");
-		sb.append(" ").append(getContent());
+		sb.append(" ").append(getData());
 		return sb.toString();
 	}
 	

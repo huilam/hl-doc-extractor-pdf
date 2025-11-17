@@ -6,7 +6,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 
 import hl.common.ImgUtil;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ExtractedContent;
+import hl.doc.extractor.pdf.extraction.model.ExtractedData;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
@@ -74,17 +74,17 @@ abstract public class AbstractExtractor {
     
     //////////////////
 
-    public ExtractedContent extractAll() throws IOException
+    public ExtractedData extractAll() throws IOException
     {
     	return extractPages(1, pdf_doc.getNumberOfPages());
     }
     
-    public ExtractedContent extractPage(int aPageNo) throws IOException
+    public ExtractedData extractPage(int aPageNo) throws IOException
     {
     	return extractPages(aPageNo, aPageNo);
     }
     
-    public ExtractedContent extractPages(int aStartPageNo, int aEndPageNo) throws IOException
+    public ExtractedData extractPages(int aStartPageNo, int aEndPageNo) throws IOException
     {
     	List<ContentItem> listItems = new ArrayList<>();
     	
@@ -125,7 +125,7 @@ abstract public class AbstractExtractor {
         	it.setPg_line_seq(iPgLineSeq++);
         }
         
-        ExtractedContent extracted = new ExtractedContent(this.pdf_meta);
+        ExtractedData extracted = new ExtractedData(this.pdf_meta);
         extracted.setContentItemList(listItems);
         return extracted;
     }

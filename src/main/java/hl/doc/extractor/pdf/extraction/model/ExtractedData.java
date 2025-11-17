@@ -17,8 +17,20 @@ import org.json.JSONObject;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
-public class ExtractedContent {
+public class ExtractedData {
 
+	public static String JSON_GROUP_CONTENT = "content";
+	public static String JSON_GROUP_IMAGES 	= "images";
+	
+	public static String JSON_PAGE_NO 	= "page_no";
+	public static String JSON_LINE_SEQ 	= "line_seq";
+	public static String JSON_X 		= "x";
+	public static String JSON_Y 		= "y";
+	public static String JSON_WIDTH 	= "width";
+	public static String JSON_HEIGHT 	= "heigh";
+	public static String JSON_TYPE 		= "type";
+	public static String JSON_DATA 		= "data";
+	
 	private Map<Integer, List<ContentItem>> page_content_list = new HashMap<>();
 	private List<ContentItem> full_content_list 			  = null;
 	
@@ -29,7 +41,7 @@ public class ExtractedContent {
 	private Map<String, String> imgbase64_cache = new LinkedHashMap<String, String>();
 	//
 	
-	public ExtractedContent(MetaData aPDFMeta)
+	public ExtractedData(MetaData aPDFMeta)
 	{
 		this.pdf_meta = aPDFMeta;
 	}
@@ -83,7 +95,7 @@ public class ExtractedContent {
 					this.imgbase64_cache.put(sImgFileName, sBase64Img);
 					//
 					String sImgContent = "![image]("+sImgFileName+")";
-					it.setContent(sImgContent);
+					it.setData(sImgContent);
 				}
 			}
 			
@@ -161,7 +173,7 @@ public class ExtractedContent {
     			//
     		}
     		
-    		sb.append(it.getContent());
+    		sb.append(it.getData());
     		sb.append("\n");
     	}
     	
@@ -175,26 +187,26 @@ public class ExtractedContent {
     {
     	JSONObject jsonDoc = new JSONObject();
     	
-    	JSONArray jArrItem = new JSONArray();
+    	JSONArray jArrContent = new JSONArray();
     	for(ContentItem it : getContentItemList())
     	{
     		JSONObject jsonItem = new JSONObject();
     		
-    		jsonItem.put("page_no", it.getPage_no());
-    		jsonItem.put("line_seq", it.getPg_line_seq());
-    		jsonItem.put("x", it.getX1());
-    		jsonItem.put("y", it.getY1());
-    		jsonItem.put("width", it.getWidth());
-    		jsonItem.put("height", it.getHeight());
-    		jsonItem.put("type", it.getType());
-    		jsonItem.put("content", it.getContent());
+    		jsonItem.put(JSON_PAGE_NO, it.getPage_no());
+    		jsonItem.put(JSON_LINE_SEQ, it.getPg_line_seq());
+    		jsonItem.put(JSON_X, it.getX1());
+    		jsonItem.put(JSON_Y, it.getY1());
+    		jsonItem.put(JSON_WIDTH, it.getWidth());
+    		jsonItem.put(JSON_HEIGHT, it.getHeight());
+    		jsonItem.put(JSON_TYPE, it.getType());
+    		jsonItem.put(JSON_DATA, it.getData());
     		
-    		jArrItem.put(jsonItem);
+    		jArrContent.put(jsonItem);
     	}
-    	jsonDoc.put("content", jArrItem);
+    	jsonDoc.put(JSON_GROUP_CONTENT, jArrContent);
     	if(isIncludeImages)
     	{
-    		jsonDoc.put("images", getExtractedImagesJson());
+    		jsonDoc.put("JSON_GROUP_IMAGES", getExtractedImagesJson());
     	}
     	
     	return jsonDoc;
