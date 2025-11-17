@@ -42,6 +42,17 @@ abstract public class AbstractExtractor {
 	   		this.pdf_meta.setSourceFileName(aPDFFile.getName());
     	}
     }
+    
+    public void release()
+    {
+    	if(pdf_doc!=null)
+			try {
+				pdf_doc.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    }
 
     public File getOrigPdfFile()
     {
