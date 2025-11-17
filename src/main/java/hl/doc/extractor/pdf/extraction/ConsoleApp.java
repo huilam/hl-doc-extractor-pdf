@@ -179,39 +179,48 @@ public class ConsoleApp {
         			long lStartTimeMs = System.currentTimeMillis(); 
         			System.out.println("\n "+(iFileSeq++)+". Extracting "+f.getName()+" ...");
         			
-			        PDFExtractor pdfExtract = new PDFExtractor(f);
-			        ExtractedData content = pdfExtract.extractAll();
+			        PDFExtractor pdfExtract = null;
 			        
-			        MetaData metaData = content.getMetaData();
-			        for(String sTypeExt : sOutputTypes)
-			        {
-			        	System.out.println("    - Export to "+sTypeExt+" ...");
-			        	
-				        File fileOutput = new File(
-				        		folderSaveOutput.getAbsolutePath()
-				        		+"/extracted_"+metaData.getSourceFileName()+"."+sTypeExt);
+			        try {
+				        pdfExtract = new PDFExtractor(f);
+				        ExtractedData content = pdfExtract.extractAll();
 				        
-				        saveAsFile(content, fileOutput);
-				        
-				        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
-				        System.out.println("    - Extracted "+metaData.getTotalPages()
-				        					+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
-				        System.out.println();
-			        }
-			        
-			        for(int iPageNo=1; iPageNo <= metaData.getTotalPages(); iPageNo++)
-			        {
-				        BufferedImage img = pdfExtract.renderPagePreview(iPageNo, 0.50);
-				        if(img!=null)
+				        MetaData metaData = content.getMetaData();
+				        for(String sTypeExt : sOutputTypes)
 				        {
-				        	File fileImg = new File(
-				        			folderSaveOutput.getAbsolutePath()
-				        			+"/preview_page_"+iPageNo+".jpg");
-					        if(ImageIO.write(img, "jpg", fileImg))
-							{
-								System.out.println("    - [saved] "+fileImg.getName());
-							}
+				        	System.out.println("    - Export to "+sTypeExt+" ...");
+				        	
+					        File fileOutput = new File(
+					        		folderSaveOutput.getAbsolutePath()
+					        		+"/extracted_"+metaData.getSourceFileName()+"."+sTypeExt);
+					        
+					        saveAsFile(content, fileOutput);
+					        
+					        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
+					        System.out.println("    - Extracted "+metaData.getTotalPages()
+					        					+" pages ("+sTypeExt+" "+lElapsedMs+" ms)");
+					        System.out.println();
 				        }
+				        
+				        for(int iPageNo=1; iPageNo <= metaData.getTotalPages(); iPageNo++)
+				        {
+					        BufferedImage img = pdfExtract.renderPagePreview(iPageNo, 0.50);
+					        if(img!=null)
+					        {
+					        	File fileImg = new File(
+					        			folderSaveOutput.getAbsolutePath()
+					        			+"/preview_page_"+iPageNo+".jpg");
+						        if(ImageIO.write(img, "jpg", fileImg))
+								{
+									System.out.println("    - [saved] "+fileImg.getName());
+								}
+					        }
+				        }
+			        }
+			        finally
+			        {
+			        	if(pdfExtract!=null)
+			        		pdfExtract.release();
 			        }
 	        	}
         	}
