@@ -99,10 +99,10 @@ abstract public class AbstractExtractor {
     {
     	List<ContentItem> listItems = new ArrayList<>();
     	
-    	if(aStartPageNo==0)
+    	if(aStartPageNo<=0)
     		aStartPageNo = 1;
     	
-    	if(aEndPageNo>pdf_doc.getNumberOfPages())
+    	if(aEndPageNo<=0 || aEndPageNo>pdf_doc.getNumberOfPages())
     		aEndPageNo = pdf_doc.getNumberOfPages();
     	
     	for(int iPageNo=aStartPageNo; iPageNo<=aEndPageNo; iPageNo++)
@@ -113,10 +113,8 @@ abstract public class AbstractExtractor {
 	    	List<ContentItem> listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
 	    	listItems.addAll(listImage);
 
-	    	/**
 	    	List<ContentItem> listVector = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1);
 	    	listItems.addAll(listVector);
-	    	**/
     	}
     	
     	listItems = preSortProcess(listItems);

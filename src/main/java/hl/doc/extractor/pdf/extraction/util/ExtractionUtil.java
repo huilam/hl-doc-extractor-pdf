@@ -1,5 +1,8 @@
 package hl.doc.extractor.pdf.extraction.util;
 
+import java.awt.BasicStroke;
+import java.awt.Shape;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -23,6 +26,8 @@ import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
+import org.json.JSONObject;
+
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
@@ -219,7 +224,6 @@ public class ExtractionUtil  {
 	    return engine.contentItems;
 	}
 	
-	/** WIP
 	// ---- Drawing (Rectangle, Line) -----
     public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex) throws IOException {
         
@@ -276,11 +280,15 @@ public class ExtractionUtil  {
                 }
 
                 Rectangle2D bounds = transformedShape.getBounds2D();
-
+                
                 if (bounds.getWidth() > 0 && bounds.getHeight() > 0) {
                     JSONObject jsonData = new JSONObject();
+                    jsonData.put("path",  currentPath.toString());
                     jsonData.put("line_width", gs.getLineWidth());
                     jsonData.put("type", stroked ? "stroke" : "fill");
+                    
+                   
+                    
                     if (stroked) jsonData.put("color", gs.getStrokingColor().toString());
                     if (filled) jsonData.put("fill_color", gs.getNonStrokingColor().toString());
 
@@ -301,5 +309,5 @@ public class ExtractionUtil  {
         engine.processPage(page);
         return engine.contentItems;
     }
-    **/
+
 }
