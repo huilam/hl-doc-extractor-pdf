@@ -1,6 +1,7 @@
 package hl.doc.extractor.pdf.extraction.util;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
@@ -21,12 +22,14 @@ import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
+import org.apache.pdfbox.pdmodel.graphics.color.PDPattern;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
-import org.json.JSONObject;
 
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
@@ -282,29 +285,66 @@ public class ExtractionUtil  {
                 Rectangle2D bounds = transformedShape.getBounds2D();
                 
                 if (bounds.getWidth() > 0 && bounds.getHeight() > 0) {
-                    JSONObject jsonData = new JSONObject();
-                    jsonData.put("path",  currentPath.toString());
-                    jsonData.put("line_width", gs.getLineWidth());
-                    jsonData.put("type", stroked ? "stroke" : "fill");
+                	String sData = ContentUtil.vectorPathToString(currentPath);
+                    ContentItem item = new ContentItem(Type.VECTOR, sData, pageIndex + 1, bounds);
+                    item.setContentFormat(GeneralPath.class.getName());
                     
-                   
+                    StringBuffer sbTagInfo = new StringBuffer();
                     
-                    if (stroked) jsonData.put("color", gs.getStrokingColor().toString());
-                    if (filled) jsonData.put("fill_color", gs.getNonStrokingColor().toString());
-
-                    ContentItem item = new ContentItem(Type.VECTOR, jsonData.toString(), pageIndex + 1, bounds);
+                    sbTagInfo.append("stroke.rgb:[");
+                    if (stroked) {
+                    	Color colorStroke = toRGB(gs.getStrokingColor());
+                    	if(colorStroke!=null)
+                    	{
+	                    	sbTagInfo.append(colorStroke.getRed()).append(",");
+	                    	sbTagInfo.append(colorStroke.getGreen()).append(",");
+	                    	sbTagInfo.append(colorStroke.getBlue());
+                    	}
+                    }
+                    sbTagInfo.append("]");
+                    sbTagInfo.append(",fill.rgb:[");
+                    if (filled) {
+                    	Color colorFill = toRGB(gs.getNonStrokingColor());
+                    	if(colorFill!=null)
+                    	{
+	                    	sbTagInfo.append(colorFill.getRed()).append(",");
+	                    	sbTagInfo.append(colorFill.getGreen()).append(",");
+	                    	sbTagInfo.append(colorFill.getBlue());
+                    	}
+                    }
+                    sbTagInfo.append("]");
+                    
+                    item.setTagName(sbTagInfo.toString());
                     contentItems.add(item);
                 }
-
                 currentPath.reset();
                 pathIsEmpty = true;
             }
-
+            
             @Override public void clip(int windingRule) {}
             @Override public void shadingFill(COSName shadingName) throws IOException {}
             @Override public void drawImage(PDImage pdImage) throws IOException {}
+            
+            private Color toRGB(PDColor aPDColor)
+            {
+                float[] rgb = new float[3];
+                PDColorSpace cs = aPDColor.getColorSpace();
+                
+                if (!(cs instanceof PDPattern)) {
+	                try {
+	                	rgb = cs.toRGB(aPDColor.getComponents());
+						return new Color(rgb[0], rgb[1], rgb[2]);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                }
+                return null;
+            }
+            
         }
 
+        
         DrawingPositionEngine engine = new DrawingPositionEngine(page);
         engine.processPage(page);
         return engine.contentItems;

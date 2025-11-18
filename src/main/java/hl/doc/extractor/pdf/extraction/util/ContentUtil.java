@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -143,6 +146,71 @@ public class ContentUtil  {
 		}
 		return sBase64;
 	}
+	
+	public static String vectorPathToString(GeneralPath path) {
+        StringBuilder sb = new StringBuilder();
+        PathIterator it = path.getPathIterator(null);
+
+        float[] coords = new float[6];
+        while (!it.isDone()) {
+            int type = it.currentSegment(coords);
+            sb.append(type);
+            for (int i = 0; i < coordCount(type); i++) {
+                sb.append(',').append(coords[i]);
+            }
+            sb.append(';'); // segment separator
+            it.next();
+        }
+        return sb.toString();
+    }
+
+    // Number of coords per segment type
+    private static int coordCount(int segmentType) {
+        return switch (segmentType) {
+            case PathIterator.SEG_MOVETO -> 2;
+            case PathIterator.SEG_LINETO -> 2;
+            case PathIterator.SEG_QUADTO -> 4;
+            case PathIterator.SEG_CUBICTO -> 6;
+            case PathIterator.SEG_CLOSE -> 0;
+            default -> throw new IllegalArgumentException("Unknown segment");
+        };
+    }
+    
+    public static GeneralPath stringToVectorPath(String s) {
+        GeneralPath path = new GeneralPath();
+
+        for (String seg : s.split(";")) {
+            if (seg.isEmpty()) continue;
+            String[] parts = seg.split(",");
+            int type = Integer.parseInt(parts[0]);
+
+            switch (type) {
+                case PathIterator.SEG_MOVETO ->
+                    path.moveTo(Float.parseFloat(parts[1]), Float.parseFloat(parts[2]));
+
+                case PathIterator.SEG_LINETO ->
+                    path.lineTo(Float.parseFloat(parts[1]), Float.parseFloat(parts[2]));
+
+                case PathIterator.SEG_QUADTO ->
+                    path.quadTo(Float.parseFloat(parts[1]), Float.parseFloat(parts[2]),
+                                Float.parseFloat(parts[3]), Float.parseFloat(parts[4]));
+
+                case PathIterator.SEG_CUBICTO ->
+                    path.curveTo(Float.parseFloat(parts[1]), Float.parseFloat(parts[2]),
+                                 Float.parseFloat(parts[3]), Float.parseFloat(parts[4]),
+                                 Float.parseFloat(parts[5]), Float.parseFloat(parts[6]));
+
+                case PathIterator.SEG_CLOSE ->
+                    path.closePath();
+
+                default ->
+                    throw new IllegalArgumentException("Unknown segment: " + type);
+            }
+        }
+
+        return path;
+    }
+
     
     ////////////
     public static BufferedImage renderPageLayout(
@@ -171,13 +239,11 @@ public class ContentUtil  {
 		        FontMetrics fm = g2d.getFontMetrics();
 		        for(ContentItem item : aPageContentItem)
 		        {
+		        	Shape shape = null;
 		        	if(item.getType() == ContentItem.Type.IMAGE)
 		        	{
 		        		g2d.setColor(Color.RED);
-		        	}
-		        	else if(item.getType() == ContentItem.Type.VECTOR)
-		        	{
-		        		g2d.setColor(Color.GREEN);
+		        		shape = item.getRect2D();
 		        	}
 		        	else if(item.getType() == ContentItem.Type.TEXT)
 		        	{
@@ -203,9 +269,16 @@ public class ContentUtil  {
 			                float textY = (float) item.getY1() + fm.getAscent();
 			                g2d.drawString(item.getData(), textX, textY);
 		        		}
+		        		shape = item.getRect2D();
+		        	}
+		        	else if(item.getType() == ContentItem.Type.VECTOR)
+		        	{
+		        		g2d.setColor(Color.GREEN);
+		        		GeneralPath vector = stringToVectorPath(item.getData());
+		        		shape = vector;
 		        	}
 		        	
-		        	g2d.draw(item.getRect2D());
+		        	g2d.draw(shape);
 		        }
 		        
 	        }finally
