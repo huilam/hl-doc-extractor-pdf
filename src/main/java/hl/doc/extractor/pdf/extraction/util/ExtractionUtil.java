@@ -236,6 +236,7 @@ public class ExtractionUtil  {
     public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex) throws IOException {
         
         PDPage page = doc.getPage(pageIndex);
+        float pageHeight = page.getMediaBox().getHeight();
 
         class DrawingPositionEngine extends PDFGraphicsStreamEngine {
 
@@ -250,20 +251,31 @@ public class ExtractionUtil  {
                 Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
             }
 
-            @Override public void moveTo(float x, float y) { currentPath.moveTo(x, y); pathIsEmpty = false; }
-            @Override public void lineTo(float x, float y) { currentPath.lineTo(x, y); pathIsEmpty = false; }
+            @Override public void moveTo(float x, float y) 
+            { 
+            	currentPath.moveTo(x, pageHeight - y); 
+            	pathIsEmpty = false; 
+            }
+            @Override public void lineTo(float x, float y) 
+            { 
+            	currentPath.lineTo(x, pageHeight - y); 
+            	pathIsEmpty = false; 
+            }
             @Override public void curveTo(float x1, float y1, float x2, float y2, float x3, float y3) 
             {
+            	y1 = pageHeight - y1;
+            	y2 = pageHeight - y2;
+            	y3 = pageHeight - y3;
                 currentPath.curveTo(x1, y1, x2, y2, x3, y3); pathIsEmpty = false;
             }
             @Override public void closePath() { currentPath.closePath(); }
             @Override public Point2D getCurrentPoint() { return currentPath.getCurrentPoint(); }
             @Override public void appendRectangle(Point2D p0, Point2D p1, Point2D p2, Point2D p3) 
             {
-                currentPath.moveTo(p0.getX(), p0.getY());
-                currentPath.lineTo(p1.getX(), p1.getY());
-                currentPath.lineTo(p2.getX(), p2.getY());
-                currentPath.lineTo(p3.getX(), p3.getY());
+                currentPath.moveTo(p0.getX(), pageHeight - p0.getY());
+                currentPath.lineTo(p1.getX(), pageHeight - p1.getY());
+                currentPath.lineTo(p2.getX(), pageHeight - p2.getY());
+                currentPath.lineTo(p3.getX(), pageHeight - p3.getY());
                 currentPath.closePath();
                 pathIsEmpty = false;
             }
