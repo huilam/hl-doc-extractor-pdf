@@ -44,6 +44,7 @@ public class ExtractionUtil  {
 	        List<TextPosition> currentLine = new ArrayList<>();
 
 	        GroupedTextStripper() throws IOException {}
+	        int iExtractSeq = 1;
 
 	        @Override
 	        protected void processTextPosition(TextPosition text) {
@@ -133,7 +134,9 @@ public class ExtractionUtil  {
 	            }
 
 	            Rectangle2D rect2D = new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY);
-	            contentItems.add(new ContentItem(Type.TEXT, sb.toString(), getCurrentPageNo(), rect2D));
+	            ContentItem textItem = new ContentItem(Type.TEXT, sb.toString(), getCurrentPageNo(), rect2D);
+	            textItem.setExtract_seq(iExtractSeq++);
+	            contentItems.add(textItem);
 	        }
 
 	    }
@@ -153,9 +156,10 @@ public class ExtractionUtil  {
 		
 		float scale = 1.0f;
 		double pageHeightPoints = page.getMediaBox().getHeight();
-
+		
 	    class ImagePositionEngine extends PDFGraphicsStreamEngine {
 	        final List<ContentItem> contentItems = new ArrayList<>();
+	        int iExtractSeq = 1;
 
 	        ImagePositionEngine(PDPage page) { 
 	        	super(page); 
@@ -203,6 +207,7 @@ public class ExtractionUtil  {
 	            ContentItem item = new ContentItem(Type.IMAGE, sImgContent, pageIndex+1, rect);
 	            item.setTagName(ContentUtil.TAGNAME_BASE64);
 	            item.setContentFormat(sImgformat);
+	            item.setExtract_seq(iExtractSeq++);
 	            //
 	            contentItems.add(item);
 	        }
@@ -237,6 +242,7 @@ public class ExtractionUtil  {
             final List<ContentItem> contentItems = new ArrayList<>();
             private GeneralPath currentPath = new GeneralPath();
             private boolean pathIsEmpty = true;
+            int iExtractSeq = 1;
 
             DrawingPositionEngine(PDPage page) {
                 super(page);
@@ -315,6 +321,7 @@ public class ExtractionUtil  {
                     sbTagInfo.append("]");
                     
                     item.setTagName(sbTagInfo.toString());
+                    item.setExtract_seq(iExtractSeq++);
                     contentItems.add(item);
                 }
                 currentPath.reset();

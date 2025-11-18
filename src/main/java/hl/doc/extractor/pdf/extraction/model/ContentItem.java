@@ -14,6 +14,7 @@ public class ContentItem {
 	private Type type		= Type.TEXT;
 	private String format	= null;
 	private String tagname 	= null;
+	private int extract_seq = 0;
 	private int doc_seq 	= 0;
 	private int page_no 	= 0;
 	private int pg_line_seq = 0;
@@ -109,6 +110,14 @@ public class ContentItem {
 		this.type = type;
 	}
 	
+	public int getExtract_seq() {
+		return extract_seq;
+	}
+
+	public void setExtract_seq(int extract_seq) {
+		this.extract_seq = extract_seq;
+	}
+
 	public String getTagName() {
 		return this.tagname;
 	}
