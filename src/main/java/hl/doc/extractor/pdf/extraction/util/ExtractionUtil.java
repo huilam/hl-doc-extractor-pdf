@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,9 +28,9 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
 public class ExtractionUtil  {
 
-    // ---- TEXT BOUNDING BOXES ----
+	// ---- TEXT BOUNDING BOXES ----
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException {
-		
+
 	    class GroupedTextStripper extends PDFTextStripper {
 	        List<ContentItem> contentItems = new ArrayList<>();
 	        List<TextPosition> currentLine = new ArrayList<>();
@@ -44,8 +45,18 @@ public class ExtractionUtil  {
 	            }
 
 	            TextPosition last = currentLine.get(currentLine.size() - 1);
-	            // Check if same line (Y close enough)
-	            if (Math.abs(last.getYDirAdj() - text.getYDirAdj()) < 3) {
+
+	            // --- FIX 1: Baseline-based grouping to handle superscripts/subscripts ---
+	            float baselineLast = last.getTextMatrix().getTranslateY();
+	            float baselineCurrent = text.getTextMatrix().getTranslateY();
+
+	            float hLast = last.getHeightDir();
+	            float hCurrent = text.getHeightDir();
+
+	            // relative tolerance based on the larger font height
+	            float tolerance = Math.max(hLast, hCurrent) * 0.6f;
+
+	            if (Math.abs(baselineLast - baselineCurrent) < tolerance) {
 	                currentLine.add(text);
 	            } else {
 	                addBoundingBox(getCurrentPage(), currentLine);
@@ -65,32 +76,68 @@ public class ExtractionUtil  {
 	        }
 
 	        private void addBoundingBox(PDPage page, List<TextPosition> line) {
+	            if (line.isEmpty()) return;
+
+	            // --- 1) Compute main baseline (median) and full line height ---
+	            List<Float> baselines = new ArrayList<>();
+	            float maxHeight = 0;
+
+	            for (TextPosition t : line) {
+	                baselines.add(t.getYDirAdj());
+	                maxHeight = Math.max(maxHeight, t.getHeightDir());
+	            }
+
+	            Collections.sort(baselines);
+	            float mainBaseline = baselines.get(baselines.size() / 2);
+
+	            // Define group height tolerance
+	            //float tolerance = maxHeight * 0.3f;
+
+	            // --- 2) Bounding box extremes ---
 	            float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
 	            float maxX = 0, maxY = 0;
 	            StringBuffer sb = new StringBuffer();
+
 	            for (TextPosition t : line) {
 	                float x = t.getXDirAdj();
-	                float y = t.getYDirAdj() - t.getHeightDir();
+	                //float baseline = t.getYDirAdj();
 	                float w = t.getWidthDirAdj();
-	                float h = t.getHeightDir();
+	                //float h = t.getHeightDir();
+
+	                // --- 3) NORMALIZED baseline for bounding box only ---
+	                float normalizedBaseline = mainBaseline;
+
+	                // --- 4) NORMALIZED height for bounding box only ---
+	                float normalizedHeight = maxHeight;
+
+	                // NOTE:
+	                // We DO NOT modify t's visual baseline or height.
+	                // The normalization only applies to bounding box calculation.
+
+	                float yTop = normalizedBaseline - normalizedHeight;
+
 	                minX = Math.min(minX, x);
-	                minY = Math.min(minY, y);
+	                minY = Math.min(minY, yTop);
 	                maxX = Math.max(maxX, x + w);
-	                maxY = Math.max(maxY, y + h);
-	                
-	                sb.append(t.getUnicode()); 
+	                maxY = Math.max(maxY, normalizedBaseline);
+
+	                sb.append(t.getUnicode());
 	            }
+
 	            Rectangle2D rect2D = new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY);
 	            contentItems.add(new ContentItem(Type.TEXT, sb.toString(), getCurrentPageNo(), rect2D));
 	        }
+
 	    }
 
 	    GroupedTextStripper stripper = new GroupedTextStripper();
 	    stripper.setStartPage(pageIndex + 1);
 	    stripper.setEndPage(pageIndex + 1);
 	    stripper.getText(doc);
+
 	    return stripper.contentItems;
 	}
+
 
 	// ---- IMAGE BOUNDING BOXES (Y-flipped to match BufferedImage coordinates) ----
 	public static List<ContentItem> extractImageContent(PDDocument doc, int pageIndex) throws IOException {
