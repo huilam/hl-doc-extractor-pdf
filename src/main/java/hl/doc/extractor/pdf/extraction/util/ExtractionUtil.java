@@ -52,6 +52,7 @@ public class ExtractionUtil  {
 	                currentLine.clear();
 	                currentLine.add(text);
 	            }
+	            
 	        }
 
 	        @Override
@@ -129,11 +130,20 @@ public class ExtractionUtil  {
 	            
 	            BufferedImage img = pdImage.getImage();
 	            String sImgformat = pdImage.getSuffix(); 
-	            
-	            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(img, sImgformat, baos);
-                byte[] imageBytes = baos.toByteArray();
-                String sImgContent = Base64.getEncoder().encodeToString(imageBytes);
+	            String sImgContent = null;
+	            ByteArrayOutputStream baos = null;
+	            try {
+		            baos = new ByteArrayOutputStream();
+	                ImageIO.write(img, sImgformat, baos);
+	                sImgContent = Base64.getEncoder().encodeToString(baos.toByteArray());
+	            }
+	            finally
+	            {
+	            	if(baos!=null)
+	            	{
+	            		baos.close();
+	            	}
+	            }
                 //
 	            ContentItem item = new ContentItem(Type.IMAGE, sImgContent, pageIndex+1, rect);
 	            item.setTagName(ContentUtil.TAGNAME_BASE64);

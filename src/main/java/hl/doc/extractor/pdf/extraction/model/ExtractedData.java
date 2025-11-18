@@ -27,7 +27,7 @@ public class ExtractedData {
 	public static String JSON_X 		= "x";
 	public static String JSON_Y 		= "y";
 	public static String JSON_WIDTH 	= "width";
-	public static String JSON_HEIGHT 	= "heigh";
+	public static String JSON_HEIGHT 	= "height";
 	public static String JSON_TYPE 		= "type";
 	public static String JSON_DATA 		= "data";
 	
@@ -35,8 +35,8 @@ public class ExtractedData {
 	private List<ContentItem> full_content_list 			  = null;
 	
 	private MetaData pdf_meta 	= null;
-	private int min_pageno 		= 1000;
-	private int max_pageno 		= 1;
+	private int min_pageno 		= Integer.MAX_VALUE;
+	private int max_pageno 		= 0;
 	
 	private Map<String, String> imgbase64_cache = new LinkedHashMap<String, String>();
 	//
@@ -133,10 +133,9 @@ public class ExtractedData {
 			//
 			if(sImgBase64!=null)
 			{
-				byte[] byteImg = Base64.getDecoder().decode(sImgBase64);
-				
 				try {
-					img = ImageIO.read(new ByteArrayInputStream(byteImg));
+					img = ImageIO.read(new ByteArrayInputStream(
+							Base64.getDecoder().decode(sImgBase64)));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -228,10 +227,9 @@ public class ExtractedData {
 			if(sImgBase64!=null)
 			{
 				BufferedImage img = null;
-				byte[] byteImg = Base64.getDecoder().decode(sImgBase64);
-				
 				try {
-					img = ImageIO.read(new ByteArrayInputStream(byteImg));
+					img = ImageIO.read(new ByteArrayInputStream(
+							Base64.getDecoder().decode(sImgBase64)));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
