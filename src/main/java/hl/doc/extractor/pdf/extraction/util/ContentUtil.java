@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
@@ -24,15 +25,17 @@ public class ContentUtil  {
 	public static String TAGNAME_BASE64 = "base64";
 	
 	private static Pattern pattImgBase64Prefix 	= Pattern.compile("(data\\:image\\/(.+?)\\;base64\\,)");
-//	private static Pattern pattImgMarkupTag 	= Pattern.compile("(\\!\\[image.+?\\]\\((.+?)\\))");
+	private static Pattern pattVectorLineRGB 	= Pattern.compile("stroke\\.rgb\\:\\[([0-9]{1,3})\\,([0-9]{1,3})\\,([0-9]{1,3})\\]");
+	private static Pattern pattVectorFillRGB 	= Pattern.compile("fill\\.rgb\\:\\[(.+?)\\,(.+?)\\,(.+?)\\]");
 
 	
 	public enum SORT 
 	{
-	    BY_PAGE		(Comparator.comparing(ContentItem::getPage_no)),
-	    BY_X    	(Comparator.comparing(ContentItem::getX1)),
-	    BY_Y    	(Comparator.comparing(ContentItem::getY1)),
-	    BY_SEGMENT	(Comparator.comparing(ContentItem::getSegment_no));
+	    BY_PAGE			(Comparator.comparing(ContentItem::getPage_no)),
+	    BY_X    		(Comparator.comparing(ContentItem::getX1)),
+	    BY_Y    		(Comparator.comparing(ContentItem::getY1)),
+	    BY_SEGMENT		(Comparator.comparing(ContentItem::getSegment_no)),
+	    BY_EXTRACT_SEQ	(Comparator.comparing(ContentItem::getExtract_seq));
 	
 	    private final Comparator<ContentItem> cmp;
 
@@ -147,6 +150,49 @@ public class ContentUtil  {
 		return sBase64;
 	}
 	
+	public static GeneralPath getVectorPath(ContentItem aContentItem)
+	{
+		GeneralPath path = null;
+		if(aContentItem.getType()==Type.VECTOR)
+		{
+			if(aContentItem.getContentFormat().equals(GeneralPath.class.getName()))
+			{
+				path = stringToVectorPath(aContentItem.getData());
+			}
+		}
+		return path;
+	}
+	
+	public static Color[] getVectorColor(ContentItem aContentItem)
+	{
+		Color[] colors = new Color[]{null,null};
+		if(aContentItem.getType()==Type.VECTOR)
+		{
+			if(aContentItem.getContentFormat().equals(GeneralPath.class.getName()))
+			{
+				Matcher m = pattVectorLineRGB.matcher(aContentItem.getTagName());
+				if(m.find())
+				{
+					int iRed 	= Integer.parseInt(m.group(1));
+					int iGreen 	= Integer.parseInt(m.group(2));
+					int iBlue 	= Integer.parseInt(m.group(3));
+					colors[0] = new Color(iRed, iGreen, iBlue);
+				}
+				
+				m = pattVectorFillRGB.matcher(aContentItem.getTagName());
+				if(m.find())
+				{
+					int iRed 	= Integer.parseInt(m.group(1));
+					int iGreen 	= Integer.parseInt(m.group(2));
+					int iBlue 	= Integer.parseInt(m.group(3));
+					colors[1] = new Color(iRed, iGreen, iBlue);
+				}
+			}
+		}
+		return colors;
+	}
+
+	
 	public static String vectorPathToString(GeneralPath path) {
         StringBuilder sb = new StringBuilder();
         PathIterator it = path.getPathIterator(null);
@@ -225,6 +271,8 @@ public class ContentUtil  {
     	
     	if(aPageContentItem!=null && aPageContentItem.size()>0)
     	{
+    		aPageContentItem = sortContentItems(aPageContentItem, SORT.BY_PAGE, SORT.BY_EXTRACT_SEQ);
+    		
 	    	Graphics2D g2d = null;
 	        try
 	        {
@@ -273,9 +321,23 @@ public class ContentUtil  {
 		        	}
 		        	else if(item.getType() == ContentItem.Type.VECTOR)
 		        	{
-		        		g2d.setColor(Color.GREEN);
 		        		GeneralPath vector = stringToVectorPath(item.getData());
 		        		shape = vector;
+		        		
+		        		Color[] colors = getVectorColor(item);
+		        		if(colors[1]!=null)
+		        		{
+			        		g2d.setColor(colors[1]);
+		        			g2d.fill(shape);
+		        		}
+		        		
+		        		g2d.setColor(Color.GREEN);
+		        		if(colors[0]!=null)
+		        		{
+		        			g2d.setColor(colors[0]);
+		        		}
+		        		
+		        		
 		        	}
 		        	
 		        	g2d.draw(shape);

@@ -183,6 +183,9 @@ public class ConsoleApp {
 			        
 			        try {
 				        pdfExtract = new PDFExtractor(f);
+				        pdfExtract.setExtractText(true);
+				        pdfExtract.setExtractImage(true);
+				        pdfExtract.setExtractVector(false);
 				        ExtractedData content = pdfExtract.extractAll();
 				        
 				        MetaData metaData = content.getMetaData();

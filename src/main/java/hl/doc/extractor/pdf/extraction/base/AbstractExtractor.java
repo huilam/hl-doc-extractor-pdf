@@ -29,6 +29,9 @@ abstract public class AbstractExtractor {
 	private PDDocument pdf_doc 	= null;
 	private SORT[] sortings 	= null; 
 	//
+	private boolean is_extract_text 	= true;
+	private boolean is_extract_image 	= true;
+	private boolean is_extract_vector 	= false;
 	
     public AbstractExtractor(File aPDFFile) throws IOException {
     	
@@ -107,15 +110,23 @@ abstract public class AbstractExtractor {
     	
     	for(int iPageNo=aStartPageNo; iPageNo<=aEndPageNo; iPageNo++)
     	{
-	    	List<ContentItem> listText = ExtractionUtil.extractTextContent(pdf_doc, iPageNo-1);
-	    	listItems.addAll(listText);
-	    	
-	    	List<ContentItem> listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
-	    	listItems.addAll(listImage);
-	    	/**
-	    	List<ContentItem> listVector = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1);
-	    	listItems.addAll(listVector);
-	    	**/
+    		if(this.is_extract_text)
+    		{
+		    	List<ContentItem> listText = ExtractionUtil.extractTextContent(pdf_doc, iPageNo-1);
+		    	listItems.addAll(listText);
+    		}
+	    	////
+    		if(is_extract_image)
+    		{
+		    	List<ContentItem> listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
+		    	listItems.addAll(listImage);
+    		}
+	    	////
+    		if(is_extract_vector)
+    		{
+	    		List<ContentItem> listVector = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1);
+	    		listItems.addAll(listVector);
+    		}
     	}
     	
     	listItems = preSortProcess(listItems);
@@ -166,6 +177,22 @@ abstract public class AbstractExtractor {
 		}
     	return pageImage;
     }
+    
+    public void setExtractText(boolean isExtract)
+    {
+    	this.is_extract_text = isExtract;
+    }
+    
+    public void setExtractImage(boolean isExtract)
+    {
+    	this.is_extract_image = isExtract;
+    }
+    
+    public void setExtractVector(boolean isExtract)
+    {
+    	this.is_extract_vector= isExtract;
+    }
+    
     
     //////////////////    
     abstract protected List<ContentItem> preSortProcess(List<ContentItem> aContentList);
