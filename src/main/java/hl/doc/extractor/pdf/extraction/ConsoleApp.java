@@ -275,7 +275,7 @@ public class ConsoleApp {
 				        
 				        for(int iPageNo=1; iPageNo <= metaData.getTotalPages(); iPageNo++)
 				        {
-					        BufferedImage img = pdfExtract.renderPagePreview(iPageNo, 0.50);
+					        BufferedImage img = pdfExtract.renderPagePreview(iPageNo, 72);
 					        if(img!=null)
 					        {
 					        	File fileImg = new File(

@@ -14,6 +14,7 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
 
 import java.awt.Dimension;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -156,28 +157,6 @@ abstract public class AbstractExtractor {
         return extracted;
     }
     
-    public BufferedImage renderPagePreview(int iPageNo, double aRenderScale) 
-    {
-    	PDFRenderer pdfRenderer = new PDFRenderer(this.pdf_doc);
-    	BufferedImage pageImage = null;
-		try {
-			int iPageIndex = iPageNo-1; //index start with 0
-			pageImage = pdfRenderer.renderImageWithDPI(iPageIndex, 150);
-			
-			if(aRenderScale>0 && aRenderScale!=0)
-				pageImage = ImgUtil.resizeImg(pageImage, 
-						Math.round(pageImage.getHeight()*aRenderScale), 
-						Math.round(pageImage.getHeight()*aRenderScale), 
-						true);
-			
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	return pageImage;
-    }
-    
     public void setExtractText(boolean isExtract)
     {
     	this.is_extract_text = isExtract;
@@ -193,6 +172,26 @@ abstract public class AbstractExtractor {
     	this.is_extract_vector= isExtract;
     }
     
+    public BufferedImage renderPagePreview(int iPageNo, float aDPI)
+    {
+    	return ContentUtil.renderPagePreview(this.pdf_doc, iPageNo, aDPI);
+    }
+    
+    public BufferedImage renderPageArea(int iPageNo, Rectangle2D aROI)
+    {
+    	BufferedImage page = ContentUtil.renderPagePreview(this.pdf_doc, iPageNo, 72);
+    	if(page!=null && aROI!=null)
+    	{
+    		if(aROI.getX()+aROI.getWidth() <= page.getWidth() 
+    			&& aROI.getY()+aROI.getHeight() <= page.getHeight())
+    		{
+	    		return page.getSubimage(
+	    				(int)aROI.getX(), (int) aROI.getY(), 
+	    				(int)aROI.getWidth(), (int)aROI.getHeight());
+    		}
+    	}
+    	return null;
+    }
     
     //////////////////    
     abstract protected List<ContentItem> preSortProcess(List<ContentItem> aContentList);

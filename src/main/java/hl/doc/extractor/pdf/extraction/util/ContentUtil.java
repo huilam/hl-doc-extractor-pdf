@@ -1,6 +1,5 @@
 package hl.doc.extractor.pdf.extraction.util;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -15,8 +14,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.json.JSONObject;
 
+import hl.common.ImgUtil;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.VectorData;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
@@ -256,4 +258,18 @@ public class ContentUtil  {
     	return img;
     }
     
+    public static BufferedImage renderPagePreview(final PDDocument aPDDoc, int iPageNo, float aDPI) 
+    {
+    	PDFRenderer pdfRenderer = new PDFRenderer(aPDDoc);
+    	BufferedImage pageImage = null;
+		try {
+			int iPageIndex = iPageNo-1; //index start with 0
+			pageImage = pdfRenderer.renderImageWithDPI(iPageIndex, aDPI);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return pageImage;
+    }
 }
