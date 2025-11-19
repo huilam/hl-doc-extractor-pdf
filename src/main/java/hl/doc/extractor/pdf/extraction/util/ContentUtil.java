@@ -5,23 +5,27 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.json.JSONObject;
 
-import hl.common.ImgUtil;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.VectorData;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.model.ExtractedData;
 
 public class ContentUtil  {
 
@@ -258,13 +262,17 @@ public class ContentUtil  {
     	return img;
     }
     
-    public static BufferedImage renderPagePreview(final PDDocument aPDDoc, int iPageNo, float aDPI) 
+    public static BufferedImage renderPagePreview(final PDDocument aPDDoc, int iPageNo, float aScale) 
     {
     	PDFRenderer pdfRenderer = new PDFRenderer(aPDDoc);
     	BufferedImage pageImage = null;
 		try {
 			int iPageIndex = iPageNo-1; //index start with 0
-			pageImage = pdfRenderer.renderImageWithDPI(iPageIndex, aDPI);
+			
+			if(aScale<=0 || aScale>5)
+				aScale = 1;
+			
+			pageImage = pdfRenderer.renderImageWithDPI(iPageIndex, aScale * 72);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -272,4 +280,81 @@ public class ContentUtil  {
 		}
     	return pageImage;
     }
+    
+    public static Map<Integer, List<ContentItem>> searchItems(ExtractedData aExtractedData, List<String> aSearchList)
+    {
+    	Map<Integer, List<ContentItem>> mapMatchedItems = new HashMap<>();
+    	
+    	List<String> listLowerCase = new ArrayList<>();
+    	for(String sSearch : aSearchList)
+    	{
+    		listLowerCase.add(sSearch.toLowerCase());
+    	}
+    	
+        for(ContentItem it : aExtractedData.getContentItemList())
+        {
+        	String sData = it.getData().toLowerCase();
+        	boolean isFound = false;
+        	for(String sSearch : listLowerCase)
+        	{
+        		if(sData.indexOf(sSearch)>-1)
+        		{
+        			isFound = true;
+        			break;
+        		}
+        	}
+        	if(isFound)
+        	{
+        		List<ContentItem> listMatched = mapMatchedItems.get(it.getPage_no());
+        		if(listMatched==null)
+        		{
+        			listMatched = new ArrayList<>();
+        		}
+        		listMatched.add(it);
+        		mapMatchedItems.put(it.getPage_no(), listMatched);
+        	}
+        }
+        return mapMatchedItems;
+    }
+
+    public static BufferedImage highlightItems(BufferedImage aImage, List<ContentItem> aHighlightItemList)
+    {
+    	return highlightItems(aImage, aHighlightItemList, 1.0f, Color.RED);
+    }
+    
+    public static BufferedImage highlightItems(BufferedImage aImage, List<ContentItem> aHighlightItemList, float aScale)
+    {
+    	return highlightItems(aImage, aHighlightItemList, aScale, Color.RED);
+    }
+    
+    public static BufferedImage highlightItems(BufferedImage aImage, 
+    		List<ContentItem> aHighlightItemList, 
+    		float aScale, Color aColor)
+    {
+    	if(aImage!=null)
+    	{
+    		Graphics2D g2d = null;
+    		try {
+    			g2d = (Graphics2D)aImage.getGraphics();
+    			g2d.setColor(aColor);
+    			
+	        	for(ContentItem it : aHighlightItemList)
+	        	{
+	        		Rectangle2D box = new Rectangle2D.Double(
+	        				(it.getX1()-2) * aScale, 
+	        				(it.getY1()-2) * aScale,
+	        				(it.getWidth()+4) * aScale, 
+	        				(it.getHeight()+4) * aScale);
+	        		g2d.draw(box);
+	        	}
+    		}
+    		finally
+    		{
+    			if(g2d!=null)
+    				g2d.dispose();
+    		}
+    	}
+        return aImage;
+    }
+    
 }

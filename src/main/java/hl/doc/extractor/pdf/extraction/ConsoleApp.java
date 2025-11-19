@@ -232,7 +232,7 @@ public class ConsoleApp {
         	return;
         }
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HHmm-SS.sss");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HHmm-ss.SSS");
         String sExecID = df.format(System.currentTimeMillis()); 
         int iFileSeq = 1;
         for(File f : files)
@@ -275,7 +275,7 @@ public class ConsoleApp {
 				        
 				        for(int iPageNo=1; iPageNo <= metaData.getTotalPages(); iPageNo++)
 				        {
-					        BufferedImage img = pdfExtract.renderPagePreview(iPageNo, 72);
+					        BufferedImage img = pdfExtract.renderPagePreview(iPageNo, 1.0f);
 					        if(img!=null)
 					        {
 					        	File fileImg = new File(

@@ -26,7 +26,6 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.color.PDPattern;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
-import org.apache.pdfbox.pdmodel.graphics.pattern.PDAbstractPattern;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
@@ -345,8 +344,7 @@ public class ExtractionUtil  {
                     PDColorSpace csFill 	= pdColorFill.getColorSpace();
 	                if(csFill instanceof PDPattern)
 	                {
-	                	PDPattern patFill = (PDPattern) csFill;
-	                	
+	                	//PDPattern patFill = (PDPattern) csFill;
                 		//TODO 
                 		//aVectorData.setFillPattern(null);
 						

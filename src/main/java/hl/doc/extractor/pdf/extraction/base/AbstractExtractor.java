@@ -13,13 +13,19 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 @SuppressWarnings("unused")
 abstract public class AbstractExtractor {
@@ -172,14 +178,14 @@ abstract public class AbstractExtractor {
     	this.is_extract_vector= isExtract;
     }
     
-    public BufferedImage renderPagePreview(int iPageNo, float aDPI)
+    public BufferedImage renderPagePreview(int iPageNo, float aScale)
     {
-    	return ContentUtil.renderPagePreview(this.pdf_doc, iPageNo, aDPI);
+    	return ContentUtil.renderPagePreview(this.pdf_doc, iPageNo, aScale);
     }
     
     public BufferedImage renderPageArea(int iPageNo, Rectangle2D aROI)
     {
-    	BufferedImage page = ContentUtil.renderPagePreview(this.pdf_doc, iPageNo, 72);
+    	BufferedImage page = ContentUtil.renderPagePreview(this.pdf_doc, iPageNo, 1.0f);
     	if(page!=null && aROI!=null)
     	{
     		if(aROI.getX()+aROI.getWidth() <= page.getWidth() 
