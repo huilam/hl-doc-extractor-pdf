@@ -161,6 +161,9 @@ public class ExtractedData {
     	int iPageNo = 0;
     	for(ContentItem it : getContentItemList())
     	{
+    		if(it.getType()==Type.VECTOR)
+    			continue;
+    		
     		if(iPageNo==0 || iPageNo!=it.getPage_no())
     		{
     			iPageNo = it.getPage_no();
