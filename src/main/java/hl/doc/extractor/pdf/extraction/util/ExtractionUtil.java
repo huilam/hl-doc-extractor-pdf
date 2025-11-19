@@ -26,12 +26,14 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.color.PDPattern;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
+import org.apache.pdfbox.pdmodel.graphics.pattern.PDAbstractPattern;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
 
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.model.VectorData;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
 public class ExtractionUtil  {
@@ -283,6 +285,7 @@ public class ExtractionUtil  {
             @Override public void strokePath() { savePath(true, false); }
             @Override public void fillPath(int windingRule) { savePath(false, true); }
             @Override public void fillAndStrokePath(int windingRule) { savePath(true, true); }
+            //
             @Override public void endPath() { currentPath.reset(); pathIsEmpty = true; }
 
             private void savePath(boolean stroked, boolean filled) {
@@ -303,36 +306,12 @@ public class ExtractionUtil  {
                 Rectangle2D bounds = transformedShape.getBounds2D();
                 
                 if (bounds.getWidth() > 0 && bounds.getHeight() > 0) {
-                	String sData = ContentUtil.vectorPathToString(currentPath);
+                	
+                	VectorData vectorData = setVectorDataGraphics(new VectorData(currentPath), gs);
+                	
+                	String sData = vectorData.toJson().toString();
                     ContentItem item = new ContentItem(Type.VECTOR, sData, pageIndex + 1, bounds);
-                    item.setContentFormat(GeneralPath.class.getName());
-                    
-                    StringBuffer sbTagInfo = new StringBuffer();
-                    
-                    sbTagInfo.append("stroke.rgb:[");
-                    if (stroked) {
-                    	Color colorStroke = toRGB(gs.getStrokingColor());
-                    	if(colorStroke!=null)
-                    	{
-	                    	sbTagInfo.append(colorStroke.getRed()).append(",");
-	                    	sbTagInfo.append(colorStroke.getGreen()).append(",");
-	                    	sbTagInfo.append(colorStroke.getBlue());
-                    	}
-                    }
-                    sbTagInfo.append("]");
-                    sbTagInfo.append(",fill.rgb:[");
-                    if (filled) {
-                    	Color colorFill = toRGB(gs.getNonStrokingColor());
-                    	if(colorFill!=null)
-                    	{
-	                    	sbTagInfo.append(colorFill.getRed()).append(",");
-	                    	sbTagInfo.append(colorFill.getGreen()).append(",");
-	                    	sbTagInfo.append(colorFill.getBlue());
-                    	}
-                    }
-                    sbTagInfo.append("]");
-                    
-                    item.setTagName(sbTagInfo.toString());
+                    item.setContentFormat(VectorData.class.getName());
                     item.setExtract_seq(iExtractSeq++);
                     contentItems.add(item);
                 }
@@ -344,21 +323,47 @@ public class ExtractionUtil  {
             @Override public void shadingFill(COSName shadingName) throws IOException {}
             @Override public void drawImage(PDImage pdImage) throws IOException {}
             
-            private Color toRGB(PDColor aPDColor)
+            private VectorData setVectorDataGraphics(VectorData aVectorData, PDGraphicsState aPDGraphics)
             {
-                float[] rgb = new float[3];
-                PDColorSpace cs = aPDColor.getColorSpace();
-                
-                if (!(cs instanceof PDPattern)) {
-	                try {
-	                	rgb = cs.toRGB(aPDColor.getComponents());
-						return new Color(rgb[0], rgb[1], rgb[2]);
+            	PDColor pdColorStroke 	= aPDGraphics.getStrokingColor();
+                if(pdColorStroke!=null)
+                {
+                    PDColorSpace csStroke 	= pdColorStroke.getColorSpace();
+                	try {
+                		float[] rgb = csStroke.toRGB(pdColorStroke.getComponents());
+	                	aVectorData.setLineColor(new Color(rgb[0], rgb[1], rgb[2]));
+	                	aVectorData.setLineWidth(aPDGraphics.getLineWidth());
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
                 }
-                return null;
+                
+                PDColor pdColorFill 	= aPDGraphics.getNonStrokingColor();
+                if(pdColorFill!=null)
+                {
+                    PDColorSpace csFill 	= pdColorFill.getColorSpace();
+	                if(csFill instanceof PDPattern)
+	                {
+	                	PDPattern patFill = (PDPattern) csFill;
+	                	
+                		//TODO 
+                		//aVectorData.setFillPattern(null);
+						
+	                }
+	                else
+	                {
+						try {
+							float[] rgb = csFill.toRGB(pdColorFill.getComponents());
+		                	aVectorData.setFillColor(new Color(rgb[0], rgb[1], rgb[2]));
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+	                }
+                }
+                
+                return aVectorData;
             }
             
         }

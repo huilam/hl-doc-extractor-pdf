@@ -119,32 +119,6 @@ public class ExtractedData {
 		this.full_content_list = aContentItemList;
 	}
 	
-	public BufferedImage getBufferedImage(ContentItem aContentItem)
-	{
-		BufferedImage img = null;
-		if(aContentItem.getType() == Type.IMAGE)
-		{
-			String sImgBase64 = ContentUtil.getImageBase64(aContentItem);
-			if(sImgBase64==null)
-			{
-				//get from cache
-				sImgBase64 = this.imgbase64_cache.get(aContentItem.getTagName());
-			}
-			//
-			if(sImgBase64!=null)
-			{
-				try {
-					img = ImageIO.read(new ByteArrayInputStream(
-							Base64.getDecoder().decode(sImgBase64)));
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		return img;
-	}
-	
 	public List<ContentItem> getContentItemList()
 	{
 		return this.full_content_list;
@@ -201,7 +175,15 @@ public class ExtractedData {
     		jsonItem.put(JSON_WIDTH, it.getWidth());
     		jsonItem.put(JSON_HEIGHT, it.getHeight());
     		jsonItem.put(JSON_TYPE, it.getType());
-    		jsonItem.put(JSON_DATA, it.getData());
+    		
+    		if(it.getType()==Type.VECTOR)
+    		{
+    			jsonItem.put(JSON_DATA, new JSONObject(it.getData()));
+    		}
+    		else
+    		{
+    			jsonItem.put(JSON_DATA, it.getData());
+    		}
     		
     		jArrContent.put(jsonItem);
     	}

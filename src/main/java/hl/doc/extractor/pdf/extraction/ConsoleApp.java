@@ -64,28 +64,53 @@ public class ConsoleApp {
     			aExtractData.toJsonFormat(true).toString(4): 
     			aExtractData.toPlainTextFormat(true);
 
-    		System.out.println("\tFolder:["+aOutputFile.getParent()+"]");
-			if(ContentUtil.saveAsFile(aOutputFile, sContent))
-			{
-				System.out.println("\t[saved] "+aOutputFile.getName());
-			}
+		System.out.println("\tFolder:["+aOutputFile.getParent()+"]");
+		if(ContentUtil.saveAsFile(aOutputFile, sContent))
+		{
+			System.out.println("\t[saved] "+aOutputFile.getName());
+		}
+		
+		//PDF Layout
+		MetaData metaData = aExtractData.getMetaData();
+		for(int iPageNo = aExtractData.getStartPageNo(); iPageNo<=aExtractData.getEndPageNo(); iPageNo++)
+		{
+			List<ContentItem> listPageItems = aExtractData.getContentItemListByPageNo(iPageNo);
+			BufferedImage img = ContentUtil.renderPageLayout(
+					metaData.getPageWidth(), metaData.getPageHeight(), 
+					Color.WHITE, false, listPageItems);
 			
-			//PDF Layout
-			MetaData metaData = aExtractData.getMetaData();
-			for(int iPageNo = aExtractData.getStartPageNo(); iPageNo<=aExtractData.getEndPageNo(); iPageNo++)
+			if(img!=null)
 			{
-				List<ContentItem> listPageItems = aExtractData.getContentItemListByPageNo(iPageNo);
-				BufferedImage img = ContentUtil.renderPageLayout(
-						metaData.getPageWidth(), metaData.getPageHeight(), 
-						Color.WHITE, false, listPageItems);
+				String sImgLayoutFileName = "layout_p"+iPageNo+".jpg";
+				File fileImg = new File(aOutputFile.getParent()+"/"+sImgLayoutFileName);
 				
-				if(img!=null)
+				try {
+					if(ImageIO.write(img, "jpg", fileImg))
+					{
+						System.out.println("\t[saved] "+fileImg.getName());
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		
+		//PDF Images
+		Map<String,BufferedImage> mapImages = aExtractData.getExtractedBufferedImages();
+		for(String sFileName : mapImages.keySet())
+		{
+			File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
+			BufferedImage img = mapImages.get(sFileName);
+			if(img!=null)
+			{
+				int iPos = sFileName.lastIndexOf(".");
+				if(iPos>-1)
 				{
-					String sImgLayoutFileName = "layout_p"+iPageNo+".jpg";
-					File fileImg = new File(aOutputFile.getParent()+"/"+sImgLayoutFileName);
-					
+					String sImgFormat = sFileName.substring(iPos+1);
 					try {
-						if(ImageIO.write(img, "jpg", fileImg))
+						if(ImageIO.write(img, sImgFormat, fileImg))
 						{
 							System.out.println("\t[saved] "+fileImg.getName());
 						}
@@ -95,31 +120,74 @@ public class ConsoleApp {
 					}
 				}
 			}
+		}
+		
+
+		//PDF Vectors
+		/**
+		for(ContentItem it : aExtractData.getContentItemList())
+		{
+			if(it.getType()!=Type.VECTOR)
+				continue;
+				
+			VectorData vector = new VectorData(new JSONObject(it.getData()));
 			
-			//PDF Images
-			Map<String,BufferedImage> mapImages = aExtractData.getExtractedBufferedImages();
-			for(String sFileName : mapImages.keySet())
-			{
-				File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
-				BufferedImage img = mapImages.get(sFileName);
-				if(img!=null)
+			
+			int iWidth 	= (int)it.getWidth();
+			int iHeight = (int)it.getHeight();
+			
+			if(iWidth==0)
+				continue;
+			
+			if(iHeight==0)
+				continue;
+			
+			String sFileName = "vector_"+it.getExtract_seq()+"_"
+				+it.getX1()+"-"+it.getX1()+"_"+((int)it.getWidth())+"x"+((int)it.getHeight())
+				+".jpg";
+			
+			
+			BufferedImage imgVector = new BufferedImage(iWidth, iHeight, BufferedImage.TYPE_INT_RGB);
+			Graphics2D g = null;
+			try {
+				g = imgVector.createGraphics();
+				g.setColor(Color.WHITE);
+				g.fillRect(0, 0, iWidth, iHeight);
+				
+				g.setColor(Color.BLACK);
+				g.draw(new Rectangle(0,0,iWidth,iHeight));
+				
+				g.setColor(Color.GREEN);
+				if(vector.getLineColor()!=null)
 				{
-					int iPos = sFileName.lastIndexOf(".");
-					if(iPos>-1)
-					{
-						String sImgFormat = sFileName.substring(iPos+1);
-						try {
-							if(ImageIO.write(img, sImgFormat, fileImg))
-							{
-								System.out.println("\t[saved] "+fileImg.getName());
-							}
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
+					g.setColor(vector.getLineColor());
+					g.draw(vector.getVector());
 				}
+				
+				if(vector.getFillColor()!=null)
+				{
+					g.setColor(vector.getFillColor());
+					g.fill(vector.getVector());
+				}
+				
+				try {
+					File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
+					if(ImageIO.write(imgVector, "jpg", fileImg))
+					{
+						System.out.println("\t[saved] "+fileImg.getName());
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}finally
+			{
+				if(g!=null)
+					g.dispose();
 			}
+			
+		}
+		**/
 
     	return aOutputFile;
     	

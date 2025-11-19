@@ -116,13 +116,13 @@ abstract public class AbstractExtractor {
 		    	listItems.addAll(listText);
     		}
 	    	////
-    		if(is_extract_image)
+    		if(this.is_extract_image)
     		{
 		    	List<ContentItem> listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
 		    	listItems.addAll(listImage);
     		}
 	    	////
-    		if(is_extract_vector)
+    		if(this.is_extract_vector)
     		{
 	    		List<ContentItem> listVector = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1);
 	    		listItems.addAll(listVector);
