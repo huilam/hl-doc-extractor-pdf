@@ -187,8 +187,8 @@ public class ConsoleApp {
 			}
 			
 		}
-    	return aOutputFile;
     	**/
+    	return aOutputFile;
     }
     
     //=========================================================== 
