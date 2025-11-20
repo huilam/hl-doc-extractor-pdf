@@ -183,20 +183,9 @@ abstract public class AbstractExtractor {
     	return ContentUtil.renderPagePreview(this.pdf_doc, iPageNo, aScale);
     }
     
-    public BufferedImage renderPageArea(int iPageNo, Rectangle2D aROI)
+    public BufferedImage renderPageArea(int iPageNo, Rectangle2D aROI, float aScale)
     {
-    	BufferedImage page = ContentUtil.renderPagePreview(this.pdf_doc, iPageNo, 1.0f);
-    	if(page!=null && aROI!=null)
-    	{
-    		if(aROI.getX()+aROI.getWidth() <= page.getWidth() 
-    			&& aROI.getY()+aROI.getHeight() <= page.getHeight())
-    		{
-	    		return page.getSubimage(
-	    				(int)aROI.getX(), (int) aROI.getY(), 
-	    				(int)aROI.getWidth(), (int)aROI.getHeight());
-    		}
-    	}
-    	return null;
+    	return ContentUtil.renderPageArea(this.pdf_doc, iPageNo, aROI, aScale);
     }
     
     //////////////////    

@@ -281,6 +281,29 @@ public class ContentUtil  {
     	return pageImage;
     }
     
+    public static BufferedImage renderPageArea(final PDDocument aPDDoc, int iPageNo, Rectangle2D aROIrect, float aScale) 
+    {
+    	BufferedImage pageImage = renderPagePreview(aPDDoc, iPageNo, aScale);
+    	if(pageImage!=null && aROIrect!=null
+    			&& pageImage.getWidth()>aROIrect.getWidth()
+    			&& pageImage.getHeight()>aROIrect.getHeight())
+    	{
+    		double X2 = aROIrect.getX()+aROIrect.getWidth();
+    		double Y2 = aROIrect.getY()+aROIrect.getHeight();
+    		
+    		if(pageImage.getWidth()>X2 && pageImage.getHeight()>Y2)
+    		{
+    			pageImage = pageImage.getSubimage(
+		    			(int)(aROIrect.getX() * aScale), 
+		    			(int)(aROIrect.getY() * aScale), 
+		    			(int)(aROIrect.getWidth() * aScale), 
+		    			(int)(aROIrect.getHeight() * aScale));
+    		}
+    	}
+    	return pageImage;
+    }
+    
+    
     public static Map<Integer, List<ContentItem>> searchItems(ExtractedData aExtractedData, List<String> aSearchList)
     {
     	Map<Integer, List<ContentItem>> mapMatchedItems = new HashMap<>();
