@@ -1,11 +1,14 @@
 package hl.doc.extractor.pdf.extraction;
 
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.model.ExtractedData;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
+import hl.doc.extractor.pdf.extraction.model.VectorData;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
@@ -15,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
+
+import org.json.JSONObject;
 
 public class ConsoleApp {
 
@@ -122,9 +127,8 @@ public class ConsoleApp {
 			}
 		}
 		
-
-		//PDF Vectors
 		/**
+		//PDF Vectors
 		for(ContentItem it : aExtractData.getContentItemList())
 		{
 			if(it.getType()!=Type.VECTOR)
@@ -136,27 +140,23 @@ public class ConsoleApp {
 			int iWidth 	= (int)it.getWidth();
 			int iHeight = (int)it.getHeight();
 			
-			if(iWidth==0)
-				continue;
+			int imgWidth = iWidth;
+			int imgHeight = iHeight;
 			
-			if(iHeight==0)
-				continue;
+			if(imgWidth==0)
+				imgWidth = 1;
+			
+			if(imgHeight==0)
+				imgHeight = 1;
 			
 			String sFileName = "vector_"+it.getExtract_seq()+"_"
 				+it.getX1()+"-"+it.getX1()+"_"+((int)it.getWidth())+"x"+((int)it.getHeight())
 				+".jpg";
 			
-			
-			BufferedImage imgVector = new BufferedImage(iWidth, iHeight, BufferedImage.TYPE_INT_RGB);
+			BufferedImage imgVector = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
 			Graphics2D g = null;
 			try {
 				g = imgVector.createGraphics();
-				g.setColor(Color.WHITE);
-				g.fillRect(0, 0, iWidth, iHeight);
-				
-				g.setColor(Color.BLACK);
-				g.draw(new Rectangle(0,0,iWidth,iHeight));
-				
 				g.setColor(Color.GREEN);
 				if(vector.getLineColor()!=null)
 				{
@@ -187,10 +187,8 @@ public class ConsoleApp {
 			}
 			
 		}
-		**/
-
     	return aOutputFile;
-    	
+    	**/
     }
     
     //=========================================================== 
