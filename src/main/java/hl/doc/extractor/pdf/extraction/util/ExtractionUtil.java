@@ -243,7 +243,6 @@ public class ExtractionUtil  {
 
             final List<ContentItem> contentItems = new ArrayList<>();
             private GeneralPath currentPath = new GeneralPath();
-            private boolean pathIsEmpty = true;
             int iExtractSeq = 1;
 
             DrawingPositionEngine(PDPage page) {
@@ -255,19 +254,17 @@ public class ExtractionUtil  {
             @Override public void moveTo(float x, float y) 
             { 
             	currentPath.moveTo(x, pgH - y); 
-            	pathIsEmpty = false; 
             }
             @Override public void lineTo(float x, float y) 
             { 
             	currentPath.lineTo(x, pgH - y); 
-            	pathIsEmpty = false; 
             }
             @Override public void curveTo(float x1, float y1, float x2, float y2, float x3, float y3) 
             {
             	y1 = pgH - y1;
             	y2 = pgH - y2;
             	y3 = pgH - y3;
-                currentPath.curveTo(x1, y1, x2, y2, x3, y3); pathIsEmpty = false;
+                currentPath.curveTo(x1, y1, x2, y2, x3, y3); 
             }
             @Override public void closePath() { currentPath.closePath(); }
             @Override public Point2D getCurrentPoint() 
@@ -283,17 +280,22 @@ public class ExtractionUtil  {
                 lineTo((float)p2.getX(), (float)p2.getY());
                 lineTo((float)p3.getX(), (float)p3.getY());
                 closePath();
-                pathIsEmpty = false;
             }
             
             @Override public void strokePath() { savePath(true, false); }
             @Override public void fillPath(int windingRule) { savePath(false, true); }
             @Override public void fillAndStrokePath(int windingRule) { savePath(true, true); }
             //
-            @Override public void endPath() { currentPath.reset(); pathIsEmpty = true; }
+            @Override public void endPath() { currentPath.reset(); }
 
+            private boolean isEmpty(GeneralPath aShape)
+            {
+            	return aShape.getPathIterator(null).isDone();
+            }
             private void savePath(boolean stroked, boolean filled) {
-                if (pathIsEmpty) return;
+            	
+            	//check if empty
+                if (isEmpty(currentPath)) return;
 
                 PDGraphicsState gs = getGraphicsState();
                 Matrix ctm = gs.getCurrentTransformationMatrix();
@@ -320,7 +322,6 @@ public class ExtractionUtil  {
                     contentItems.add(item);
                 }
                 currentPath.reset();
-                pathIsEmpty = true;
             }
             
             @Override public void clip(int windingRule) {}
