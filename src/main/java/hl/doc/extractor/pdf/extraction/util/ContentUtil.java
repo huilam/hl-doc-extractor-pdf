@@ -8,15 +8,19 @@ import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -165,6 +169,44 @@ public class ContentUtil  {
 			}
 		}
 		return vector;
+	}
+	
+	public static ContentItem imageToContentItem(BufferedImage aImage, String aFormat, int aPageNo, Rectangle2D aImgCoord)
+	{
+		ContentItem item = null;
+		String sImgBase64 = null;
+		
+		ByteArrayOutputStream baos = null;
+        try {
+            baos = new ByteArrayOutputStream();
+            ImageIO.write(aImage, aFormat, baos);
+            sImgBase64 = Base64.getEncoder().encodeToString(baos.toByteArray());
+        } 
+        catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        finally
+        {
+        	if(baos!=null)
+        	{
+        		try {
+					baos.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
+        }
+        
+        if(sImgBase64!=null)
+        {
+        	item = new ContentItem(Type.IMAGE, sImgBase64, aPageNo, aImgCoord);
+            item.setTagName(ContentUtil.TAGNAME_BASE64);
+            item.setContentFormat(aFormat);
+        }
+        
+		return item;
 	}
     
     ////////////

@@ -1,10 +1,10 @@
 package hl.doc.extractor.pdf.extraction;
 
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.model.ExtractedData;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
 import hl.doc.extractor.pdf.extraction.model.VectorData;
+import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 import java.awt.Color;
@@ -128,7 +128,6 @@ public class ConsoleApp {
 			}
 		}
 		
-		/**
 		//PDF Vectors
 		for(ContentItem it : aExtractData.getContentItemList())
 		{
@@ -191,7 +190,6 @@ public class ConsoleApp {
 			}
 			
 		}
-	**/
     	
     	return aOutputFile;
     }
@@ -256,7 +254,7 @@ public class ConsoleApp {
 				        pdfExtract = new PDFExtractor(f);
 				        pdfExtract.setExtractText(true);
 				        pdfExtract.setExtractImage(true);
-				        pdfExtract.setExtractVector(true);
+				        pdfExtract.setExtractVector(false);
 				        ExtractedData content = pdfExtract.extractAll();
 				        
 				        MetaData metaData = content.getMetaData();

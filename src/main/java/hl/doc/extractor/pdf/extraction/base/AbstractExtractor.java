@@ -3,11 +3,13 @@ package hl.doc.extractor.pdf.extraction.base;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.json.JSONObject;
 
 import hl.common.ImgUtil;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ExtractedData;
 import hl.doc.extractor.pdf.extraction.model.MetaData;
+import hl.doc.extractor.pdf.extraction.model.VectorData;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
@@ -117,23 +119,55 @@ abstract public class AbstractExtractor {
     	
     	for(int iPageNo=aStartPageNo; iPageNo<=aEndPageNo; iPageNo++)
     	{
+    		List<ContentItem> listText 		= new ArrayList<>();
+    		List<ContentItem> listImage 	= new ArrayList<>();
+    		List<ContentItem> listVector 	= new ArrayList<>();
+    		
     		if(this.is_extract_text)
     		{
-		    	List<ContentItem> listText = ExtractionUtil.extractTextContent(pdf_doc, iPageNo-1);
-		    	listItems.addAll(listText);
+		    	listText = ExtractionUtil.extractTextContent(pdf_doc, iPageNo-1);
     		}
 	    	////
     		if(this.is_extract_image)
     		{
-		    	List<ContentItem> listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
-		    	listItems.addAll(listImage);
+		    	listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
     		}
 	    	////
     		if(this.is_extract_vector)
     		{
-	    		List<ContentItem> listVector = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1);
-	    		listItems.addAll(listVector);
+    			List<ContentItem> listVectorTemp = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1);
+	    		
+	    		for(ContentItem it : listVectorTemp)
+	    		{
+	    			VectorData vData = new VectorData(new JSONObject(it.getData()));
+	    			if(vData.getPathSegmentCount()>20000)
+	    			{
+	    				//image
+	    				Rectangle2D rect = vData.getVector().getBounds();
+	    				BufferedImage imgPage = ContentUtil.renderPagePreview(pdf_doc, iPageNo, 1.0f);	    				
+	    				BufferedImage imgVector = imgPage.getSubimage((int)rect.getX(), (int)rect.getY(), (int)rect.getWidth(), (int)rect.getHeight());
+	    				
+	    				if(imgVector!=null)
+	    				{
+	    					ContentItem item = ContentUtil.imageToContentItem(imgVector, "jpg", iPageNo, rect);
+		    				item.setExtract_seq(-1);
+		    				listImage.add(item);
+	    				}
+	    			}
+	    			else
+	    			{
+	    				listVector.add(it);
+	    			}
+	    		}
     		}
+    		
+    		
+    		if(listText.size()>0)
+    			listItems.addAll(listText);
+    		if(listImage.size()>0)
+    			listItems.addAll(listImage);
+    		if(listVector.size()>0)
+    			listItems.addAll(listVector);
     	}
     	
     	listItems = preSortProcess(listItems);

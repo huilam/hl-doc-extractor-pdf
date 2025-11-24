@@ -5,17 +5,12 @@ import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
 import org.apache.pdfbox.cos.COSName;
@@ -184,26 +179,10 @@ public class ExtractionUtil  {
 	                height * scale
 	            );
 	            
-	            BufferedImage img = pdImage.getImage();
-	            String sImgformat = pdImage.getSuffix(); 
-	            String sImgContent = null;
-	            ByteArrayOutputStream baos = null;
-	            try {
-		            baos = new ByteArrayOutputStream();
-	                ImageIO.write(img, sImgformat, baos);
-	                sImgContent = Base64.getEncoder().encodeToString(baos.toByteArray());
-	            }
-	            finally
-	            {
-	            	if(baos!=null)
-	            	{
-	            		baos.close();
-	            	}
-	            }
-                //
-	            ContentItem item = new ContentItem(Type.IMAGE, sImgContent, pageIndex+1, rect);
-	            item.setTagName(ContentUtil.TAGNAME_BASE64);
-	            item.setContentFormat(sImgformat);
+	            ContentItem item = ContentUtil.imageToContentItem(
+	            		pdImage.getImage(),  //Buffered Image
+	            		pdImage.getSuffix(), //Image format
+	            		pageIndex+1, rect);
 	            item.setExtract_seq(iExtractSeq++);
 	            //
 	            contentItems.add(item);
@@ -368,7 +347,7 @@ public class ExtractionUtil  {
         DrawingPositionEngine engine = new DrawingPositionEngine(page);
         engine.processPage(page);
         
-        List<GeneralPath> listVectors = groupByBounding(pageIndex, engine.listVector, 4);
+        List<GeneralPath> listVectors = groupByBounds(pageIndex, engine.listVector, 4);
         
         //////////////////////////////////////////////////
         // Convert List<GeneralPath> to List<ContentItem>
@@ -387,7 +366,7 @@ public class ExtractionUtil  {
         return contentItems;
     }
     
-    private static List<GeneralPath> groupByBounding(int aPageIndex, List<GeneralPath> aOrigVectorList, int aExpandedPixel)
+    private static List<GeneralPath> groupByBounds(int aPageIndex, List<GeneralPath> aOrigVectorList, int aExpandedPixel)
     {
         List<GeneralPath> listVectors = new ArrayList<>();
         GeneralPath lastShape = null;
@@ -395,7 +374,6 @@ public class ExtractionUtil  {
         //Make the aExpandedPixel even number
         if(aExpandedPixel%2==1)
         	aExpandedPixel++;
-        
         
         for(GeneralPath curShape : aOrigVectorList)
         {
