@@ -9,6 +9,7 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
@@ -153,25 +154,29 @@ public class ConsoleApp {
 				+it.getX1()+"-"+it.getX1()+"_"+((int)it.getWidth())+"x"+((int)it.getHeight())
 				+".jpg";
 			
+			
+			Rectangle2D bound = it.getRect2D();
+					
+			//Add 1 pixel borders
+			imgWidth 	= (int)(bound.getX()+bound.getWidth())+2;
+			imgHeight	= (int)(bound.getY()+bound.getHeight())+2;
+			
 			BufferedImage imgVector = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
 			Graphics2D g = null;
 			try {
 				g = imgVector.createGraphics();
-				g.setColor(Color.GREEN);
-				if(vector.getLineColor()!=null)
-				{
-					g.setColor(vector.getLineColor());
-					g.draw(vector.getVector());
-				}
+				g.setColor(Color.WHITE);
+				g.fillRect(0,0,imgVector.getWidth()-1, imgVector.getHeight()-1);
 				
-				if(vector.getFillColor()!=null)
-				{
-					g.setColor(vector.getFillColor());
-					g.fill(vector.getVector());
-				}
+				g.setColor(Color.GREEN);
+				g.draw(vector.getVector());
 				
 				try {
 					File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
+					
+					imgVector = imgVector.getSubimage((int)bound.getX(), (int)bound.getY(), 
+							(int)bound.getWidth()+, (int)bound.getHeight()+2);
+					
 					if(ImageIO.write(imgVector, "jpg", fileImg))
 					{
 						System.out.println("\t[saved] "+fileImg.getName());
@@ -187,7 +192,8 @@ public class ConsoleApp {
 			}
 			
 		}
-    	**/
+	**/
+    	
     	return aOutputFile;
     }
     

@@ -1,7 +1,6 @@
 package hl.doc.extractor.pdf.extraction.util;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
@@ -22,9 +21,6 @@ import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
-import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
-import org.apache.pdfbox.pdmodel.graphics.color.PDPattern;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -241,9 +237,8 @@ public class ExtractionUtil  {
 
         class DrawingPositionEngine extends PDFGraphicsStreamEngine {
 
-            final List<ContentItem> contentItems = new ArrayList<>();
+            final List<GeneralPath> listVector = new ArrayList<>();
             private GeneralPath currentPath = new GeneralPath();
-            int iExtractSeq = 1;
 
             DrawingPositionEngine(PDPage page) {
                 super(page);
@@ -266,7 +261,11 @@ public class ExtractionUtil  {
             	y3 = pgH - y3;
                 currentPath.curveTo(x1, y1, x2, y2, x3, y3); 
             }
-            @Override public void closePath() { currentPath.closePath(); }
+            
+            @Override public void closePath() { 
+            	currentPath.closePath(); 
+            }
+            
             @Override public Point2D getCurrentPoint() 
             { 	
             	Point2D pt = currentPath.getCurrentPoint();
@@ -313,13 +312,7 @@ public class ExtractionUtil  {
                 
                 if (bounds.getWidth() > 0 && bounds.getHeight() > 0) {
                 	
-                	VectorData vectorData = setVectorDataGraphics(new VectorData(currentPath), gs);
-                	
-                	String sData = vectorData.toJson().toString();
-                    ContentItem item = new ContentItem(Type.VECTOR, sData, pageIndex + 1, bounds);
-                    item.setContentFormat(VectorData.class.getName());
-                    item.setExtract_seq(iExtractSeq++);
-                    contentItems.add(item);
+                	listVector.add(new GeneralPath(currentPath));
                 }
                 currentPath.reset();
             }
@@ -327,7 +320,7 @@ public class ExtractionUtil  {
             @Override public void clip(int windingRule) {}
             @Override public void shadingFill(COSName shadingName) throws IOException {}
             @Override public void drawImage(PDImage pdImage) throws IOException {}
-            
+            /**
             private VectorData setVectorDataGraphics(VectorData aVectorData, PDGraphicsState aPDGraphics)
             {
             	PDColor pdColorStroke 	= aPDGraphics.getStrokingColor();
@@ -350,10 +343,9 @@ public class ExtractionUtil  {
                     PDColorSpace csFill 	= pdColorFill.getColorSpace();
 	                if(csFill instanceof PDPattern)
 	                {
-	                	//PDPattern patFill = (PDPattern) csFill;
                 		//TODO 
+	                	//PDPattern patFill = (PDPattern) csFill;
                 		//aVectorData.setFillPattern(null);
-						
 	                }
 	                else
 	                {
@@ -369,13 +361,66 @@ public class ExtractionUtil  {
                 
                 return aVectorData;
             }
-            
+            **/
         }
 
         
         DrawingPositionEngine engine = new DrawingPositionEngine(page);
         engine.processPage(page);
-        return engine.contentItems;
+        
+        List<GeneralPath> listVectors = groupByBounding(pageIndex, engine.listVector, 4);
+        
+        //////////////////////////////////////////////////
+        // Convert List<GeneralPath> to List<ContentItem>
+        int iExtractSeq = 1;
+        List<ContentItem> contentItems = new ArrayList<>();
+        for(GeneralPath vector : listVectors)
+        {
+	        String sData = new VectorData(vector).toJson().toString();
+	        ContentItem item = new ContentItem(Type.VECTOR, sData, pageIndex + 1, vector.getBounds2D());
+	        item.setContentFormat(VectorData.class.getName());
+	        item.setExtract_seq(iExtractSeq++);
+	        contentItems.add(item);
+        }
+        
+        return contentItems;
+    }
+    
+    private static List<GeneralPath> groupByBounding(int aPageIndex, List<GeneralPath> aOrigVectorList, int aExpandedPixel)
+    {
+        List<GeneralPath> listVectors = new ArrayList<>();
+        GeneralPath lastShape = null;
+        
+        //Make the aExpandedPixel even number
+        if(aExpandedPixel%2==1)
+        	aExpandedPixel++;
+        
+        
+        for(GeneralPath curShape : aOrigVectorList)
+        {
+        	if(lastShape==null)
+        	{
+        		lastShape = curShape;
+        		continue;
+        	}
+        	
+        	Rectangle2D rectLast = lastShape.getBounds2D();
+        	
+        	Rectangle2D rectLastExpand = new Rectangle2D.Double(
+        			rectLast.getX()-(aExpandedPixel*0.5), rectLast.getY()-(aExpandedPixel*0.5), 
+        			rectLast.getWidth()+aExpandedPixel, rectLast.getHeight()+aExpandedPixel);
+        	
+        	if(rectLastExpand.intersects(curShape.getBounds2D()))
+        	{
+        		lastShape.append(curShape, false);
+        		continue;
+        	}
+        	
+            listVectors.add(lastShape);
+            lastShape = curShape;
+        }
+        
+        return listVectors;
     }
 
 }

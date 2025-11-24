@@ -234,19 +234,8 @@ public class ContentUtil  {
 		        		
 		        		//Draw Border only in GREEN for now
 		        		g2d.setColor(Color.GREEN);
-		        		if(vector.getLineColor()!=null)
-		        		{
-		        			//g2d.setStroke(new BasicStroke(vector.getLineWidth()));
-		        			//g2d.setColor(vector.getLineColor());
-		        			g2d.draw(vector.getVector());
-		        		}
-		        		if(vector.getFillColor()!=null)
-		        		{
-		        			//g2d.setColor(vector.getFillColor());
-		        			//g2d.fill(vector.getVector());
-		        			g2d.draw(vector.getVector());
-		        		}
-		        		shape = null;
+		        		g2d.draw(vector.getVector());
+		        		continue; //skip
 		        	}
 		        	
 		        	if(shape!=null)
