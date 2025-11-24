@@ -11,6 +11,7 @@ import org.json.JSONObject;
 public class VectorData {
 
 	private GeneralPath vector_path = null;
+	private int path_seg_count 		= 0;
 	private float line_width 		= 0;
 	private Color line_color 		= null;
 	private Color fill_color 		= null;
@@ -20,6 +21,7 @@ public class VectorData {
 	public VectorData(GeneralPath aVectorShape)
 	{
 		this.vector_path = aVectorShape;
+		init();
 	}
 	
 	public VectorData(JSONObject aVectorJson)
@@ -28,11 +30,29 @@ public class VectorData {
 	}
 	
 	
+	private void init()
+	{
+		PathIterator iterPath = vector_path.getPathIterator(null);
+		int iSegCount = 0;
+		while(!iterPath.isDone())
+		{
+			iSegCount++;
+			iterPath.next();
+		}
+		this.path_seg_count = iSegCount;
+	}
+	//=====
+
 	public GeneralPath getVector()
 	{
 		return this.vector_path;
 	}
 	
+	public int getPathSegmentCount()
+	{
+		return this.path_seg_count;
+	}
+		
 	//=====
 	
 	public void setLineWidth(float aLineWidth)
@@ -195,6 +215,7 @@ public class VectorData {
 		}
 		
 		//this.setFillPattern(aJson.optString("fill_pattern",null));
+		init();
 	}
     
     public String toString()

@@ -152,8 +152,7 @@ public class ConsoleApp {
 			
 			String sFileName = "vector_"+it.getExtract_seq()+"_"
 				+it.getX1()+"-"+it.getX1()+"_"+((int)it.getWidth())+"x"+((int)it.getHeight())
-				+".jpg";
-			
+				+"_seg-"+vector.getPathSegmentCount()+".jpg";
 			
 			Rectangle2D bound = it.getRect2D();
 					
@@ -175,7 +174,7 @@ public class ConsoleApp {
 					File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
 					
 					imgVector = imgVector.getSubimage((int)bound.getX(), (int)bound.getY(), 
-							(int)bound.getWidth()+, (int)bound.getHeight()+2);
+							(int)bound.getWidth()+2, (int)bound.getHeight()+2);
 					
 					if(ImageIO.write(imgVector, "jpg", fileImg))
 					{

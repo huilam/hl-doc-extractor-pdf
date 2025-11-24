@@ -376,7 +376,8 @@ public class ExtractionUtil  {
         List<ContentItem> contentItems = new ArrayList<>();
         for(GeneralPath vector : listVectors)
         {
-	        String sData = new VectorData(vector).toJson().toString();
+        	VectorData vData = new VectorData(vector);
+	        String sData = vData.toJson().toString();
 	        ContentItem item = new ContentItem(Type.VECTOR, sData, pageIndex + 1, vector.getBounds2D());
 	        item.setContentFormat(VectorData.class.getName());
 	        item.setExtract_seq(iExtractSeq++);
