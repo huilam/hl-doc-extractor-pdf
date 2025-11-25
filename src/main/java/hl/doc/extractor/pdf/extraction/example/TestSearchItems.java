@@ -47,7 +47,7 @@ public class TestSearchItems {
 	        	if(imgPage!=null)
 	        	{
 	        		List<ContentItem> listPageItems = mapMatchedItems.get(iPageNo);
-	        		ContentUtil.highlightItems(imgPage, listPageItems, scale);
+	        		imgPage = ContentUtil.highlightItems(imgPage, listPageItems, scale);
 	        		System.out.println("       * Page "+iPageNo+" matched:"+listPageItems.size());
 	        		
 	        		String sFilename = "p"+iPageNo+"_"+listPageItems.size()+".jpg";
