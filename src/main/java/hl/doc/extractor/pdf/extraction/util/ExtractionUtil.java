@@ -394,7 +394,7 @@ public class ExtractionUtil  {
         	mapSortedVectors.put(dArea, listAreaSize);
         }
         
-        //Convert Map<Doible,List<Vectors>> to 2D Vectors[]
+        //Flatten Sorted Map<Doible,List<Vectors>> to 2D Vectors[]
         List<Path2D> listFlattenSortedVectors = new ArrayList<>();
         for(List<Path2D> listSortedVectors : mapSortedVectors.values())
         {
@@ -418,7 +418,7 @@ public class ExtractionUtil  {
         		Rectangle2D rect2 	= vectors[z].getBounds();
         		if(rect1.contains(rect2.getBounds2D()))
                 {
-        			vectors[i].append(rect2, false);
+        			vectors[i].append(vectors[z], false);
         			vectors[z] = null;
              	}
         	 }
