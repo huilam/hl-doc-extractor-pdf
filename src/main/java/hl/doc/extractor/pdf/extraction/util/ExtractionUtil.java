@@ -21,6 +21,7 @@ import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -103,7 +104,7 @@ public class ExtractionUtil  {
 	            float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
 	            float maxX = 0, maxY = 0;
 	            StringBuffer sb = new StringBuffer();
-
+	            
 	            for (TextPosition t : line) {
 	                float x = t.getXDirAdj();
 	                //float baseline = t.getYDirAdj();
@@ -129,10 +130,21 @@ public class ExtractionUtil  {
 
 	                sb.append(t.getUnicode());
 	            }
+	            
+
+	            String sData   = sb.toString();
+	            String sFormat = null;
+	            
+	            if(sData.trim().length()>0)
+	            {
+	            	sFormat = getCommonFontName(line);
+	            	System.out.println("sFormat---->"+sFormat);
+	            }
 
 	            Rectangle2D rect2D = new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY);
-	            ContentItem textItem = new ContentItem(Type.TEXT, sb.toString(), getCurrentPageNo(), rect2D);
+	            ContentItem textItem = new ContentItem(Type.TEXT, sData, getCurrentPageNo(), rect2D);
 	            textItem.setExtract_seq(iExtractSeq++);
+	            textItem.setContentFormat(sFormat);
 	            contentItems.add(textItem);
 	        }
 
@@ -146,6 +158,45 @@ public class ExtractionUtil  {
 	    stripper.getText(doc);
 
 	    return stripper.contentItems;
+	}
+	
+	private static String getCommonFontName(List<TextPosition> aLineText)
+	{
+		if(aLineText==null || aLineText.size()==0)
+			return null;
+		
+		PDFont firstFont 	= null;
+		PDFont lastFont 	= null;
+		
+		int iListSize = aLineText.size()-1;
+		//search first character
+		for(int i=0; i<=iListSize; i++)
+		{
+			if(firstFont==null)
+			{
+				TextPosition text1 = aLineText.get(i);
+				if(text1.getUnicode().trim().length()>0)
+				{
+					firstFont = text1.getFont();
+				}
+			}
+			if(lastFont==null)
+			{
+				TextPosition text2 = aLineText.get(iListSize-i);
+				if(text2.getUnicode().trim().length()>0)
+				{
+					lastFont = text2.getFont();
+				}
+			}
+		}
+		
+		if(firstFont!=null && lastFont!=null)
+		{
+			if(firstFont.getName().equals(lastFont.getName()))
+				return firstFont.getName();
+		}
+		
+		return null;
 	}
 
 

@@ -164,7 +164,8 @@ public class ConsoleApp {
 			try {
 				g = imgVector.createGraphics();
 				g.setColor(Color.WHITE);
-				g.fillRect(0,0,imgVector.getWidth()-1, imgVector.getHeight()-1);
+				//g.setBackground(Color.WHITE);
+				g.fillRect(0,0,imgVector.getWidth(), imgVector.getHeight());
 				
 				g.setColor(Color.GREEN);
 				g.draw(vector.getVector());
@@ -254,7 +255,7 @@ public class ConsoleApp {
 				        pdfExtract = new PDFExtractor(f);
 				        pdfExtract.setExtractText(true);
 				        pdfExtract.setExtractImage(true);
-				        pdfExtract.setExtractVector(false);
+				        pdfExtract.setExtractVector(true);
 				        ExtractedData content = pdfExtract.extractAll();
 				        
 				        MetaData metaData = content.getMetaData();

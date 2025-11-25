@@ -29,6 +29,7 @@ public class ExtractedData {
 	public static String JSON_WIDTH 	= "width";
 	public static String JSON_HEIGHT 	= "height";
 	public static String JSON_TYPE 		= "type";
+	public static String JSON_FORMAT 	= "format";
 	public static String JSON_DATA 		= "data";
 	
 	private Map<Integer, List<ContentItem>> page_content_list = new HashMap<>();
@@ -130,17 +131,25 @@ public class ExtractedData {
 	}
 	
 	public String toPlainTextFormat(boolean isShowPageNo)
+	{
+		return toPlainTextFormat(isShowPageNo, true);
+	}
+	
+	public String toPlainTextFormat(boolean isShowPageNo, boolean isPreserveLineBreak)
     {
     	StringBuffer sb = new StringBuffer();
     	int iPageNo = 0;
-    	for(ContentItem it : getContentItemList())
+    	
+    	ContentItem prev = null;
+    	
+    	for(ContentItem cur : getContentItemList())
     	{
-    		if(it.getType()==Type.VECTOR)
+    		if(cur.getType()==Type.VECTOR)
     			continue;
     		
-    		if(iPageNo==0 || iPageNo!=it.getPage_no())
+    		if(iPageNo==0 || iPageNo!=cur.getPage_no())
     		{
-    			iPageNo = it.getPage_no();
+    			iPageNo = cur.getPage_no();
     			//
     			if(isShowPageNo)
     			{
@@ -149,10 +158,32 @@ public class ExtractedData {
     				sb.append("----[ page ").append(iPageNo).append(" ]----\n");
     			//
     			}
+    			prev = cur; //reset as new page
     		}
-    		
-    		sb.append(it.getData());
+    		else if(isPreserveLineBreak)
+    		{
+    			double dGapH = Math.abs(cur.getY2() - prev.getY2());
+    			if(dGapH > prev.getHeight()*2)
+    			{
+    				double dLineHeight = ((cur.getHeight()+prev.getHeight())/2) + 2;
+    				int iEmptyLines = (int) Math.floor(dGapH / dLineHeight);
+    				for(;iEmptyLines>1;iEmptyLines--)
+    				{
+    					sb.append("\n");
+    				}
+    			}
+    		}    		
     		sb.append("\n");
+    		if(cur.getType()==Type.TEXT)
+    		{
+    			String sFontFormat = cur.getContentFormat();
+	    		if(sFontFormat!=null && sFontFormat.indexOf("Bold")>-1)
+	    		{
+	    			sb.append("## ");
+	    		}
+    		}
+    		sb.append(cur.getData());
+    		prev = cur;
     	}
     	
     	if(isShowPageNo && sb.length()>0)
@@ -176,6 +207,7 @@ public class ExtractedData {
     		jsonItem.put(JSON_Y, it.getY1());
     		jsonItem.put(JSON_WIDTH, it.getWidth());
     		jsonItem.put(JSON_HEIGHT, it.getHeight());
+    		jsonItem.put(JSON_FORMAT, it.getContentFormat());
     		jsonItem.put(JSON_TYPE, it.getType());
     		
     		if(it.getType()==Type.VECTOR)
