@@ -3,14 +3,16 @@ package hl.doc.extractor.pdf.extraction.model;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class VectorData {
 
-	private GeneralPath vector_path = null;
+	private Path2D vector_path = null;
 	private int path_seg_count 		= 0;
 	private float line_width 		= 0;
 	private Color line_color 		= null;
@@ -18,7 +20,7 @@ public class VectorData {
 	private Paint fill_pattern 		= null;
 	
 	
-	public VectorData(GeneralPath aVectorShape)
+	public VectorData(Path2D aVectorShape)
 	{
 		this.vector_path = aVectorShape;
 		init();
@@ -43,7 +45,7 @@ public class VectorData {
 	}
 	//=====
 
-	public GeneralPath getVector()
+	public Path2D getVector()
 	{
 		return this.vector_path;
 	}
@@ -52,7 +54,12 @@ public class VectorData {
 	{
 		return this.path_seg_count;
 	}
-		
+	
+	public double getBoundSize()
+	{
+		Rectangle2D rect = getVector().getBounds();
+		return rect.getWidth() * rect.getHeight();
+	}
 	//=====
 	
 	public void setLineWidth(float aLineWidth)
@@ -118,12 +125,12 @@ public class VectorData {
 		return null;
 	}
     
-	private static GeneralPath stringToVectorPath(String s) {
+	private static Path2D stringToVectorPath(String s) {
 		
 		if(s==null)
 			return null;
 		
-        GeneralPath path = new GeneralPath();
+		Path2D path = new GeneralPath();
 
         for (String seg : s.split(";")) {
             if (seg.isEmpty()) continue;
@@ -157,7 +164,7 @@ public class VectorData {
         return path;
     }
     
-	private static String vectorPathToString(GeneralPath path) {
+	private static String vectorPathToString(Path2D path) {
         StringBuilder sb = new StringBuilder();
         PathIterator it = path.getPathIterator(null);
 

@@ -1,14 +1,18 @@
 package hl.doc.extractor.pdf.extraction.util;
 
 import java.awt.BasicStroke;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -216,8 +220,8 @@ public class ExtractionUtil  {
 
         class DrawingPositionEngine extends PDFGraphicsStreamEngine {
 
-            final List<GeneralPath> listVector = new ArrayList<>();
-            private GeneralPath currentPath = new GeneralPath();
+            final List<Path2D> listVector = new ArrayList<>();
+            private Path2D currentPath = new GeneralPath();
 
             DrawingPositionEngine(PDPage page) {
                 super(page);
@@ -266,9 +270,9 @@ public class ExtractionUtil  {
             //
             @Override public void endPath() { currentPath.reset(); }
 
-            private boolean isEmpty(GeneralPath aShape)
+            private boolean isEmpty(Path2D aShapePath)
             {
-            	return aShape.getPathIterator(null).isDone();
+            	return aShapePath.getPathIterator(null).isDone();
             }
             private void savePath(boolean stroked, boolean filled) {
             	
@@ -347,13 +351,15 @@ public class ExtractionUtil  {
         DrawingPositionEngine engine = new DrawingPositionEngine(page);
         engine.processPage(page);
         
-        List<GeneralPath> listVectors = groupByBounds(pageIndex, engine.listVector, 4);
+        List<Path2D> listVectors = engine.listVector;
+        
+        listVectors = groupByBounds(pageIndex, engine.listVector, 4);
         
         //////////////////////////////////////////////////
         // Convert List<GeneralPath> to List<ContentItem>
         int iExtractSeq = 1;
         List<ContentItem> contentItems = new ArrayList<>();
-        for(GeneralPath vector : listVectors)
+        for(Path2D vector : listVectors)
         {
         	VectorData vData = new VectorData(vector);
 	        String sData = vData.toJson().toString();
@@ -366,37 +372,57 @@ public class ExtractionUtil  {
         return contentItems;
     }
     
-    private static List<GeneralPath> groupByBounds(int aPageIndex, List<GeneralPath> aOrigVectorList, int aExpandedPixel)
+    private static List<Path2D> groupByBounds(int aPageIndex, List<Path2D> aOrigVectorList, int aExpandedPixel)
     {
-        List<GeneralPath> listVectors = new ArrayList<>();
-        GeneralPath lastShape = null;
+        List<Path2D> listVectors = new ArrayList<>();
         
         //Make the aExpandedPixel even number
         if(aExpandedPixel%2==1)
         	aExpandedPixel++;
         
-        for(GeneralPath curShape : aOrigVectorList)
+        Map<Double, List<Path2D>> mapSortedVectors = new TreeMap<>();
+        for(Path2D p : aOrigVectorList)
         {
-        	if(lastShape==null)
+        	Rectangle rect = p.getBounds();
+        	double dArea = rect.getWidth() * rect.getHeight();
+        	
+        	List<Path2D> listAreaSize = mapSortedVectors.get(dArea);
+        	if(listAreaSize==null)
+        		listAreaSize = new ArrayList<>();
+        	listAreaSize.add(p);
+        	
+        	mapSortedVectors.put(dArea, listAreaSize);
+        }
+        
+        //Convert Map<Doible,List<Vectors>> to 2D Vectors[]
+        List<Path2D> listFlattenSortedVectors = new ArrayList<>();
+        for(List<Path2D> listSortedVectors : mapSortedVectors.values())
+        {
+        	listFlattenSortedVectors.addAll(listSortedVectors);
+        }
+        
+        
+        Path2D[] vectors = listFlattenSortedVectors.toArray(new Path2D[listFlattenSortedVectors.size()]);
+        
+        for(int i=vectors.length-1; i>=0; i--)
+        {
+        	if(vectors[i]==null)
+				continue;
+        	
+        	for(int z=0; z<i; z++)
         	{
-        		lastShape = curShape;
-        		continue;
-        	}
-        	
-        	Rectangle2D rectLast = lastShape.getBounds2D();
-        	
-        	Rectangle2D rectLastExpand = new Rectangle2D.Double(
-        			rectLast.getX()-(aExpandedPixel*0.5), rectLast.getY()-(aExpandedPixel*0.5), 
-        			rectLast.getWidth()+aExpandedPixel, rectLast.getHeight()+aExpandedPixel);
-        	
-        	if(rectLastExpand.intersects(curShape.getBounds2D()))
-        	{
-        		lastShape.append(curShape, false);
-        		continue;
-        	}
-        	
-            listVectors.add(lastShape);
-            lastShape = curShape;
+            	if(vectors[z]==null)
+    				continue;
+            	
+        		Rectangle2D rect1	= vectors[i].getBounds();
+        		Rectangle2D rect2 	= vectors[z].getBounds();
+        		if(rect1.contains(rect2.getBounds2D()))
+                {
+        			vectors[i].append(rect2, false);
+        			vectors[z] = null;
+             	}
+        	 }
+        	 listVectors.add(vectors[i]);
         }
         
         return listVectors;

@@ -42,7 +42,8 @@ public class ContentUtil  {
 	    BY_PAGE			(Comparator.comparing(ContentItem::getPage_no)),
 	    BY_X    		(Comparator.comparing(ContentItem::getX1)),
 	    BY_Y    		(Comparator.comparing(ContentItem::getY1)),
-	    BY_SEGMENT		(Comparator.comparing(ContentItem::getSegment_no)),
+	    BY_AREA_SIZE	(Comparator.comparing(ContentItem::getAreaSize)),
+	    BY_GROUP_NO		(Comparator.comparing(ContentItem::getGroup_no)),
 	    BY_EXTRACT_SEQ	(Comparator.comparing(ContentItem::getExtract_seq));
 	
 	    private final Comparator<ContentItem> cmp;

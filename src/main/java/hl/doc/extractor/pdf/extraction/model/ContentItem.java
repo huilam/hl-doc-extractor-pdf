@@ -19,7 +19,7 @@ public class ContentItem {
 	private int page_no 	= 0;
 	private int pg_line_seq = 0;
 	private String data 	= "";
-	private double segment	= 0;
+	private double group_no	= 0;
 	private Rectangle2D rect= null;
 
 	public ContentItem(Type type, String content, int pageno, 
@@ -165,12 +165,12 @@ public class ContentItem {
 		this.data = data;
 	}
 
-	public double getSegment_no() {
-		return segment;
+	public double getGroup_no() {
+		return group_no;
 	}
 
-	public void setSegment_no(double segno) {
-		this.segment = segno;
+	public void setGroup_no(double group_no) {
+		this.group_no = group_no;
 	}
 
 	public double getX1() {
@@ -200,6 +200,11 @@ public class ContentItem {
 	public Rectangle2D getRect2D()
 	{
 		return this.rect;
+	}
+	
+	public double getAreaSize()
+	{
+		return getWidth() * getHeight();
 	}
 	
 	public String toString()
