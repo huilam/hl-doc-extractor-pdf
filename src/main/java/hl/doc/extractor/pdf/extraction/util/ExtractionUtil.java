@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class ExtractionUtil  {
 	                currentLine.clear();
 	                currentLine.add(text);
 	            }
-	            
+	            super.processTextPosition(text);
 	        }
 
 	        @Override
@@ -138,6 +139,8 @@ public class ExtractionUtil  {
 	    }
 
 	    GroupedTextStripper stripper = new GroupedTextStripper();
+	    stripper.setAddMoreFormatting(true);
+	    stripper.setSortByPosition(true);
 	    stripper.setStartPage(pageIndex + 1);
 	    stripper.setEndPage(pageIndex + 1);
 	    stripper.getText(doc);
@@ -427,5 +430,43 @@ public class ExtractionUtil  {
         
         return listVectors;
     }
+    
+    
+    public static int countSegment(final Path2D aVectorPath)
+	{
+		PathIterator iterPath = aVectorPath.getPathIterator(null);
+		int iSegCount = 0;
+		while(!iterPath.isDone())
+		{
+			double[] coord = new double[6]; //CUBICTO required 3 points of x,y
+			
+			switch(iterPath.currentSegment(coord))
+			{
+				case PathIterator.SEG_LINETO:
+				case PathIterator.SEG_CUBICTO:
+				case PathIterator.SEG_QUADTO:
+				case PathIterator.SEG_CLOSE:
+					iSegCount++;
+					break;
+				case PathIterator.SEG_MOVETO:;
+				default:
+			}
+			iterPath.next();
+		}
+		return iSegCount;
+	}
+    
+    public static boolean isBoundingBox(final Path2D aVectorPath)
+	{
+    	int iMinLength = 10;
+		Rectangle2D bounds = aVectorPath.getBounds();
+		boolean isBox = bounds.getWidth()>iMinLength && bounds.getHeight()>iMinLength;
+		if(isBox)
+		{
+			int iSegCount = countSegment(aVectorPath);
+			isBox = (iSegCount==4 || iSegCount==12);
+		}
+		return isBox;
+	}
 
 }

@@ -10,10 +10,13 @@ import java.awt.geom.Rectangle2D;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
+
 public class VectorData {
 
 	private Path2D vector_path = null;
 	private int path_seg_count 		= 0;
+	private boolean bounding_box 	= false;
 	private float line_width 		= 0;
 	private Color line_color 		= null;
 	private Color fill_color 		= null;
@@ -34,26 +37,15 @@ public class VectorData {
 	
 	private void init()
 	{
-		PathIterator iterPath = vector_path.getPathIterator(null);
-		int iSegCount = 0;
-		while(!iterPath.isDone())
-		{
-			double[] coord = new double[6]; //CUBICTO required 3 points of x,y
-			
-			switch(iterPath.currentSegment(coord))
-			{
-				case PathIterator.SEG_LINETO:
-				case PathIterator.SEG_CUBICTO:
-				case PathIterator.SEG_QUADTO:
-				case PathIterator.SEG_CLOSE:
-					iSegCount++;
-					break;
-				case PathIterator.SEG_MOVETO:;
-				default:
-			}
-			iterPath.next();
-		}
-		this.path_seg_count = iSegCount;
+		this.path_seg_count = ExtractionUtil.countSegment(this.vector_path);
+		
+		int iMinLength = 10;
+		Rectangle2D bounds = getVector().getBounds();
+		this.bounding_box = 
+				   bounds.getWidth()>iMinLength 
+				&& bounds.getHeight()>iMinLength
+				&& (this.path_seg_count==4 || this.path_seg_count==12);
+		
 	}
 	//=====
 
@@ -67,6 +59,11 @@ public class VectorData {
 		return this.path_seg_count;
 	}
 	
+	public boolean isBoundingBox()
+	{
+		return this.bounding_box;
+	}
+
 	public double getBoundSize()
 	{
 		Rectangle2D rect = getVector().getBounds();

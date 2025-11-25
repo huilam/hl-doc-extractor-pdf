@@ -141,12 +141,14 @@ public class ExtractedData {
     		if(iPageNo==0 || iPageNo!=it.getPage_no())
     		{
     			iPageNo = it.getPage_no();
-    			if(iPageNo>1)
-    				sb.append("\n\n");
     			//
     			if(isShowPageNo)
+    			{
+    				if(iPageNo>1)
+        				sb.append("\n\n");
     				sb.append("----[ page ").append(iPageNo).append(" ]----\n");
     			//
+    			}
     		}
     		
     		sb.append(it.getData());
