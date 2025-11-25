@@ -38,7 +38,7 @@ public class VectorData {
 		int iSegCount = 0;
 		while(!iterPath.isDone())
 		{
-			double[] coord = new double[6]; //CUBICTO required 6 pts
+			double[] coord = new double[6]; //CUBICTO required 3 points of x,y
 			
 			switch(iterPath.currentSegment(coord))
 			{
