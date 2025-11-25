@@ -38,7 +38,19 @@ public class VectorData {
 		int iSegCount = 0;
 		while(!iterPath.isDone())
 		{
-			iSegCount++;
+			double[] coord = new double[6]; //CUBICTO required 6 pts
+			
+			switch(iterPath.currentSegment(coord))
+			{
+				case PathIterator.SEG_LINETO:
+				case PathIterator.SEG_CUBICTO:
+				case PathIterator.SEG_QUADTO:
+				case PathIterator.SEG_CLOSE:
+					iSegCount++;
+					break;
+				case PathIterator.SEG_MOVETO:;
+				default:
+			}
 			iterPath.next();
 		}
 		this.path_seg_count = iSegCount;
