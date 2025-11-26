@@ -294,6 +294,9 @@ public class ExtractionUtil  {
 	}
     public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex, boolean isGroupVectors) throws IOException {
         
+        // Silence verbose PDFBox logging
+        Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
+
         PDPage page = doc.getPage(pageIndex);
         float pgWidth 	= page.getMediaBox().getWidth();
         float pgHeight 	= page.getMediaBox().getHeight();
@@ -306,8 +309,6 @@ public class ExtractionUtil  {
 
             DrawingPositionEngine(PDPage page) {
                 super(page);
-                // Silence verbose PDFBox logging
-                Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
             }
 
             @Override public void moveTo(float x, float y) 
