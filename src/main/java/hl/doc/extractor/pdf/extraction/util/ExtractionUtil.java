@@ -493,10 +493,17 @@ public class ExtractionUtil  {
             	
         		Rectangle2D rect1	= vectors[i].getBounds();
         		Rectangle2D rect2 	= vectors[z].getBounds();
-        		if(rect1.contains(rect2.getBounds2D()))
+        		if(rect1.intersects(rect2.getBounds2D()))
                 {
-        			vectors[i].append(vectors[z], false);
-        			vectors[z] = null;
+        			Rectangle2D rectIntersect = new Area(rect1.createIntersection(rect2)).getBounds();
+        			double dAreaRect = rect2.getWidth() * rect2.getHeight();
+        			double dAreaIntersect = rectIntersect.getWidth() * rectIntersect.getHeight();
+        			double dPercentage = dAreaIntersect/dAreaRect;
+        			if(dPercentage>0.6)
+        			{
+	        			vectors[i].append(vectors[z], false);
+	        			vectors[z] = null;
+        			}
              	}
         	 }
         	
