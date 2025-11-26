@@ -292,7 +292,8 @@ public class ExtractionUtil  {
     public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex, boolean isGroupVectors) throws IOException {
         
         PDPage page = doc.getPage(pageIndex);
-        float pgH = page.getMediaBox().getHeight();
+        float pgWidth 	= page.getMediaBox().getWidth();
+        float pgHeight 	= page.getMediaBox().getHeight();
 
         class DrawingPositionEngine extends PDFGraphicsStreamEngine {
 
@@ -308,17 +309,17 @@ public class ExtractionUtil  {
 
             @Override public void moveTo(float x, float y) 
             { 
-            	currentPath.moveTo(x, pgH - y); 
+            	currentPath.moveTo(x, pgHeight - y); 
             }
             @Override public void lineTo(float x, float y) 
             { 
-            	currentPath.lineTo(x, pgH - y); 
+            	currentPath.lineTo(x, pgHeight - y); 
             }
             @Override public void curveTo(float x1, float y1, float x2, float y2, float x3, float y3) 
             {
-            	y1 = pgH - y1;
-            	y2 = pgH - y2;
-            	y3 = pgH - y3;
+            	y1 = pgHeight - y1;
+            	y2 = pgHeight - y2;
+            	y3 = pgHeight - y3;
                 currentPath.curveTo(x1, y1, x2, y2, x3, y3); 
             }
             
@@ -329,7 +330,7 @@ public class ExtractionUtil  {
             @Override public Point2D getCurrentPoint() 
             { 	
             	Point2D pt = currentPath.getCurrentPoint();
-            	pt.setLocation(pt.getX(), pgH - pt.getY());
+            	pt.setLocation(pt.getX(), pgHeight - pt.getY());
             	return pt; 
             }
             @Override public void appendRectangle(Point2D p0, Point2D p1, Point2D p2, Point2D p3) 
@@ -376,7 +377,8 @@ public class ExtractionUtil  {
 
                 Rectangle2D bounds = transformedShape.getBounds2D();
                 
-                if (bounds.getWidth() > 0 && bounds.getHeight() > 0) {
+                if (bounds.getWidth() > 0 && bounds.getHeight() > 0) 
+                {
                 	if(isSimilarColor(docBgColor,toAwtColor(pdColor),10))
                 	{
                 		//Drop since it's not visible to human
@@ -384,7 +386,14 @@ public class ExtractionUtil  {
                 	}
                 	else
                 	{
-                		listVector.add(new GeneralPath(currentPath));
+                		//only store visible vectors, there are some vectors with -x and -y
+                		if(bounds.getX() > 0 
+                			&& bounds.getY() > 0 
+                			&& bounds.getWidth()+bounds.getX() < pgWidth
+                			&& bounds.getHeight()+bounds.getY() < pgHeight)
+                		{
+                			listVector.add(new GeneralPath(currentPath));
+                		}
                 	}
                 }
                 currentPath.reset();
