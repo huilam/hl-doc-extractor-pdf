@@ -41,6 +41,9 @@ public class ExtractionUtil  {
 	// ---- TEXT BOUNDING BOXES ----
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException {
 
+		//Silent the missing font warning
+    	Logger.getLogger("org.apache.pdfbox.pdmodel.font").setLevel(Level.SEVERE);
+
 	    class GroupedTextStripper extends PDFTextStripper {
 	        List<ContentItem> contentItems = new ArrayList<>();
 	        List<TextPosition> currentLine = new ArrayList<>();
