@@ -62,6 +62,18 @@ public class ExtractedData {
 		return this.max_pageno;
 	}
 	
+	public void clear()
+	{
+		page_content_list.clear();
+		full_content_list.clear();
+		pdf_meta.clear();
+		pdf_meta = null;
+		min_pageno = Integer.MAX_VALUE;
+		max_pageno = 0;
+		imgbase64_cache.clear();
+		//
+	}
+	
 	public void setContentItemList(List<ContentItem> aContentItemList)
 	{
 		if(aContentItemList==null)

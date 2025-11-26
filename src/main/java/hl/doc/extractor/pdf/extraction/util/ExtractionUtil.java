@@ -285,8 +285,11 @@ public class ExtractionUtil  {
 	    return engine.contentItems;
 	}
 	
-	// ---- Drawing (Rectangle, Line) -----
-    public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex) throws IOException {
+	// ---- Drawing (Rectangle, Line etc) -----
+	public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex) throws IOException {
+	      return extractVectorContent(doc, pageIndex, true);
+	}
+    public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex, boolean isGroupVectors) throws IOException {
         
         PDPage page = doc.getPage(pageIndex);
         float pgH = page.getMediaBox().getHeight();
@@ -427,7 +430,10 @@ public class ExtractionUtil  {
         
         List<Path2D> listVectors = engine.listVector;
         
-        listVectors = groupByBounds(pageIndex, engine.listVector, 4);
+        if(isGroupVectors)
+        {
+        	listVectors = groupByBounds(pageIndex, engine.listVector, 4);
+        }
         //////////////////////////////////////////////////
         // Convert List<GeneralPath> to List<ContentItem>
         int iExtractSeq = 1;
@@ -441,7 +447,6 @@ public class ExtractionUtil  {
 	        item.setExtract_seq(iExtractSeq++);
 	        contentItems.add(item);
         }
-        
         return contentItems;
     }
     
@@ -483,7 +488,7 @@ public class ExtractionUtil  {
         	
         	for(int z=0; z<i; z++)
         	{
-            	if(vectors[z]==null)
+        		if(vectors[z]==null)
     				continue;
             	
         		Rectangle2D rect1	= vectors[i].getBounds();
@@ -494,7 +499,8 @@ public class ExtractionUtil  {
         			vectors[z] = null;
              	}
         	 }
-        	 listVectors.add(vectors[i]);
+        	
+        	listVectors.add(vectors[i]);
         }
         
         return listVectors;

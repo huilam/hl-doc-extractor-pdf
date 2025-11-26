@@ -149,7 +149,8 @@ public class ConsoleApp {
 			if(imgHeight==0)
 				imgHeight = 1;
 			
-			String sFileName = String.format("vector_%03d_%d-%d_%dx%d_seg-%d.jpg", 
+			String sFileName = String.format("vector_p%d_%03d_%d-%d_%dx%d_seg-%d.jpg", 
+					it.getPage_no(), 
 					it.getExtract_seq(), 
 					(int)it.getX1(), (int)it.getY1(), 
 					(int)it.getWidth(), (int)it.getHeight(), 
@@ -256,7 +257,7 @@ public class ConsoleApp {
 				        pdfExtract = new PDFExtractor(f);
 				        pdfExtract.setExtractText(true);
 				        pdfExtract.setExtractImage(true);
-				        pdfExtract.setExtractVector(true);
+				        pdfExtract.setExtractVector(false);
 				        ExtractedData content = pdfExtract.extractAll();
 				        
 				        MetaData metaData = content.getMetaData();
