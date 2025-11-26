@@ -1,8 +1,10 @@
 package hl.doc.extractor.pdf.extraction.util;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
@@ -22,6 +24,8 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -289,8 +293,9 @@ public class ExtractionUtil  {
 
         class DrawingPositionEngine extends PDFGraphicsStreamEngine {
 
-            final List<Path2D> listVector = new ArrayList<>();
-            private Path2D currentPath = new GeneralPath();
+            final List<Path2D> listVector 	= new ArrayList<>();
+            private Path2D currentPath 		= new GeneralPath();
+            private Color docBgColor 		= null;
 
             DrawingPositionEngine(PDPage page) {
                 super(page);
@@ -344,11 +349,17 @@ public class ExtractionUtil  {
             	return aShapePath.getPathIterator(null).isDone();
             }
             private void savePath(boolean stroked, boolean filled) {
+            	 PDGraphicsState gs = getGraphicsState();
+            	 PDColor pdColor = filled ? gs.getNonStrokingColor() : gs.getStrokingColor();
+            	
+            	if(docBgColor==null)
+            	{
+            		docBgColor = filled ? toAwtColor(pdColor) : Color.WHITE;
+            	}
             	
             	//check if empty
                 if (isEmpty(currentPath)) return;
 
-                PDGraphicsState gs = getGraphicsState();
                 Matrix ctm = gs.getCurrentTransformationMatrix();
 
                 // Transform to PDF User Space
@@ -363,67 +374,60 @@ public class ExtractionUtil  {
                 Rectangle2D bounds = transformedShape.getBounds2D();
                 
                 if (bounds.getWidth() > 0 && bounds.getHeight() > 0) {
-                	
-                	listVector.add(new GeneralPath(currentPath));
+                	if(isSimilarColor(docBgColor,toAwtColor(pdColor),10))
+                	{
+                		//Drop since it's not visible to human
+                		//System.out.println(" DROP "+currentPath);
+                	}
+                	else
+                	{
+                		listVector.add(new GeneralPath(currentPath));
+                	}
                 }
                 currentPath.reset();
             }
             
-            @Override public void clip(int windingRule) {}
-            @Override public void shadingFill(COSName shadingName) throws IOException {}
-            @Override public void drawImage(PDImage pdImage) throws IOException {}
-            /**
-            private VectorData setVectorDataGraphics(VectorData aVectorData, PDGraphicsState aPDGraphics)
-            {
-            	PDColor pdColorStroke 	= aPDGraphics.getStrokingColor();
-                if(pdColorStroke!=null)
-                {
-                    PDColorSpace csStroke 	= pdColorStroke.getColorSpace();
-                	try {
-                		float[] rgb = csStroke.toRGB(pdColorStroke.getComponents());
-	                	aVectorData.setLineColor(new Color(rgb[0], rgb[1], rgb[2]));
-	                	aVectorData.setLineWidth(aPDGraphics.getLineWidth());
+    		private Color toAwtColor(PDColor aPDColor) {
+    			Color color = null;
+    			if(aPDColor!=null)
+    			{
+	    			PDColorSpace csStroke 	= aPDColor.getColorSpace();
+	            	try {
+	            		float[] rgb = csStroke.toRGB(aPDColor.getComponents());
+	            		color = new Color(rgb[0], rgb[1], rgb[2]);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-                }
-                
-                PDColor pdColorFill 	= aPDGraphics.getNonStrokingColor();
-                if(pdColorFill!=null)
-                {
-                    PDColorSpace csFill 	= pdColorFill.getColorSpace();
-	                if(csFill instanceof PDPattern)
-	                {
-                		//TODO 
-	                	//PDPattern patFill = (PDPattern) csFill;
-                		//aVectorData.setFillPattern(null);
-	                }
-	                else
-	                {
-						try {
-							float[] rgb = csFill.toRGB(pdColorFill.getComponents());
-		                	aVectorData.setFillColor(new Color(rgb[0], rgb[1], rgb[2]));
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-	                }
-                }
-                
-                return aVectorData;
-            }
-            **/
+    			}
+            	return color;
+    		}
+    		
+    		private boolean isSimilarColor(Color aColor1, Color aColor2, int aTolerance) {
+    			
+    			if(aColor1!=null && aColor2!=null)
+    			{
+	    			int iRDiff = Math.abs(aColor1.getRed() - aColor2.getRed());
+	    			int iGDiff = Math.abs(aColor1.getGreen() - aColor2.getGreen());
+	    			int iBDiff = Math.abs(aColor1.getBlue() - aColor2.getBlue());
+	    			return (iRDiff<aTolerance 
+	    					&& iGDiff<aTolerance 
+	    					&& iBDiff <aTolerance);
+    			}
+            	return false;
+    		}
+            
+            @Override public void clip(int windingRule) {}
+            @Override public void shadingFill(COSName shadingName) throws IOException {}
+            @Override public void drawImage(PDImage pdImage) throws IOException {}
         }
 
-        
         DrawingPositionEngine engine = new DrawingPositionEngine(page);
         engine.processPage(page);
         
         List<Path2D> listVectors = engine.listVector;
         
         listVectors = groupByBounds(pageIndex, engine.listVector, 4);
-        
         //////////////////////////////////////////////////
         // Convert List<GeneralPath> to List<ContentItem>
         int iExtractSeq = 1;
@@ -431,8 +435,8 @@ public class ExtractionUtil  {
         for(Path2D vector : listVectors)
         {
         	VectorData vData = new VectorData(vector);
-	        String sData = vData.toJson().toString();
-	        ContentItem item = new ContentItem(Type.VECTOR, sData, pageIndex + 1, vector.getBounds2D());
+	        ContentItem item = new ContentItem(Type.VECTOR, vData.toJson().toString(), 
+	        		pageIndex + 1, vector.getBounds2D());
 	        item.setContentFormat(VectorData.class.getName());
 	        item.setExtract_seq(iExtractSeq++);
 	        contentItems.add(item);
@@ -469,7 +473,6 @@ public class ExtractionUtil  {
         {
         	listFlattenSortedVectors.addAll(listSortedVectors);
         }
-        
         
         Path2D[] vectors = listFlattenSortedVectors.toArray(new Path2D[listFlattenSortedVectors.size()]);
         
@@ -522,17 +525,17 @@ public class ExtractionUtil  {
 		return iSegCount;
 	}
     
-    public static boolean isBoundingBox(final Path2D aVectorPath)
-	{
-    	int iMinLength = 10;
-		Rectangle2D bounds = aVectorPath.getBounds();
-		boolean isBox = bounds.getWidth()>iMinLength && bounds.getHeight()>iMinLength;
-		if(isBox)
-		{
-			int iSegCount = countSegment(aVectorPath);
-			isBox = (iSegCount==4 || iSegCount==12);
-		}
-		return isBox;
-	}
+    public static boolean isBoundingBox(final Path2D aVectorPath, int aMinLength)
+    {
+    	return isBoundingBox(aVectorPath, aMinLength, aMinLength);
+    }
+    
+    public static boolean isBoundingBox(final Path2D aVectorPath, int aMinWidth, int aMinHeight)
+    {
+		Area areaPath = new Area(aVectorPath);
+		return  aVectorPath.getBounds().getWidth()>aMinWidth 
+				&& aVectorPath.getBounds().getHeight()>aMinHeight
+				&& areaPath.isRectangular();
+    }
 
 }

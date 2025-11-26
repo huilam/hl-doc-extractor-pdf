@@ -149,9 +149,11 @@ public class ConsoleApp {
 			if(imgHeight==0)
 				imgHeight = 1;
 			
-			String sFileName = "vector_"+it.getExtract_seq()+"_"
-				+it.getX1()+"-"+it.getX1()+"_"+((int)it.getWidth())+"x"+((int)it.getHeight())
-				+"_seg-"+vector.getPathSegmentCount()+".jpg";
+			String sFileName = String.format("vector_%03d_%d-%d_%dx%d_seg-%d.jpg", 
+					it.getExtract_seq(), 
+					(int)it.getX1(), (int)it.getY1(), 
+					(int)it.getWidth(), (int)it.getHeight(), 
+					vector.getPathSegmentCount());
 			
 			Rectangle2D bound = it.getRect2D();
 					
@@ -164,7 +166,6 @@ public class ConsoleApp {
 			try {
 				g = imgVector.createGraphics();
 				g.setColor(Color.WHITE);
-				//g.setBackground(Color.WHITE);
 				g.fillRect(0,0,imgVector.getWidth(), imgVector.getHeight());
 				
 				g.setColor(Color.GREEN);

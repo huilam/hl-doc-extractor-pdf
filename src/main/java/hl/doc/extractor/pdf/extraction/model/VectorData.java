@@ -14,7 +14,7 @@ import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
 
 public class VectorData {
 
-	private Path2D vector_path = null;
+	private Path2D vector_path 		= null;
 	private int path_seg_count 		= 0;
 	private boolean bounding_box 	= false;
 	private float line_width 		= 0;
@@ -38,14 +38,7 @@ public class VectorData {
 	private void init()
 	{
 		this.path_seg_count = ExtractionUtil.countSegment(this.vector_path);
-		
-		int iMinLength = 10;
-		Rectangle2D bounds = getVector().getBounds();
-		this.bounding_box = 
-				   bounds.getWidth()>iMinLength 
-				&& bounds.getHeight()>iMinLength
-				&& (this.path_seg_count==4 || this.path_seg_count==12);
-		
+		this.bounding_box = ExtractionUtil.isBoundingBox(this.vector_path, 10);
 	}
 	//=====
 
