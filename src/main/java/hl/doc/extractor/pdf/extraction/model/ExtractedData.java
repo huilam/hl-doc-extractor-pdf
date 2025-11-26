@@ -177,7 +177,7 @@ public class ExtractedData {
     		if(cur.getType()==Type.TEXT)
     		{
     			String sFontFormat = cur.getContentFormat();
-	    		if(sFontFormat!=null && sFontFormat.indexOf("Bold")>-1)
+	    		if(sFontFormat!=null && sFontFormat.indexOf("bold")>-1)
 	    		{
 	    			sb.append("## ");
 	    		}

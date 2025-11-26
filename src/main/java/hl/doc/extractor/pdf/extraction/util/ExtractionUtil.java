@@ -137,8 +137,8 @@ public class ExtractionUtil  {
 	            
 	            if(sData.trim().length()>0)
 	            {
-	            	sFormat = getCommonFontName(line);
-	            	System.out.println("sFormat---->"+sFormat);
+	            	sFormat = getCommonFontStyle(line);
+	            	//System.out.println("sFormat---->"+sFormat);
 	            }
 
 	            Rectangle2D rect2D = new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY);
@@ -160,7 +160,7 @@ public class ExtractionUtil  {
 	    return stripper.contentItems;
 	}
 	
-	private static String getCommonFontName(List<TextPosition> aLineText)
+	private static String getCommonFontStyle(List<TextPosition> aLineText)
 	{
 		if(aLineText==null || aLineText.size()==0)
 			return null;
@@ -188,12 +188,27 @@ public class ExtractionUtil  {
 					lastFont = text2.getFont();
 				}
 			}
+			
+			if(lastFont!=null && firstFont!=null)
+				break;
 		}
 		
 		if(firstFont!=null && lastFont!=null)
 		{
-			if(firstFont.getName().equals(lastFont.getName()))
-				return firstFont.getName();
+			String[] sFontNames = new String[] 
+					{firstFont.getName().toLowerCase(), 
+					lastFont.getName().toLowerCase()};
+			
+			for(int i=0; i<sFontNames.length; i++)
+			{
+				//Remove custom random font name prefix 
+				if (sFontNames[i].contains("+")) {
+					sFontNames[i] = sFontNames[i].substring(sFontNames[i].indexOf("+") + 1);
+				}
+			}
+			
+			if(sFontNames[0].equals(sFontNames[1]))
+				return sFontNames[0];
 		}
 		
 		return null;
