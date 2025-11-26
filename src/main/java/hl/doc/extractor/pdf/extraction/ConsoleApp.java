@@ -172,11 +172,15 @@ public class ConsoleApp {
 				g.setColor(Color.GREEN);
 				g.draw(vector.getVector());
 				
+				File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
+				
+				int iX = (int)bound.getX();
+				int iY = (int)bound.getY();
+				int iW = (int)bound.getWidth()+1;
+				int iH = (int)bound.getHeight()+1;
 				try {
-					File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
 					
-					imgVector = imgVector.getSubimage((int)bound.getX(), (int)bound.getY(), 
-							(int)bound.getWidth()+2, (int)bound.getHeight()+2);
+					imgVector = imgVector.getSubimage(iX, iY, iW, iH);
 					
 					if(ImageIO.write(imgVector, "jpg", fileImg))
 					{

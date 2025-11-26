@@ -144,10 +144,10 @@ public class ExtractedData {
 	
 	public String toPlainTextFormat(boolean isShowPageNo)
 	{
-		return toPlainTextFormat(isShowPageNo, true);
+		return toPlainTextFormat(isShowPageNo, 3);
 	}
 	
-	public String toPlainTextFormat(boolean isShowPageNo, boolean isPreserveLineBreak)
+	public String toPlainTextFormat(boolean isShowPageNo, int aMaxAppendLineBreaks)
     {
     	StringBuffer sb = new StringBuffer();
     	int iPageNo = 0;
@@ -172,14 +172,18 @@ public class ExtractedData {
     			}
     			prev = cur; //reset as new page
     		}
-    		else if(isPreserveLineBreak)
+    		else if(aMaxAppendLineBreaks>0)
     		{
     			double dGapH = Math.abs(cur.getY2() - prev.getY2());
     			if(dGapH > cur.getHeight()*2)
     			{
     				double dLineHeight = ((cur.getHeight()+prev.getHeight())/2) + 2;
-    				int iEmptyLines = (int) Math.floor(dGapH / dLineHeight);
-    				for(;iEmptyLines>1;iEmptyLines--)
+    				int iEmptyLines = (int) Math.floor(dGapH / dLineHeight)-1;
+    				
+    				if(iEmptyLines>aMaxAppendLineBreaks)
+    					iEmptyLines = aMaxAppendLineBreaks;
+    				
+    				for(;iEmptyLines>0;iEmptyLines--)
     				{
     					sb.append("\n");
     				}
