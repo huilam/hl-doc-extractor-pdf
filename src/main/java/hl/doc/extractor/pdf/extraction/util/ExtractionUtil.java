@@ -42,7 +42,7 @@ public class ExtractionUtil  {
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException {
 
 		//Silent the missing font warning
-    	Logger.getLogger("org.apache.pdfbox.pdmodel.font").setLevel(Level.SEVERE);
+    	Logger.getLogger("org.apache.pdfbox.pdmodel").setLevel(Level.SEVERE);
 
 	    class GroupedTextStripper extends PDFTextStripper {
 	        List<ContentItem> contentItems = new ArrayList<>();
