@@ -20,6 +20,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,10 +42,25 @@ abstract public class AbstractExtractor {
 	private boolean is_extract_text 	= true;
 	private boolean is_extract_image 	= true;
 	private boolean is_extract_vector 	= false;
+	//
+	private float force_pdf_version 	= -1f;
 	
     public AbstractExtractor(File aPDFFile) throws IOException {
     	
     	this.pdf_doc = Loader.loadPDF(aPDFFile);
+    	
+    	if(this.force_pdf_version>0 && this.force_pdf_version!=this.pdf_doc.getVersion())
+    	{
+    		/////
+    		//System.out.println("Convert from "+this.pdf_doc+" to "+this.force_pdf_version+" in-memory.");
+    		this.pdf_doc.setVersion(this.force_pdf_version);
+    		ByteArrayOutputStream bytesPdf = new ByteArrayOutputStream();
+    		this.pdf_doc.save(bytesPdf);
+    		this.pdf_doc.close();
+    		//////
+    		//System.out.println("Reload converted "+this.force_pdf_version+" from memory");
+    		this.pdf_doc = Loader.loadPDF(bytesPdf.toByteArray());
+    	}
     	
     	if(this.pdf_doc!=null)
     	{
@@ -69,6 +85,11 @@ abstract public class AbstractExtractor {
     public File getOrigPdfFile()
     {
     	return file_orig_pdf;
+    }
+    
+    public void setForcePDFVersion(float aPDFVer)
+    {
+    	this.force_pdf_version = aPDFVer;
     }
     
     public void setSortingOrder(SORT ... aSorts )
