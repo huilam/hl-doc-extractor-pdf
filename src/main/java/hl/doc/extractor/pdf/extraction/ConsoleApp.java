@@ -87,7 +87,7 @@ public class ConsoleApp {
 			
 			if(img!=null)
 			{
-				String sImgLayoutFileName = "layout_p"+iPageNo+".jpg";
+				String sImgLayoutFileName = String.format("layout_p%02d.jpg", iPageNo);
 				File fileImg = new File(aOutputFile.getParent()+"/"+sImgLayoutFileName);
 				
 				try {
