@@ -10,6 +10,7 @@ import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -227,7 +228,8 @@ public class ExtractionUtil  {
 		PDPage page = doc.getPage(pageIndex);
 		
 		float scale = 1.0f;
-		double pageHeightPoints = page.getMediaBox().getHeight();
+		double pgHeight = page.getMediaBox().getHeight();
+		double pgWidth 	= page.getMediaBox().getWidth();
 		
 	    class ImagePositionEngine extends PDFGraphicsStreamEngine {
 	        final List<ContentItem> contentItems = new ArrayList<>();
@@ -250,18 +252,30 @@ public class ExtractionUtil  {
 	            double height = ctm.getScaleY();
 
 	            // Flip Y for BufferedImage coordinates
-	            double flippedY = (pageHeightPoints - minY - height);
+	            double flippedY = (pgHeight - minY - height);
+	            BufferedImage imgAdj = pdImage.getImage();
+	            String imgFormat = pdImage.getSuffix();
 
-	            Rectangle2D rect = new Rectangle2D.Double(
-	                minX * scale,
-	                flippedY * scale,
-	                width * scale,
-	                height * scale
-	            );
+	            int iX = (int)(minX * scale);
+	            int iY = (int)(flippedY * scale);
+	            int iW = (int)(width * scale);
+	            int iH = (int)(height * scale);
+	            
+	            if(iX<0 || iY<0)
+	            {
+	            	imgAdj = imgAdj.getSubimage(Math.abs(iX), Math.abs(iY), iW, iH);
+	            	
+		            if(iX<0) iX = 0;
+		            if(iY<0) iY = 0;
+	            }
+	            //if(iW+iX>pgWidth) iW = (int)pgWidth-iX-1;
+	            //if(iH+iY>pgHeight) iH = (int)pgHeight-iY-1;;
+	            
+	            Rectangle2D rect = new Rectangle2D.Double(iX,iY,iW,iH);
 	            
 	            ContentItem item = ContentUtil.imageToContentItem(
-	            		pdImage.getImage(),  //Buffered Image
-	            		pdImage.getSuffix(), //Image format
+	            		imgAdj,  //Buffered Image
+	            		imgFormat, //Image format
 	            		pageIndex+1, rect);
 	            item.setExtract_seq(iExtractSeq++);
 	            //

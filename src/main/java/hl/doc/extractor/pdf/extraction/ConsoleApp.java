@@ -288,7 +288,7 @@ public class ConsoleApp {
 					        {
 					        	File fileImg = new File(
 					        			folderSaveOutput.getAbsolutePath()
-					        			+"/preview_page_"+iPageNo+".jpg");
+					        			+ String.format("/preview_pg%02d.jpg",iPageNo));
 						        if(ImageIO.write(img, "jpg", fileImg))
 								{
 									System.out.println("    - [saved] "+fileImg.getName());

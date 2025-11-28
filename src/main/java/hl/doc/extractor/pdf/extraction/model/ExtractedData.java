@@ -100,10 +100,11 @@ public class ExtractedData {
 					iImgCount++;
 					//
 					String sImgFormat = it.getContentFormat();
-					String sImgFileName = "image_"+iImgCount+"_p"+iPageNo+"_"+iX+"-"+iY+"_"+iW+"x"+iH+"."+sImgFormat;
+					String sImgFileName = 
+							String.format("image_p%02d-%d_%d-%d_%dx%d.%s",
+									iPageNo, iImgCount, iX, iY, iW, iH, sImgFormat);
 					//
 					it.setTagName(sImgFileName);
-					it.setContentFormat(sImgFormat);
 					//
 					this.imgbase64_cache.put(sImgFileName, sBase64Img);
 					//
