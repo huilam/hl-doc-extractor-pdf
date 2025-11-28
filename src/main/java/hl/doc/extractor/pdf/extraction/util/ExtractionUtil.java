@@ -149,7 +149,17 @@ public class ExtractionUtil  {
 	            	//System.out.println("sFormat---->"+sFormat);
 	            }
 
-	            Rectangle2D rect2D = new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY);
+	            double dX = minX;
+	            double dY = minY;
+	            double dW = maxX - minX;
+	            double dH = maxY - minY;
+	            
+	            //Assumption : empty out of view bounding box 
+	            if(dX<0) dX = 0;
+	            if(dY<0) dY = 0;
+	            
+	            Rectangle2D rect2D = new Rectangle2D.Double(dX, dY, dW, dH);
+	            
 	            ContentItem textItem = new ContentItem(Type.TEXT, sData, getCurrentPageNo(), rect2D);
 	            textItem.setExtract_seq(iExtractSeq++);
 	            textItem.setContentFormat(sFormat);
