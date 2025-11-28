@@ -239,7 +239,7 @@ public class ExtractionUtil  {
 		
 		float scale = 1.0f;
 		double pgHeight = page.getMediaBox().getHeight();
-		double pgWidth 	= page.getMediaBox().getWidth();
+		//double pgWidth 	= page.getMediaBox().getWidth();
 		
 	    class ImagePositionEngine extends PDFGraphicsStreamEngine {
 	        final List<ContentItem> contentItems = new ArrayList<>();
@@ -271,6 +271,9 @@ public class ExtractionUtil  {
 	            int iW = (int)(width * scale);
 	            int iH = (int)(height * scale);
 	            
+	            /**
+	             * Out-of-Bound Image Adjustment
+	             * 
 	            if(iX<0 || iY<0)
 	            {
 	            	imgAdj = imgAdj.getSubimage(Math.abs(iX), Math.abs(iY), iW, iH);
@@ -278,8 +281,9 @@ public class ExtractionUtil  {
 		            if(iX<0) iX = 0;
 		            if(iY<0) iY = 0;
 	            }
-	            //if(iW+iX>pgWidth) iW = (int)pgWidth-iX-1;
-	            //if(iH+iY>pgHeight) iH = (int)pgHeight-iY-1;;
+	            if(iW+iX>pgWidth) iW = (int)pgWidth-iX-1;
+	            if(iH+iY>pgHeight) iH = (int)pgHeight-iY-1;;
+	            **/
 	            
 	            Rectangle2D rect = new Rectangle2D.Double(iX,iY,iW,iH);
 	            
