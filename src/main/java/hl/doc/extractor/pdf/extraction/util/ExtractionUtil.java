@@ -40,7 +40,11 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 public class ExtractionUtil  {
 
 	// ---- TEXT BOUNDING BOXES ----
-	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException {
+	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException 
+	{
+		return extractTextContent(doc, pageIndex, true);
+	}
+	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex, boolean isGroupByParagraph) throws IOException {
 
 		//Silent the missing font warning
     	Logger.getLogger("org.apache.pdfbox.pdmodel").setLevel(Level.SEVERE);
@@ -175,7 +179,73 @@ public class ExtractionUtil  {
 	    stripper.setEndPage(pageIndex + 1);
 	    stripper.getText(doc);
 
-	    return stripper.contentItems;
+	    List<ContentItem> textItems = null;
+	    
+	    if(isGroupByParagraph)
+	    	textItems = groupTextByParagraph(stripper.contentItems);
+	    else
+	    	textItems = stripper.contentItems;
+	    
+	    return textItems;
+	}
+	
+	private static List<ContentItem> groupTextByParagraph(List<ContentItem> aTextItems)
+	{
+		List<ContentItem> textItems = new ArrayList<ContentItem>();
+		
+		double iToleranceY = 1.5;
+		
+		int iSeqNo = 1;
+		ContentItem prevText = null;
+		for(ContentItem curText : aTextItems)
+		{
+			if(prevText==null)
+			{
+				prevText = curText;
+				continue;
+			}
+			
+			//different font style
+			if(!prevText.getContentFormat().equalsIgnoreCase(curText.getContentFormat()))
+			{
+				prevText.setExtract_seq(iSeqNo++);
+				textItems.add(prevText);
+				prevText = curText;
+				continue;
+			}
+			
+			Rectangle2D prevBounds = prevText.getRect2D();
+			Rectangle2D prevExpanded = new Rectangle2D.Double(
+					prevBounds.getX(), prevBounds.getY(), 
+					prevBounds.getWidth(), prevBounds.getHeight()+(curText.getHeight()*iToleranceY));
+			
+			if(prevExpanded.intersects(curText.getRect2D()))
+			{
+				String sCombinedText = prevText.getData()+"\n"+curText.getData();
+				double dX = Math.min(prevText.getX1(), curText.getX1());
+				double dY = prevText.getY1();
+				double dW = Math.max(prevText.getWidth(), curText.getWidth());
+				double dH = curText.getY2()-prevText.getY1();
+				Rectangle2D rectCombined = new Rectangle2D.Double(dX, dY, dW, dH);
+				ContentItem itCombined = new ContentItem(Type.TEXT, sCombinedText, 
+						prevText.getPage_no(), rectCombined);
+				
+				itCombined.setContentFormat(prevText.getContentFormat());
+				prevText = itCombined;
+			}
+			else
+			{
+				prevText.setExtract_seq(iSeqNo++);
+				textItems.add(prevText);
+				prevText = curText;
+			}
+			
+		}
+		
+		if(prevText!=null)
+			textItems.add(prevText);
+		
+		return textItems;
 	}
 	
 	private static String getCommonFontStyle(List<TextPosition> aLineText)
@@ -186,16 +256,18 @@ public class ExtractionUtil  {
 		PDFont firstFont 	= null;
 		PDFont lastFont 	= null;
 		
+		TextPosition textFirst = null;
+		
 		int iListSize = aLineText.size()-1;
 		//search first character
 		for(int i=0; i<=iListSize; i++)
 		{
 			if(firstFont==null)
 			{
-				TextPosition text1 = aLineText.get(i);
-				if(text1.getUnicode().trim().length()>0)
+				textFirst = aLineText.get(i);
+				if(textFirst.getUnicode().trim().length()>0)
 				{
-					firstFont = text1.getFont();
+					firstFont = textFirst.getFont();
 				}
 			}
 			if(lastFont==null)
@@ -226,7 +298,7 @@ public class ExtractionUtil  {
 			}
 			
 			if(sFontNames[0].equals(sFontNames[1]))
-				return sFontNames[0];
+				return sFontNames[0]+" ("+textFirst.getFontSizeInPt()+")";
 		}
 		
 		return null;

@@ -24,7 +24,7 @@ import org.json.JSONObject;
 
 public class ConsoleApp {
 
-    private static boolean isConsoleSyntaxOK(String[] args)
+    protected static boolean isConsoleSyntaxOK(String[] args)
     {
     	boolean isSyntaxOK = false;
         
@@ -133,7 +133,7 @@ public class ConsoleApp {
 		{
 			if(it.getType()!=Type.VECTOR)
 				continue;
-				
+			
 			VectorData vector = new VectorData(new JSONObject(it.getData()));
 			
 			

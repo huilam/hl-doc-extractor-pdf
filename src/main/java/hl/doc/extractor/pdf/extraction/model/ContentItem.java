@@ -12,14 +12,14 @@ public class ContentItem {
 	}
 	//
 	private Type type		= Type.TEXT;
-	private String format	= null;
-	private String tagname 	= null;
-	private int extract_seq = 0;
-	private int doc_seq 	= 0;
-	private int page_no 	= 0;
-	private int pg_line_seq = 0;
+	private String format	= "";
+	private String tagname 	= "";
+	private int extract_seq = -1;
+	private int doc_seq 	= -1;
+	private int page_no 	= -1;
+	private int pg_line_seq = -1;
 	private String data 	= "";
-	private double group_no	= 0;
+	private double group_no	= -1;
 	private Rectangle2D rect= null;
 
 	public ContentItem(Type type, String content, int pageno, 
@@ -119,7 +119,7 @@ public class ContentItem {
 	}
 
 	public String getTagName() {
-		return this.tagname;
+		return this.tagname!=null?this.tagname:"";
 	}
 
 	public void setTagName(String aTagName) {
@@ -127,7 +127,7 @@ public class ContentItem {
 	}
 	
 	public String getContentFormat() {
-		return this.format;
+		return this.format!=null?this.format:"";
 	}
 
 	public void setContentFormat(String aFormat) {
