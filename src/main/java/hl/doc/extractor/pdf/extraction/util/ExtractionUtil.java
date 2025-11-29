@@ -191,9 +191,14 @@ public class ExtractionUtil  {
 	
 	private static List<ContentItem> groupTextByParagraph(List<ContentItem> aTextItems)
 	{
+		return groupVerticalText(aTextItems, 2.5, true);
+	}
+	private static List<ContentItem> groupVerticalText(List<ContentItem> aTextItems, double aYThreshold, boolean isMatchFontStyle)
+	{
 		List<ContentItem> textItems = new ArrayList<ContentItem>();
 		
-		double iToleranceY = 1.5;
+		if(aYThreshold<0)
+			aYThreshold = 1.5;
 		
 		int iSeqNo = 1;
 		ContentItem prevText = null;
@@ -206,7 +211,7 @@ public class ExtractionUtil  {
 			}
 			
 			//different font style
-			if(!prevText.getContentFormat().equalsIgnoreCase(curText.getContentFormat()))
+			if(isMatchFontStyle && !prevText.getContentFormat().equalsIgnoreCase(curText.getContentFormat()))
 			{
 				prevText.setExtract_seq(iSeqNo++);
 				textItems.add(prevText);
@@ -217,7 +222,7 @@ public class ExtractionUtil  {
 			Rectangle2D prevBounds = prevText.getRect2D();
 			Rectangle2D prevExpanded = new Rectangle2D.Double(
 					prevBounds.getX(), prevBounds.getY(), 
-					prevBounds.getWidth(), prevBounds.getHeight()+(curText.getHeight()*iToleranceY));
+					prevBounds.getWidth(), prevBounds.getHeight()+(curText.getHeight()*aYThreshold));
 			
 			if(prevExpanded.intersects(curText.getRect2D()))
 			{
