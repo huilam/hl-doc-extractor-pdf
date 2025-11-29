@@ -209,13 +209,28 @@ public class ContentItem {
 	
 	public String toString()
 	{
-		boolean isText = getType()==Type.TEXT;
+		String sType = "unknown";
+		switch(getType())
+		{
+			case Type.TEXT : 
+				sType = "TEXT"; 
+				break;
+			case Type.IMAGE : 
+				sType = "IMAGE"; 
+				break;
+			case Type.VECTOR : 
+				sType = "VECTOR"; 
+				break;
+			default:
+		}
+
 		StringBuffer sb = new StringBuffer();
-		sb.append("p").append(getPage_no()).append(" ");
-		sb.append("{").append(getX1()).append(",").append(getY1()).append("} ");
-		sb.append(getWidth()).append("x").append(getHeight());
-		sb.append(" ").append(isText?"TEXT":"IMAGE");
-		sb.append(" ").append(getData());
+		sb.append("p").append(getPage_no());
+		sb.append("\n").append(sType);
+		sb.append("\n").append("{").append(getX1()).append(",").append(getY1()).append("} ");
+		sb.append("\n").append(getWidth()).append("x").append(getHeight());
+		sb.append("\n").append(getContentFormat());
+		sb.append("\n").append(getData());
 		return sb.toString();
 	}
 	
