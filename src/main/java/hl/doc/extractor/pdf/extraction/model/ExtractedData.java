@@ -176,9 +176,12 @@ public class ExtractedData {
     		else if(aMaxAppendLineBreaks>0)
     		{
     			double dGapH = Math.abs(cur.getY2() - prev.getY2());
-    			if(dGapH > cur.getHeight()*2)
+    			
+    			double minHeight = Math.min(cur.getHeight(), prev.getHeight());
+    			
+    			if(dGapH > minHeight*2)
     			{
-    				double dLineHeight = ((cur.getHeight()+prev.getHeight())/2) + 2;
+    				double dLineHeight = minHeight + 2;
     				int iEmptyLines = (int) Math.floor(dGapH / dLineHeight)-1;
     				
     				if(iEmptyLines>aMaxAppendLineBreaks)

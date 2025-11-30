@@ -73,7 +73,7 @@ public class ExtractionUtil  {
 	            float hCurrent = text.getHeightDir();
 
 	            // relative tolerance based on the larger font height
-	            float tolerance = Math.max(hLast, hCurrent) * 0.6f;
+	            float tolerance = Math.max(hLast, hCurrent) * 0.7f;
 
 	            if (Math.abs(baselineLast - baselineCurrent) < tolerance) {
 	                currentLine.add(text);
