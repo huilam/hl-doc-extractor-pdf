@@ -43,7 +43,8 @@ abstract public class AbstractExtractor {
 	private boolean is_extract_image 	= true;
 	private boolean is_extract_vector 	= false;
 	//
-	private float force_pdf_version 	= -1f;
+	private float force_pdf_version = -1f;
+	private boolean is_group_text_vertically = false;
 	
     public AbstractExtractor(File aPDFFile) throws IOException {
     	
@@ -116,6 +117,16 @@ abstract public class AbstractExtractor {
     	return this.sortings;
     }
     
+    public void setIsGroupTextVertically(boolean isGroupVertically)
+    {
+    	this.is_group_text_vertically = isGroupVertically;
+    }
+    
+    public boolean getIsGroupTextVertically()
+    {
+    	return this.is_group_text_vertically;
+    }
+    
     //////////////////
 
     public ExtractedData extractAll() throws IOException
@@ -146,7 +157,7 @@ abstract public class AbstractExtractor {
     		
     		if(this.is_extract_text)
     		{
-		    	listText = ExtractionUtil.extractTextContent(pdf_doc, iPageNo-1);
+		    	listText = ExtractionUtil.extractTextContent(pdf_doc, iPageNo-1, this.is_group_text_vertically);
     		}
 	    	////
     		if(this.is_extract_image)
