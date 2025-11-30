@@ -63,7 +63,7 @@ public class ConsoleApp {
         return isSyntaxOK;
     }
     
-    public static File saveAsFile(ExtractedData aExtractData, File aOutputFile)
+    public static File exportAsFile(ExtractedData aExtractData, File aOutputFile)
     {
     	boolean isJsonFormat = aOutputFile.getName().toLowerCase().endsWith(".json");
     	String sContent = isJsonFormat? 
@@ -273,7 +273,7 @@ public class ConsoleApp {
 					        		folderSaveOutput.getAbsolutePath()
 					        		+"/extracted_"+metaData.getSourceFileName()+"."+sTypeExt);
 					        
-					        saveAsFile(content, fileOutput);
+					        exportAsFile(content, fileOutput);
 					        
 					        long lElapsedMs = System.currentTimeMillis() - lStartTimeMs;
 					        System.out.println("    - Extracted "+metaData.getTotalPages()

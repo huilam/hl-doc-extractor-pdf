@@ -197,6 +197,11 @@ public class ContentItem {
 		return this.rect.getHeight();
 	}
 	
+	public void setRect2D(Rectangle2D aNewRect)
+	{
+		this.rect = aNewRect;
+	}
+	
 	public Rectangle2D getRect2D()
 	{
 		return this.rect;

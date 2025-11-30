@@ -38,7 +38,7 @@ import hl.doc.extractor.pdf.extraction.model.VectorData;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
 public class ExtractionUtil  {
-
+	
 	// ---- TEXT BOUNDING BOXES ----
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException 
 	{
@@ -73,7 +73,7 @@ public class ExtractionUtil  {
 	            float hCurrent = text.getHeightDir();
 
 	            // relative tolerance based on the larger font height
-	            float tolerance = Math.max(hLast, hCurrent) * 0.7f;
+	            float tolerance = Math.max(hLast, hCurrent) * 0.8f;
 
 	            if (Math.abs(baselineLast - baselineCurrent) < tolerance) {
 	                currentLine.add(text);
@@ -173,18 +173,16 @@ public class ExtractionUtil  {
 	    }
 
 	    GroupedTextStripper stripper = new GroupedTextStripper();
-	    stripper.setAddMoreFormatting(true);
+	    //stripper.setAddMoreFormatting(true);
 	    stripper.setSortByPosition(true);
 	    stripper.setStartPage(pageIndex + 1);
 	    stripper.setEndPage(pageIndex + 1);
 	    stripper.getText(doc);
 
-	    List<ContentItem> textItems = null;
+	    List<ContentItem> textItems = stripper.contentItems;
 	    
 	    if(isGroupByParagraph)
-	    	textItems = groupTextByParagraph(stripper.contentItems);
-	    else
-	    	textItems = stripper.contentItems;
+	    	textItems = groupTextByParagraph(textItems);
 	    
 	    return textItems;
 	}
@@ -220,23 +218,16 @@ public class ExtractionUtil  {
 			}
 			
 			Rectangle2D prevBounds = prevText.getRect2D();
-			Rectangle2D prevExpanded = new Rectangle2D.Double(
-					prevBounds.getX(), prevBounds.getY(), 
-					prevBounds.getWidth(), prevBounds.getHeight()+(curText.getHeight()*aYThreshold));
+			
+			double dExpansion = Math.min(curText.getHeight(), prevText.getHeight()) * aYThreshold;
+			Rectangle2D prevExpanded = expandRect2D(prevBounds, dExpansion, dExpansion);
 			
 			if(prevExpanded.intersects(curText.getRect2D()))
 			{
 				String sCombinedText = prevText.getData()+"\n"+curText.getData();
-				double dX = Math.min(prevText.getX1(), curText.getX1());
-				double dY = prevText.getY1();
-				double dW = Math.max(prevText.getWidth(), curText.getWidth());
-				double dH = curText.getY2()-prevText.getY1();
-				Rectangle2D rectCombined = new Rectangle2D.Double(dX, dY, dW, dH);
-				ContentItem itCombined = new ContentItem(Type.TEXT, sCombinedText, 
-						prevText.getPage_no(), rectCombined);
-				
-				itCombined.setContentFormat(prevText.getContentFormat());
-				prevText = itCombined;
+				Rectangle2D rectCombined = combineRect2Ds(prevText.getRect2D(), curText.getRect2D());
+				prevText.setData(sCombinedText);
+				prevText.setRect2D(rectCombined);
 			}
 			else
 			{
@@ -251,6 +242,24 @@ public class ExtractionUtil  {
 			textItems.add(prevText);
 		
 		return textItems;
+	}
+	
+	private static Rectangle2D expandRect2D(Rectangle2D rect, double aExpandW, double aExpandH)
+	{
+		return new Rectangle2D.Double(rect.getX(), rect.getY(), 
+				rect.getWidth()+aExpandW, 
+				rect.getHeight()+aExpandH);
+	}
+
+	private static Rectangle2D combineRect2Ds(Rectangle2D rect1, Rectangle2D rect2)
+	{
+		double dX1 = Math.min(rect1.getX(), rect2.getX());
+		double dY1 = Math.min(rect1.getY(), rect2.getY());
+		
+		double dX2 = Math.max(rect1.getX()+rect1.getWidth(), rect2.getX()+rect2.getWidth());
+		double dY2 = Math.max(rect1.getY()+rect1.getHeight(), rect2.getY()+rect2.getHeight());
+		
+		return new Rectangle2D.Double(dX1, dY1, dX2-dX1, dY2-dY1);
 	}
 	
 	private static String getCommonFontStyle(List<TextPosition> aLineText)

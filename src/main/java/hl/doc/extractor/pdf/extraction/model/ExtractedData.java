@@ -1,5 +1,6 @@
 package hl.doc.extractor.pdf.extraction.model;
 
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -174,12 +175,12 @@ public class ExtractedData {
     			prev = cur; //reset as new page
     		}
     		else if(aMaxAppendLineBreaks>0)
-    		{
-    			double dGapH = Math.abs(cur.getY2() - prev.getY2());
+    		{	
+    			double dGapH = Math.abs(cur.getY1() - prev.getY2());
     			
     			double minHeight = Math.min(cur.getHeight(), prev.getHeight());
     			
-    			if(dGapH > minHeight*2)
+    			if(dGapH > (minHeight*1.5))
     			{
     				double dLineHeight = minHeight + 2;
     				int iEmptyLines = (int) Math.floor(dGapH / dLineHeight)-1;
@@ -191,15 +192,21 @@ public class ExtractedData {
     				{
     					sb.append("\n");
     				}
+    				
+    				if(cur.getData().trim().length()==0)
+    					continue;
     			}
     		}    		
     		sb.append("\n");
     		if(cur.getType()==Type.TEXT)
     		{
     			String sFontFormat = cur.getContentFormat();
-	    		if(sFontFormat!=null && sFontFormat.indexOf("bold")>-1)
+	    		if(sFontFormat!=null) 
 	    		{
-	    			sb.append("## ");
+	    			if(sFontFormat.contains("bold"))
+	    				sb.append("## ");
+	    			else if(sFontFormat.contains("italic") || sFontFormat.contains("oblique"))
+	    				sb.append("~~ ");
 	    		}
     		}
     		sb.append(cur.getData());
@@ -207,7 +214,7 @@ public class ExtractedData {
     	}
     	
     	if(isShowPageNo && sb.length()>0)
-			sb.append("----[ end ]----");
+			sb.append("\n----[ end ]----");
     	
     	return sb.toString();
     }
