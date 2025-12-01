@@ -262,6 +262,10 @@ public class ConsoleApp {
 				        pdfExtract.setExtractText(true);
 				        pdfExtract.setExtractImage(true);
 				        pdfExtract.setExtractVector(false);
+				        
+				        //Group text by paragraph
+				        pdfExtract.setIsGroupTextVertically(true);
+				        
 				        ExtractedData content = pdfExtract.extractAll();
 				        
 				        MetaData metaData = content.getMetaData();

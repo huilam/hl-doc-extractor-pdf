@@ -1,6 +1,5 @@
 package hl.doc.extractor.pdf.extraction.model;
 
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
