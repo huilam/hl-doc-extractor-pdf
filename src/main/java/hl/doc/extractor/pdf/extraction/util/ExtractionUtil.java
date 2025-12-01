@@ -189,7 +189,7 @@ public class ExtractionUtil  {
 	
 	private static List<ContentItem> groupTextByParagraph(List<ContentItem> aTextItems)
 	{
-		return groupVerticalText(aTextItems, 2.5, true);
+		return groupVerticalText(aTextItems, 1.5, true);
 	}
 	private static List<ContentItem> groupVerticalText(List<ContentItem> aTextItems, double aYThreshold, boolean isMatchFontStyle)
 	{

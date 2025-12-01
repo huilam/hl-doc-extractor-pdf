@@ -1,5 +1,6 @@
 package hl.doc.extractor.pdf.extraction.model;
 
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -173,42 +174,84 @@ public class ExtractedData {
     			}
     			prev = cur; //reset as new page
     		}
-    		else if(aMaxAppendLineBreaks>0)
+    		else 
     		{	
-    			double dGapH = Math.abs(cur.getY1() - prev.getY2());
-    			
-    			double minHeight = Math.min(cur.getHeight(), prev.getHeight());
-    			
-    			if(dGapH > (minHeight*1.5))
+    			if(cur.getData().trim().length()==0)
     			{
-    				double dLineHeight = minHeight + 2;
-    				int iEmptyLines = (int) Math.floor(dGapH / dLineHeight)-1;
-    				
-    				if(iEmptyLines>aMaxAppendLineBreaks)
-    					iEmptyLines = aMaxAppendLineBreaks;
-    				
-    				for(;iEmptyLines>0;iEmptyLines--)
+    				if(prev.getData().trim().length()==0)
     				{
-    					sb.append("\n");
-    				}
-    				
-    				if(cur.getData().trim().length()==0)
+    					//We just pad in last round
+    					prev = cur;
     					continue;
+    				}
     			}
-    		}    		
-    		sb.append("\n");
+    			
+    			String sCurData = cur.getData().replace(" ", ""); //remove all spaces
+    			if(sCurData.startsWith("\n") || sCurData.endsWith("\n"))
+    			{
+    				//No padding needed
+    			}
+    			else if(aMaxAppendLineBreaks>0)
+    			{
+	    			double minHeight = Math.min(cur.getHeight(), prev.getHeight());
+	    			
+    				double dXDiff = Math.abs(cur.getX1() - prev.getX1());
+    				if(dXDiff<(minHeight*2))
+    				{
+		    			double dGapH = Math.abs(cur.getY1() - prev.getY2());
+		    			if(dGapH > minHeight)
+		    			{
+		    				int iEmptyLines = (int) Math.floor(dGapH / minHeight);
+		    				
+		    				if(iEmptyLines > aMaxAppendLineBreaks)
+		    					iEmptyLines = aMaxAppendLineBreaks;
+		    				
+		    				for(;iEmptyLines>0;iEmptyLines--)
+		    				{
+		    					sb.append("\n");
+		    				}
+		    				
+		    				Rectangle2D rectCur = cur.getRect2D();
+		    				cur.setRect2D(
+		    						new Rectangle2D.Double(
+		    								rectCur.getX(), rectCur.getY(), rectCur.getWidth(), rectCur.getHeight()*(1+iEmptyLines)));
+		    				
+		    				if(cur.getData().trim().length()==0)
+		    				{
+		    					prev = cur;
+		    					continue;
+		    				}
+		    			}
+    				}
+    				else
+        			{
+        	    		sb.append("\n");
+        			}
+    			}
+    			else
+    			{
+    	    		sb.append("\n");
+    			}
+    		}
+    		
+    		String sPrefix = "";
+    		String sSuffix = "";
     		if(cur.getType()==Type.TEXT)
     		{
     			String sFontFormat = cur.getContentFormat();
 	    		if(sFontFormat!=null) 
 	    		{
 	    			if(sFontFormat.contains("bold"))
-	    				sb.append("## ");
+	    			{
+	    				sPrefix = "### ";
+	    			}
 	    			else if(sFontFormat.contains("italic") || sFontFormat.contains("oblique"))
-	    				sb.append("~~ ");
+	    			{
+	    				sPrefix = "## ";
+	    			}
 	    		}
     		}
-    		sb.append(cur.getData());
+    		sb.append(sPrefix).append(cur.getData()).append(sSuffix);
     		prev = cur;
     	}
     	
