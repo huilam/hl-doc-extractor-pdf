@@ -26,6 +26,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.json.JSONObject;
 
+import hl.common.ImgUtil;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.VectorData;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
@@ -172,33 +173,10 @@ public class ContentUtil  {
 		return vector;
 	}
 	
-	public static ContentItem imageToContentItem(BufferedImage aImage, String aFormat, int aPageNo, Rectangle2D aImgCoord)
+	public static ContentItem imageToContentItem(BufferedImage aImage, String aFormat, int aPageNo, Rectangle2D aImgCoord) throws IOException
 	{
 		ContentItem item = null;
-		String sImgBase64 = null;
-		
-		ByteArrayOutputStream baos = null;
-        try {
-            baos = new ByteArrayOutputStream();
-            ImageIO.write(aImage, aFormat, baos);
-            sImgBase64 = Base64.getEncoder().encodeToString(baos.toByteArray());
-        } 
-        catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        finally
-        {
-        	if(baos!=null)
-        	{
-        		try {
-					baos.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-        	}
-        }
+		String sImgBase64 = ImgUtil.imageToBase64(aImage, aFormat);
         
         if(sImgBase64!=null)
         {

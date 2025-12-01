@@ -55,6 +55,7 @@ abstract public class AbstractExtractor {
     		/////
     		//System.out.println("Convert from "+this.pdf_doc+" to "+this.force_pdf_version+" in-memory.");
     		this.pdf_doc.setVersion(this.force_pdf_version);
+    		//
     		ByteArrayOutputStream bytesPdf = new ByteArrayOutputStream();
     		this.pdf_doc.save(bytesPdf);
     		this.pdf_doc.close();
