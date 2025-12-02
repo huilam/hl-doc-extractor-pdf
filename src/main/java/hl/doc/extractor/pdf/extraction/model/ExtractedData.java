@@ -2,7 +2,6 @@ package hl.doc.extractor.pdf.extraction.model;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -25,8 +24,6 @@ public class ExtractedData {
 	private MetaData pdf_meta 	= null;
 	private int min_pageno 		= Integer.MAX_VALUE;
 	private int max_pageno 		= 0;
-	
-	private Map<String, String> imgbase64_cache = new LinkedHashMap<String, String>();
 	//
 	
 	public ExtractedData(MetaData aPDFMeta)
@@ -60,8 +57,6 @@ public class ExtractedData {
 	}
 	public void clearDataCache()
 	{
-		if(imgbase64_cache!=null)
-			imgbase64_cache.clear();
 		
 		if(page_content_list!=null)
 			page_content_list.clear();
@@ -108,8 +103,6 @@ public class ExtractedData {
 						sImgFileName = genImageFileName(it, iImgCount);
 						it.setTagName(sImgFileName);
 					}
-					//
-					this.imgbase64_cache.put(sImgFileName, sBase64Img);
 					//
 					String sImgContent = "![image "+iImgCount+"]("+sImgFileName+")";
 					it.setData(sImgContent);
@@ -158,36 +151,43 @@ public class ExtractedData {
     
     public JSONObject toJsonFormat(boolean isIncludeImages)
     {
-    	return DataUtil.toJsonFormat(getContentItemList(), getExtractedBase64Images(), isIncludeImages);
+    	return DataUtil.toJsonFormat(getContentItemList(), isIncludeImages);
     }
     
     //
-    public Map<String, String> getExtractedBase64Images()
-    {
-    	return this.imgbase64_cache;
-    }
-	
     public Map<String, BufferedImage> getExtractedBufferedImages()
     {
     	Map<String, BufferedImage> mapImages = new LinkedHashMap<>();
     	
-    	Map<String, String> mapBase64Images = getExtractedBase64Images();
-    	for(String sFileName : mapBase64Images.keySet())
+    	
+    	for(ContentItem it : getContentItemList())
 		{
-			String sImgBase64 = mapBase64Images.get(sFileName);
+    		if(it.getType()!=Type.IMAGE)
+    			continue;
+    		
+			String sImgBase64 = it.getRawData();
 			if(sImgBase64!=null)
 			{
 				BufferedImage img = null;
 				try {
 					img = ImageIO.read(new ByteArrayInputStream(
 							Base64.getDecoder().decode(sImgBase64)));
-				} catch (IOException e) {
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
+					
+					if(sImgBase64.length()>100)
+						System.err.println(sImgBase64.substring(0,99));
+					else
+						System.err.println(sImgBase64);
+					
 					e.printStackTrace();
 				}
 				
 				if(img!=null)
 				{
+					String sFileName = it.getTagName();
+					if(sFileName==null || sFileName.trim().length()==0)
+						sFileName = it.getData();
 					mapImages.put(sFileName, img);
 				}
 			}

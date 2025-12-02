@@ -18,7 +18,8 @@ public class ContentItem {
 	private int doc_seq 	= -1;
 	private int page_no 	= -1;
 	private int pg_line_seq = -1;
-	private String data 	= "";
+	private String rawdata 	= null;
+	private String data 	= null;
 	private double group_no	= -1;
 	private Rectangle2D rect= null;
 
@@ -43,7 +44,7 @@ public class ContentItem {
         this.type = type; 
         this.page_no = pageno;
         this.rect = rect2d;
-        this.data = data;
+        this.rawdata = data;
 	}
 
 	//
@@ -102,7 +103,13 @@ public class ContentItem {
 		this.pg_line_seq = pg_line_seq;
 	}
 
+	public String getRawData() {
+		return rawdata;
+	}
+	
 	public String getData() {
+		if(data==null)
+			return getRawData();
 		return data;
 	}
 

@@ -2,7 +2,6 @@ package hl.doc.extractor.pdf.extraction.util;
 
 import java.awt.geom.Rectangle2D;
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -149,7 +148,7 @@ public class DataUtil  {
     }
 	
 	
-	public static JSONObject toJsonFormat(final List<ContentItem> listExportItems, final Map<String, String> aImageBase64Cache, boolean isIncludeImages)
+	public static JSONObject toJsonFormat(final List<ContentItem> listExportItems, boolean isIncludeImages)
     {
     	JSONObject jsonDoc = new JSONObject();
     	
@@ -175,15 +174,10 @@ public class DataUtil  {
     		}
     		else
     		{
-    			jsonItem.put(JSON_DATA, it.getData());
+    			jsonItem.put(JSON_DATA, it.getRawData());
     		}
     		
     		jArrContent.put(jsonItem);
-    	}
-    	jsonDoc.put(JSON_GROUP_CONTENT, jArrContent);
-    	if(isIncludeImages)
-    	{
-    		jsonDoc.put(JSON_GROUP_IMAGES, getExtractedImagesJson(aImageBase64Cache));
     	}
     	
     	return jsonDoc;
@@ -224,19 +218,5 @@ public class DataUtil  {
     }
 	**/
 	//////
-    private static JSONObject getExtractedImagesJson(final Map<String, String> aImageBase64Cache)
-    {
-    	JSONObject jsonImages = new JSONObject();
-    	
-    	if(aImageBase64Cache!=null)
-    	{
-	    	for(String sFileName : aImageBase64Cache.keySet())
-	    	{
-	    		String sImgBase64 = aImageBase64Cache.get(sFileName);
-	    		jsonImages.put(sFileName, sImgBase64);
-	    	}
-    	}
-    	return jsonImages;
-    }
 
 }

@@ -147,10 +147,7 @@ public class ContentUtil  {
 		String sBase64 = null;
 		if(aContentItem.getType()==Type.IMAGE)
 		{
-			if(aContentItem.getTagName().equals(TAGNAME_EMBEDED_BASE64))
-			{
-				sBase64 = aContentItem.getData();
-			}
+			sBase64 = aContentItem.getRawData();
 		}
 		return sBase64;
 	}
