@@ -28,6 +28,11 @@ public class DataUtil  {
 	public static String JSON_DATA 		= "data";
 	
 	
+	public static String toPlainTextFormat(final List<ContentItem> listExportItems)
+    {
+		return toPlainTextFormat(listExportItems, false, 3);
+    }
+	
 	public static String toPlainTextFormat(final List<ContentItem> listExportItems, boolean isShowPageNo, int aMaxAppendLineBreaks)
     {
 		if(listExportItems==null)
