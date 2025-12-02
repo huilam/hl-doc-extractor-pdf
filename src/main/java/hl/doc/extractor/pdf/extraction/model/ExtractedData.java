@@ -65,14 +65,34 @@ public class ExtractedData {
 	
 	public void clear()
 	{
-		page_content_list.clear();
-		full_content_list.clear();
+		clearDataCache();
 		pdf_meta.clear();
 		pdf_meta = null;
 		min_pageno = Integer.MAX_VALUE;
 		max_pageno = 0;
-		imgbase64_cache.clear();
 		//
+	}
+	public void clearDataCache()
+	{
+		if(imgbase64_cache!=null)
+			imgbase64_cache.clear();
+		
+		if(page_content_list!=null)
+			page_content_list.clear();
+		
+		if(full_content_list!=null)
+			full_content_list.clear();
+	}
+	
+	
+	private String genImageFileName(ContentItem aImageItem, int aImageCount)
+	{
+		return String.format("image_p%02d-%d_%d-%d_%dx%d.%s",
+						aImageItem.getPage_no(), 
+						aImageCount, 
+						aImageItem.getX1(), aImageItem.getY1(), 
+						aImageItem.getWidth(), aImageItem.getHeight(), 
+						aImageItem.getContentFormat());
 	}
 	
 	public void setContentItemList(List<ContentItem> aContentItemList)
@@ -80,32 +100,27 @@ public class ExtractedData {
 		if(aContentItemList==null)
 			aContentItemList = new ArrayList<ContentItem>();
 		
-		page_content_list.clear();
+		clearDataCache();
 
 		int iImgCount = 0;
-		imgbase64_cache.clear();
 		
 		for(ContentItem it : aContentItemList)
 		{
 			if(it.getType()==Type.IMAGE)
 			{
-				int iPageNo = it.getPage_no();
-				int iX = (int)Math.round(it.getX1());
-				int iY = (int)Math.round(it.getY1());
-				int iW = (int)Math.round(it.getWidth());
-				int iH = (int)Math.round(it.getHeight());
-				
+				iImgCount++;
+				//
 				String sBase64Img = ContentUtil.getImageBase64(it);
 				if(sBase64Img!=null)
 				{
-					iImgCount++;
 					//
-					String sImgFormat = it.getContentFormat();
-					String sImgFileName = 
-							String.format("image_p%02d-%d_%d-%d_%dx%d.%s",
-									iPageNo, iImgCount, iX, iY, iW, iH, sImgFormat);
-					//
-					it.setTagName(sImgFileName);
+					String sImgFileName = it.getTagName();
+					
+					if(sImgFileName!=null && sImgFileName.trim().length()==0)
+					{
+						sImgFileName = genImageFileName(it, iImgCount);
+						it.setTagName(sImgFileName);
+					}
 					//
 					this.imgbase64_cache.put(sImgFileName, sBase64Img);
 					//
