@@ -166,12 +166,20 @@ public class ExtractedData {
 	
 	public String toPlainTextFormat(boolean isShowPageNo, int aMaxAppendLineBreaks)
     {
+		return toPlainTextFormat(isShowPageNo, aMaxAppendLineBreaks);
+    }
+	
+	public String toPlainTextFormat(final List<ContentItem> listExportItems, boolean isShowPageNo, int aMaxAppendLineBreaks)
+    {
+		if(listExportItems==null)
+			return null;
+		
     	StringBuffer sb = new StringBuffer();
     	int iPageNo = 0;
     	
     	ContentItem prev = null;
     	
-    	for(ContentItem cur : getContentItemList())
+    	for(ContentItem cur : listExportItems)
     	{
     		if(cur.getType()==Type.VECTOR)
     			continue;

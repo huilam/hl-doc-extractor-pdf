@@ -24,62 +24,7 @@ public class ContentItem {
 
 	public ContentItem(Type type, String content, int pageno, 
 			float x, float y, float width, float height) {
-		Rectangle2D rect = new Rectangle2D() {
-			
-			@Override
-			public boolean isEmpty() {
-				// TODO Auto-generated method stub
-				return false;
-			}
-			
-			@Override
-			public double getY() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-			
-			@Override
-			public double getX() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-			
-			@Override
-			public double getWidth() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-			
-			@Override
-			public double getHeight() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-			
-			@Override
-			public void setRect(double x, double y, double w, double h) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public int outcode(double x, double y) {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-			
-			@Override
-			public Rectangle2D createUnion(Rectangle2D r) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Rectangle2D createIntersection(Rectangle2D r) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		};
+		Rectangle2D rect = new Rectangle2D.Double(x,y,width, height);
 		init(type, content, pageno, rect);
     }
 	
