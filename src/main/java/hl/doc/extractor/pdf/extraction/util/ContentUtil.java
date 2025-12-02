@@ -29,9 +29,8 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.model.ExtractedData;
 
 public class ContentUtil  {
-
-	public static String TAGNAME_BASE64 = "base64";
 	
+	public static String TAGNAME_EMBEDED_BASE64 = "embeded-base64";
 	private static Pattern pattImgBase64Prefix 	= Pattern.compile("(data\\:image\\/(.+?)\\;base64\\,)");
 	
 	public enum SORT 
@@ -148,7 +147,7 @@ public class ContentUtil  {
 		String sBase64 = null;
 		if(aContentItem.getType()==Type.IMAGE)
 		{
-			if(aContentItem.getTagName()==TAGNAME_BASE64)
+			if(aContentItem.getTagName().equals(TAGNAME_EMBEDED_BASE64))
 			{
 				sBase64 = aContentItem.getData();
 			}
@@ -177,7 +176,7 @@ public class ContentUtil  {
         if(sImgBase64!=null)
         {
         	item = new ContentItem(Type.IMAGE, sImgBase64, aPageNo, aImgCoord);
-            item.setTagName(ContentUtil.TAGNAME_BASE64);
+            item.setTagName(TAGNAME_EMBEDED_BASE64);
             item.setContentFormat(aFormat);
         }
         

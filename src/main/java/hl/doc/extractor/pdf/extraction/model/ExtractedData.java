@@ -1,6 +1,5 @@
 package hl.doc.extractor.pdf.extraction.model;
 
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -12,27 +11,14 @@ import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
+import hl.doc.extractor.pdf.extraction.util.DataUtil;
 
 public class ExtractedData {
 
-	public static String JSON_GROUP_CONTENT = "content";
-	public static String JSON_GROUP_IMAGES 	= "images";
-	
-	public static String JSON_PAGE_NO 	= "page_no";
-	public static String JSON_LINE_SEQ 	= "line_seq";
-	public static String JSON_X 		= "x";
-	public static String JSON_Y 		= "y";
-	public static String JSON_WIDTH 	= "width";
-	public static String JSON_HEIGHT 	= "height";
-	public static String JSON_TYPE 		= "type";
-	public static String JSON_FORMAT 	= "format";
-	public static String JSON_DATA 		= "data";
-	
 	private Map<Integer, List<ContentItem>> page_content_list = new HashMap<>();
 	private List<ContentItem> full_content_list 			  = null;
 	
@@ -88,10 +74,10 @@ public class ExtractedData {
 	private String genImageFileName(ContentItem aImageItem, int aImageCount)
 	{
 		return String.format("image_p%02d-%d_%d-%d_%dx%d.%s",
-						aImageItem.getPage_no(), 
-						aImageCount, 
-						aImageItem.getX1(), aImageItem.getY1(), 
-						aImageItem.getWidth(), aImageItem.getHeight(), 
+						(int)aImageItem.getPage_no(), 
+						(int)aImageCount, 
+						(int)aImageItem.getX1(), (int)aImageItem.getY1(), 
+						(int)aImageItem.getWidth(), (int)aImageItem.getHeight(), 
 						aImageItem.getContentFormat());
 	}
 	
@@ -116,15 +102,16 @@ public class ExtractedData {
 					//
 					String sImgFileName = it.getTagName();
 					
-					if(sImgFileName!=null && sImgFileName.trim().length()==0)
-					{
+					if(sImgFileName==null || sImgFileName.trim().length()==0 
+							|| sImgFileName.equalsIgnoreCase(ContentUtil.TAGNAME_EMBEDED_BASE64))
+					{	
 						sImgFileName = genImageFileName(it, iImgCount);
 						it.setTagName(sImgFileName);
 					}
 					//
 					this.imgbase64_cache.put(sImgFileName, sBase64Img);
 					//
-					String sImgContent = "![image]("+sImgFileName+")";
+					String sImgContent = "![image "+iImgCount+"]("+sImgFileName+")";
 					it.setData(sImgContent);
 				}
 			}
@@ -166,162 +153,15 @@ public class ExtractedData {
 	
 	public String toPlainTextFormat(boolean isShowPageNo, int aMaxAppendLineBreaks)
     {
-		return toPlainTextFormat(isShowPageNo, aMaxAppendLineBreaks);
-    }
-	
-	public String toPlainTextFormat(final List<ContentItem> listExportItems, boolean isShowPageNo, int aMaxAppendLineBreaks)
-    {
-		if(listExportItems==null)
-			return null;
-		
-    	StringBuffer sb = new StringBuffer();
-    	int iPageNo = 0;
-    	
-    	ContentItem prev = null;
-    	
-    	for(ContentItem cur : listExportItems)
-    	{
-    		if(cur.getType()==Type.VECTOR)
-    			continue;
-    		
-    		if(iPageNo==0 || iPageNo!=cur.getPage_no())
-    		{
-    			iPageNo = cur.getPage_no();
-    			//
-    			if(isShowPageNo)
-    			{
-    				if(iPageNo>1)
-        				sb.append("\n\n");
-    				sb.append("----[ page ").append(iPageNo).append(" ]----\n");
-    			//
-    			}
-    			prev = cur; //reset as new page
-    		}
-    		else 
-    		{	
-    			if(cur.getData().trim().length()==0)
-    			{
-    				if(prev.getData().trim().length()==0)
-    				{
-    					//We just pad in last round
-    					prev = cur;
-    					continue;
-    				}
-    			}
-    			
-    			String sCurData = cur.getData().replace(" ", ""); //remove all spaces
-    			if(sCurData.startsWith("\n") || sCurData.endsWith("\n"))
-    			{
-    				//No padding needed
-    			}
-    			else if(aMaxAppendLineBreaks>0)
-    			{
-	    			double minHeight = Math.min(cur.getHeight(), prev.getHeight());
-	    			
-    				double dXDiff = Math.abs(cur.getX1() - prev.getX1());
-    				if(dXDiff<(minHeight*2))
-    				{
-		    			double dGapH = Math.abs(cur.getY1() - prev.getY2());
-		    			if(dGapH > minHeight)
-		    			{
-		    				int iEmptyLines = (int) Math.floor(dGapH / minHeight);
-		    				
-		    				if(iEmptyLines > aMaxAppendLineBreaks)
-		    					iEmptyLines = aMaxAppendLineBreaks;
-		    				
-		    				for(;iEmptyLines>0;iEmptyLines--)
-		    				{
-		    					sb.append("\n");
-		    				}
-		    				
-		    				Rectangle2D rectCur = cur.getRect2D();
-		    				cur.setRect2D(
-		    						new Rectangle2D.Double(
-		    								rectCur.getX(), rectCur.getY(), rectCur.getWidth(), rectCur.getHeight()*(1+iEmptyLines)));
-		    				
-		    				if(cur.getData().trim().length()==0)
-		    				{
-		    					prev = cur;
-		    					continue;
-		    				}
-		    			}
-    				}
-    				else
-        			{
-        	    		sb.append("\n");
-        			}
-    			}
-    			else
-    			{
-    	    		sb.append("\n");
-    			}
-    		}
-    		
-    		String sPrefix = "";
-    		String sSuffix = "";
-    		if(cur.getType()==Type.TEXT)
-    		{
-    			String sFontFormat = cur.getContentFormat();
-	    		if(sFontFormat!=null) 
-	    		{
-	    			if(sFontFormat.contains("bold"))
-	    			{
-	    				sPrefix = "### ";
-	    			}
-	    			else if(sFontFormat.contains("italic") || sFontFormat.contains("oblique"))
-	    			{
-	    				sPrefix = "## ";
-	    			}
-	    		}
-    		}
-    		sb.append(sPrefix).append(cur.getData()).append(sSuffix);
-    		prev = cur;
-    	}
-    	
-    	if(isShowPageNo && sb.length()>0)
-			sb.append("\n----[ end ]----");
-    	
-    	return sb.toString();
+		return DataUtil.toPlainTextFormat(getContentItemList(), isShowPageNo, aMaxAppendLineBreaks);
     }
     
     public JSONObject toJsonFormat(boolean isIncludeImages)
     {
-    	JSONObject jsonDoc = new JSONObject();
-    	
-    	JSONArray jArrContent = new JSONArray();
-    	for(ContentItem it : getContentItemList())
-    	{
-    		JSONObject jsonItem = new JSONObject();
-    		
-    		jsonItem.put(JSON_PAGE_NO, it.getPage_no());
-    		jsonItem.put(JSON_LINE_SEQ, it.getPg_line_seq());
-    		jsonItem.put(JSON_X, it.getX1());
-    		jsonItem.put(JSON_Y, it.getY1());
-    		jsonItem.put(JSON_WIDTH, it.getWidth());
-    		jsonItem.put(JSON_HEIGHT, it.getHeight());
-    		jsonItem.put(JSON_FORMAT, it.getContentFormat());
-    		jsonItem.put(JSON_TYPE, it.getType());
-    		
-    		if(it.getType()==Type.VECTOR)
-    		{
-    			jsonItem.put(JSON_DATA, new JSONObject(it.getData()));
-    		}
-    		else
-    		{
-    			jsonItem.put(JSON_DATA, it.getData());
-    		}
-    		
-    		jArrContent.put(jsonItem);
-    	}
-    	jsonDoc.put(JSON_GROUP_CONTENT, jArrContent);
-    	if(isIncludeImages)
-    	{
-    		jsonDoc.put(JSON_GROUP_IMAGES, getExtractedImagesJson());
-    	}
-    	
-    	return jsonDoc;
+    	return DataUtil.toJsonFormat(getContentItemList(), getExtractedBase64Images(), isIncludeImages);
     }
     
+    //
     public Map<String, String> getExtractedBase64Images()
     {
     	return this.imgbase64_cache;
@@ -355,16 +195,4 @@ public class ExtractedData {
     	return mapImages;
     }
     
-    public JSONObject getExtractedImagesJson()
-    {
-    	JSONObject jsonImages = new JSONObject();
-    	
-    	Map<String, String> mapBase64Images = getExtractedBase64Images();
-    	for(String sFileName : mapBase64Images.keySet())
-    	{
-    		String sImgBase64 = mapBase64Images.get(sFileName);
-    		jsonImages.put(sFileName, sImgBase64);
-    	}
-    	return jsonImages;
-    }
 }
