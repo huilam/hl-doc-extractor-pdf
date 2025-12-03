@@ -8,8 +8,6 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
@@ -223,7 +221,7 @@ public class ConsoleApp {
 				        pdfExtract = new PDFExtractor(f);
 				        pdfExtract.setExtractText(true);
 				        pdfExtract.setExtractImage(true);
-				        pdfExtract.setExtractVector(true);
+				        //pdfExtract.setExtractVector(true);
 				        
 				        //Group text by paragraph
 				        pdfExtract.setIsGroupTextVertically(true);

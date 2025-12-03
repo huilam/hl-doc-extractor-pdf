@@ -41,7 +41,7 @@ public class VectorExtractUtil  {
         Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
 
         int grouping_bound_expand_len 		= 4;
-        float grouping_intersect_threshold 	= 1.0f;
+        float grouping_intersect_threshold 	= 0.80f;
         
         PDPage page = doc.getPage(pageIndex);
         //float pgWidth 	= page.getMediaBox().getWidth();
@@ -188,7 +188,6 @@ public class VectorExtractUtil  {
         	listVectors = groupByBounds(pageIndex, listVectors, grouping_bound_expand_len, grouping_intersect_threshold);
         }
         
-        System.out.println("listVectors.size ==> "+listVectors.size());
         //////////////////////////////////////////////////
         ///
         // Convert List<GeneralPath> to List<ContentItem>
@@ -203,7 +202,6 @@ public class VectorExtractUtil  {
 	        contentItems.add(item);
         }
         
-        System.out.println("contentItems.size ==> "+contentItems.size());
         return contentItems;
     }
 
@@ -267,7 +265,7 @@ public class VectorExtractUtil  {
 	    			double dSizeIntersect = rectIntersect.getWidth() * rectIntersect.getHeight();
 	    			
 	    			float fPercentage = (float)(dSizeIntersect/dSizeRect);
-	    			System.out.println("intersection="+fPercentage);
+//System.out.println("intersection="+fPercentage);
 	        		if(fPercentage> aMinIntersectThreshold)
 	                {
 	        			vectors[i].append(vectors[z], false);
