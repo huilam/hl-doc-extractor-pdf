@@ -10,7 +10,7 @@ import java.awt.geom.Rectangle2D;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
+import hl.doc.extractor.pdf.extraction.util.base.VectorExtractUtil;
 
 public class VectorData {
 
@@ -37,8 +37,8 @@ public class VectorData {
 	
 	private void init()
 	{
-		this.path_seg_count = ExtractionUtil.countSegment(this.vector_path);
-		this.bounding_box = ExtractionUtil.isBoundingBox(this.vector_path, 10);
+		this.path_seg_count = VectorExtractUtil.countSegment(this.vector_path);
+		this.bounding_box = VectorExtractUtil.isBoundingBox(this.vector_path, 10);
 	}
 	//=====
 
