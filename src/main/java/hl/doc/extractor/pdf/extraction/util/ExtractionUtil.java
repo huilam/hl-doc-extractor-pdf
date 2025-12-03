@@ -404,7 +404,7 @@ public class ExtractionUtil  {
 	
 	// ---- Drawing (Rectangle, Line etc) -----
 	public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex) throws IOException {
-	      return extractVectorContent(doc, pageIndex, true);
+	      return extractVectorContent(doc, pageIndex, false);
 	}
     public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex, boolean isGroupVectors) throws IOException {
         
@@ -412,7 +412,7 @@ public class ExtractionUtil  {
         Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
 
         PDPage page = doc.getPage(pageIndex);
-        float pgWidth 	= page.getMediaBox().getWidth();
+        //float pgWidth 	= page.getMediaBox().getWidth();
         float pgHeight 	= page.getMediaBox().getHeight();
 
         class DrawingPositionEngine extends PDFGraphicsStreamEngine {
@@ -468,7 +468,7 @@ public class ExtractionUtil  {
 
             private boolean isEmpty(Path2D aShapePath)
             {
-            	return aShapePath.getPathIterator(null).isDone();
+            	return aShapePath!=null && aShapePath.getPathIterator(null).isDone();
             }
             private void savePath(boolean stroked, boolean filled) {
             	 PDGraphicsState gs = getGraphicsState();
@@ -495,7 +495,7 @@ public class ExtractionUtil  {
 
                 Rectangle2D bounds = transformedShape.getBounds2D();
                 
-                if (bounds.getWidth() > 0 && bounds.getHeight() > 0) 
+                if (bounds.getWidth() > 0 || bounds.getHeight() > 0) 
                 {
                 	if(isSimilarColor(docBgColor,toAwtColor(pdColor),10))
                 	{
@@ -504,15 +504,9 @@ public class ExtractionUtil  {
                 	}
                 	else
                 	{
-                		//only store visible vectors, there are some vectors with -x and -y
-                		if(bounds.getX() > 0 
-                			&& bounds.getY() > 0 
-                			&& bounds.getWidth()+bounds.getX() < pgWidth
-                			&& bounds.getHeight()+bounds.getY() < pgHeight)
-                		{
-                			listVector.add(new GeneralPath(currentPath));
-                		}
+                		listVector.add(new GeneralPath(currentPath));
                 	}
+
                 }
                 currentPath.reset();
             }
@@ -559,9 +553,12 @@ public class ExtractionUtil  {
         
         if(isGroupVectors)
         {
-        	listVectors = groupByBounds(pageIndex, engine.listVector, 4);
+        	listVectors = groupByBounds(pageIndex, listVectors, 4);
         }
+        
+        System.out.println("listVectors.size ==> "+listVectors.size());
         //////////////////////////////////////////////////
+        ///
         // Convert List<GeneralPath> to List<ContentItem>
         int iExtractSeq = 1;
         List<ContentItem> contentItems = new ArrayList<>();
@@ -574,6 +571,8 @@ public class ExtractionUtil  {
 	        item.setExtract_seq(iExtractSeq++);
 	        contentItems.add(item);
         }
+        
+        System.out.println("contentItems.size ==> "+contentItems.size());
         return contentItems;
     }
     
