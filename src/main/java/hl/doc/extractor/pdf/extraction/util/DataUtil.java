@@ -129,11 +129,11 @@ public class DataUtil  {
 	    		{
 	    			if(sFontFormat.contains("bold"))
 	    			{
-	    				sPrefix = "### ";
+	    				sPrefix = "## ";
 	    			}
 	    			else if(sFontFormat.contains("italic") || sFontFormat.contains("oblique"))
 	    			{
-	    				sPrefix = "## ";
+	    				sPrefix = "### ";
 	    			}
 	    		}
     		}
