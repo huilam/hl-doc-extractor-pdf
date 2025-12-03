@@ -164,14 +164,16 @@ public class TextExtractUtil  {
 	
 	private static List<ContentItem> groupTextByParagraph(List<ContentItem> aTextItems)
 	{
-		return groupVerticalText(aTextItems, 1.5, true);
+		return groupVerticalText(aTextItems, 1.4, true, true);
 	}
-	private static List<ContentItem> groupVerticalText(List<ContentItem> aTextItems, double aYThreshold, boolean isMatchFontStyle)
+	private static List<ContentItem> groupVerticalText(List<ContentItem> aTextItems, double aYThreshold, boolean isMatchFontStyle, boolean isCombineMultiLines)
 	{
 		List<ContentItem> textItems = new ArrayList<ContentItem>();
 		
 		if(aYThreshold<0)
 			aYThreshold = 1.5;
+		
+		String sLineSeparator = isCombineMultiLines?" ":"\n";
 		
 		int iSeqNo = 1;
 		ContentItem prevText = null;
@@ -199,7 +201,7 @@ public class TextExtractUtil  {
 			
 			if(prevExpanded.intersects(curText.getRect2D()))
 			{
-				String sCombinedText = prevText.getData()+"\n"+curText.getData();
+				String sCombinedText = prevText.getData() + sLineSeparator + curText.getData();
 				Rectangle2D rectCombined = combineRect2Ds(prevText.getRect2D(), curText.getRect2D());
 				prevText.setData(sCombinedText);
 				prevText.setRect2D(rectCombined);
