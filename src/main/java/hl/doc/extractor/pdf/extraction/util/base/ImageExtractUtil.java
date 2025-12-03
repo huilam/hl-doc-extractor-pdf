@@ -46,10 +46,10 @@ public class ImageExtractUtil  {
 	            Matrix ctm = gs.getCurrentTransformationMatrix(); // image → user-space
 
 	            // Compute bounding box from CTM without multiplying by image pixel size
-	            double minX = ctm.getTranslateX();
-	            double minY = ctm.getTranslateY();
-	            double width = ctm.getScaleX();
-	            double height = ctm.getScaleY();
+	            double minX 	= ctm.getTranslateX();
+	            double minY 	= ctm.getTranslateY();
+	            double width 	= ctm.getScaleX() +1; //x start with 0
+	            double height 	= ctm.getScaleY() +1; //y start with 0
 
 	            // Flip Y for BufferedImage coordinates
 	            double flippedY = (pgHeight - minY - height);

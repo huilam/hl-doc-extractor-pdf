@@ -34,11 +34,15 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
 public class VectorExtractUtil  {
 
+	
     public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex, boolean isGroupVectors) throws IOException {
         
         // Silence verbose PDFBox logging
         Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
 
+        int grouping_bound_expand_len 		= 4;
+        float grouping_intersect_threshold 	= 1.0f;
+        
         PDPage page = doc.getPage(pageIndex);
         //float pgWidth 	= page.getMediaBox().getWidth();
         float pgHeight 	= page.getMediaBox().getHeight();
@@ -181,7 +185,7 @@ public class VectorExtractUtil  {
         
         if(isGroupVectors)
         {
-        	listVectors = groupByBounds(pageIndex, listVectors, 4, 1.0f);
+        	listVectors = groupByBounds(pageIndex, listVectors, grouping_bound_expand_len, grouping_intersect_threshold);
         }
         
         System.out.println("listVectors.size ==> "+listVectors.size());
@@ -192,9 +196,8 @@ public class VectorExtractUtil  {
         List<ContentItem> contentItems = new ArrayList<>();
         for(Path2D vector : listVectors)
         {
-        	VectorData vData = new VectorData(vector);
-	        ContentItem item = new ContentItem(Type.VECTOR, vData.toJson().toString(), 
-	        		pageIndex + 1, vector.getBounds2D());
+	        ContentItem item = new ContentItem(Type.VECTOR, null, pageIndex + 1, vector.getBounds2D());
+	        item.setData(new VectorData(vector));
 	        item.setContentFormat(VectorData.class.getName());
 	        item.setExtract_seq(iExtractSeq++);
 	        contentItems.add(item);

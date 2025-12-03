@@ -179,6 +179,46 @@ public class ContentUtil  {
         
 		return item;
 	}
+	
+    public static BufferedImage getVectorImage(ContentItem aVectorItem)
+    {
+    	BufferedImage imgVector = null;
+    	
+    	if(aVectorItem.getType()==Type.VECTOR)
+    	{
+    		VectorData vector = new VectorData(new JSONObject(aVectorItem.getData()));
+    		
+			Graphics2D g = null;
+			try {
+				Rectangle2D bound = aVectorItem.getRect2D();
+				
+				double dImgW = bound.getX()+bound.getWidth()  +2;
+				double dImgH = bound.getY()+bound.getHeight() +2;
+				
+				imgVector = new BufferedImage((int)dImgW, (int)dImgH, BufferedImage.TYPE_INT_RGB);
+				
+				g = imgVector.createGraphics();
+				g.setColor(Color.WHITE);
+				g.fillRect(0,0,imgVector.getWidth(), imgVector.getHeight());
+				
+				g.setColor(Color.GREEN);
+				g.draw(vector.getVector());
+				
+				int iX = (int)bound.getX();
+				int iY = (int)bound.getY();
+				int iW = (int)bound.getWidth();
+				int iH = (int)bound.getHeight();
+				
+				imgVector = imgVector.getSubimage(iX, iY, iW+2, iH+2);
+			}
+			finally
+			{
+				if(g!=null)
+					g.dispose();
+			}
+    	}
+    	return imgVector;
+    }
     
     ////////////
     public static BufferedImage renderPageLayout(

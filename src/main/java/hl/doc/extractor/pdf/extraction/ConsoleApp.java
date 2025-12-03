@@ -134,54 +134,21 @@ public class ConsoleApp {
 			if(it.getType()!=Type.VECTOR)
 				continue;
 			
-			VectorData vector = new VectorData(new JSONObject(it.getData()));
+			BufferedImage imgVector = ContentUtil.getVectorImage(it);
 			
+			if(imgVector!=null)
+			{
+				VectorData vector = new VectorData(new JSONObject(it.getData()));
 			
-			int iWidth 	= (int)it.getWidth();
-			int iHeight = (int)it.getHeight();
-			
-			int imgWidth = iWidth;
-			int imgHeight = iHeight;
-			
-			if(imgWidth==0)
-				imgWidth = 1;
-			
-			if(imgHeight==0)
-				imgHeight = 1;
-			
-			String sFileName = String.format("vector_p%d_%03d_%d-%d_%dx%d_seg-%d.jpg", 
-					it.getPage_no(), 
-					it.getExtract_seq(), 
-					(int)it.getX1(), (int)it.getY1(), 
-					(int)it.getWidth(), (int)it.getHeight(), 
-					vector.getPathSegmentCount());
-			
-			Rectangle2D bound = it.getRect2D();
-					
-			//Add 1 pixel borders
-			imgWidth 	= (int)(bound.getX()+bound.getWidth())+2;
-			imgHeight	= (int)(bound.getY()+bound.getHeight())+2;
-			
-			BufferedImage imgVector = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
-			Graphics2D g = null;
-			try {
-				g = imgVector.createGraphics();
-				g.setColor(Color.WHITE);
-				g.fillRect(0,0,imgVector.getWidth(), imgVector.getHeight());
-				
-				g.setColor(Color.GREEN);
-				g.draw(vector.getVector());
+				String sFileName = String.format("vector_p%d_%03d_%d-%d_%dx%d_seg-%d.jpg", 
+						it.getPage_no(), 
+						it.getExtract_seq(), 
+						(int)it.getX1(), (int)it.getY1(), 
+						(int)it.getWidth(), (int)it.getHeight(), 
+						vector.getPathSegmentCount());
 				
 				File fileImg = new File(aOutputFile.getParent()+"/"+sFileName);
-				
-				int iX = (int)bound.getX();
-				int iY = (int)bound.getY();
-				int iW = (int)bound.getWidth()+1;
-				int iH = (int)bound.getHeight()+1;
 				try {
-					
-					imgVector = imgVector.getSubimage(iX, iY, iW, iH);
-					
 					if(ImageIO.write(imgVector, "jpg", fileImg))
 					{
 						System.out.println("\t[saved] "+fileImg.getName());
@@ -190,12 +157,7 @@ public class ConsoleApp {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}finally
-			{
-				if(g!=null)
-					g.dispose();
 			}
-			
 		}
     	
     	return aOutputFile;
@@ -261,7 +223,7 @@ public class ConsoleApp {
 				        pdfExtract = new PDFExtractor(f);
 				        pdfExtract.setExtractText(true);
 				        pdfExtract.setExtractImage(true);
-				        pdfExtract.setExtractVector(false);
+				        pdfExtract.setExtractVector(true);
 				        
 				        //Group text by paragraph
 				        pdfExtract.setIsGroupTextVertically(true);

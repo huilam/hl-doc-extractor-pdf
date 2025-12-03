@@ -116,6 +116,23 @@ public class ContentItem {
 	public void setData(String data) {
 		this.data = data;
 	}
+	
+	public void setData(VectorData data) {
+		
+		if(data!=null)
+		{
+			if(this.rawdata==null)
+			{
+				this.rawdata = data.toJson().toString();
+				this.data = null;
+			}
+			else
+			{
+				this.data = data.toJson().toString();
+			}
+			this.rect = data.getVector().getBounds2D();
+		}
+	}
 
 	public double getGroup_no() {
 		return group_no;
