@@ -209,6 +209,15 @@ public class ContentUtil  {
 				int iW = (int)bound.getWidth();
 				int iH = (int)bound.getHeight();
 				
+				if(iX<0) iX=0;
+				if(iY<0) iY=0;
+				
+				if(iX+iW > imgVector.getWidth()-2)
+					iW = imgVector.getWidth()-iX-2;
+				
+				if(iY+iH > imgVector.getHeight()-2)
+					iH = imgVector.getHeight()-iY-2;
+				
 				imgVector = imgVector.getSubimage(iX, iY, iW+2, iH+2);
 			}
 			finally
