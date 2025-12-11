@@ -24,6 +24,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
+import org.apache.pdfbox.pdmodel.graphics.color.PDPattern;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.util.Matrix;
@@ -148,13 +149,20 @@ public class VectorExtractUtil  {
     			if(aPDColor!=null)
     			{
 	    			PDColorSpace csStroke 	= aPDColor.getColorSpace();
-	            	try {
-	            		float[] rgb = csStroke.toRGB(aPDColor.getComponents());
-	            		color = new Color(rgb[0], rgb[1], rgb[2]);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+            		if(csStroke instanceof PDPattern)
+            		{
+            			//not doing anything
+            		}
+            		else
+            		{
+		            	try {
+			            		float[] rgb = csStroke.toRGB(aPDColor.getComponents());
+			            		color = new Color(rgb[0], rgb[1], rgb[2]);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+            		}
     			}
             	return color;
     		}
