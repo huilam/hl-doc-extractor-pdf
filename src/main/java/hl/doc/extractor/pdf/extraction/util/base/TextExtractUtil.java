@@ -248,6 +248,7 @@ public class TextExtractUtil  {
 		PDFont lastFont 	= null;
 		
 		TextPosition textFirst = null;
+		TextPosition textLast = null;
 		
 		int iListSize = aLineText.size()-1;
 		//search first character
@@ -263,10 +264,10 @@ public class TextExtractUtil  {
 			}
 			if(lastFont==null)
 			{
-				TextPosition text2 = aLineText.get(iListSize-i);
-				if(text2.getUnicode().trim().length()>0)
+				textLast = aLineText.get(iListSize-i);
+				if(textLast.getUnicode().trim().length()>0)
 				{
-					lastFont = text2.getFont();
+					lastFont = textLast.getFont();
 				}
 			}
 			
@@ -277,19 +278,27 @@ public class TextExtractUtil  {
 		if(firstFont!=null && lastFont!=null)
 		{
 			String[] sFontNames = new String[] 
-					{firstFont.getName().toLowerCase(), 
-					lastFont.getName().toLowerCase()};
+					{firstFont.getName(), lastFont.getName()};
 			
 			for(int i=0; i<sFontNames.length; i++)
 			{
 				//Remove custom random font name prefix 
-				if (sFontNames[i].contains("+")) {
+				if (sFontNames[i]!=null && sFontNames[i].contains("+")) {
 					sFontNames[i] = sFontNames[i].substring(sFontNames[i].indexOf("+") + 1);
 				}
 			}
 			
-			if(sFontNames[0].equals(sFontNames[1]))
-				return sFontNames[0]+" ("+textFirst.getFontSizeInPt()+")";
+			if(sFontNames[0]!=null)
+			{
+				if(sFontNames[0].equals(sFontNames[1]))
+					return sFontNames[0]+" ("+textFirst.getFontSizeInPt()+")";
+			}
+			else if(textFirst.getFontSizeInPt() == textLast.getFontSizeInPt())
+			{
+				return "unknown ("+textFirst.getFontSizeInPt()+")";
+			}
+			
+				
 		}
 		
 		return null;
