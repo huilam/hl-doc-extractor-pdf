@@ -31,8 +31,10 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 @SuppressWarnings("unused")
-abstract public class AbstractExtractor {
-
+abstract public class AbstractExtractor 
+{
+	public static String _version = "0.9.0";
+	//
 	private File file_orig_pdf 	= null;
 	private MetaData pdf_meta   = null;
 	//
@@ -45,6 +47,12 @@ abstract public class AbstractExtractor {
 	//
 	private float force_pdf_version = -1f;
 	private boolean is_group_text_vertically = false;
+	//
+	
+	public String getVersion()
+	{
+		return _version;
+	}
 	
     public AbstractExtractor(File aPDFFile) throws IOException {
     	
