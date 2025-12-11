@@ -1,6 +1,6 @@
 # hl-doc-extractor-pdf<br>
 
-**A simple lightweight (&ast; 4.00 MB) Java PDF extractor based on [PDFBox](https://github.com/apache/pdfbox) that supports custom content-sorting orders.**<br>
+**A simple lightweight (&ast; <4 MB) Java PDF extractor based on [PDFBox](https://github.com/apache/pdfbox) that supports custom content-sorting orders.**<br>
 <sub>* 250 KB including PDFBox jar files.<br>
 <br>
 
