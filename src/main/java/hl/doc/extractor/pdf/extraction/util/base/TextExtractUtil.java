@@ -195,14 +195,15 @@ public class TextExtractUtil  {
 			}
 			
 			Rectangle2D prevBounds = prevText.getRect2D();
+			Rectangle2D curBounds = curText.getRect2D();
 			
 			double dExpansion = Math.min(curText.getHeight(), prevText.getHeight()) * aYThreshold;
 			Rectangle2D prevExpanded = expandRect2D(prevBounds, dExpansion, dExpansion);
 			
-			if(prevExpanded.intersects(curText.getRect2D()))
+			if(prevExpanded.intersects(curBounds))
 			{
 				String sCombinedText = prevText.getData() + sLineSeparator + curText.getData();
-				Rectangle2D rectCombined = combineRect2Ds(prevText.getRect2D(), curText.getRect2D());
+				Rectangle2D rectCombined = combineRect2Ds(prevBounds, curBounds);
 				prevText.setData(sCombinedText);
 				prevText.setRect2D(rectCombined);
 			}
