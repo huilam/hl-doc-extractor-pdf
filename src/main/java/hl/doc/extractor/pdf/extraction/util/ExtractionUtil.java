@@ -23,7 +23,7 @@ public class ExtractionUtil  {
 	// ---- IMAGE BOUNDING BOXES (Y-flipped to match BufferedImage coordinates) ----
 	public static List<ContentItem> extractImageContent(PDDocument doc, int pageIndex) throws IOException 
 	{
-		return extractImageContent(doc, pageIndex, true);
+		return extractImageContent(doc, pageIndex, false);
 	}
 	public static List<ContentItem> extractImageContent(PDDocument doc, int pageIndex, boolean isResizeImage) throws IOException 
 	{
