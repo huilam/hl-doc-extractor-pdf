@@ -162,6 +162,14 @@ public class TextExtractUtil  {
 	    return textItems;
 	}
 	
+	// ---- Helper function to count words in a line ----
+	private static int countWords(String text)
+	{
+		if(text == null || text.trim().length() == 0)
+			return 0;
+		return text.trim().split("\\s+").length;
+	}
+	
 	private static List<ContentItem> groupTextByParagraph(List<ContentItem> aTextItems)
 	{
 		return groupVerticalText(aTextItems, 1.4, true, true);
@@ -202,10 +210,25 @@ public class TextExtractUtil  {
 			
 			if(prevExpanded.intersects(curBounds))
 			{
-				String sCombinedText = prevText.getData() + sLineSeparator + curText.getData();
-				Rectangle2D rectCombined = combineRect2Ds(prevBounds, curBounds);
-				prevText.setData(sCombinedText);
-				prevText.setRect2D(rectCombined);
+				// ---- FIX: Only group if at least one item has more than 3 words ----
+				int iPrevWordCount = countWords(prevText.getData());
+				int iCurWordCount = countWords(curText.getData());
+				
+				// Only combine if at least one has substantial content (>3 words)
+				if(iPrevWordCount > 3 || iCurWordCount > 3)
+				{
+					String sCombinedText = prevText.getData() + sLineSeparator + curText.getData();
+					Rectangle2D rectCombined = combineRect2Ds(prevBounds, curBounds);
+					prevText.setData(sCombinedText);
+					prevText.setRect2D(rectCombined);
+				}
+				else
+				{
+					// Both are short (numbers/markers) - don't group, save previous and start new
+					prevText.setExtract_seq(iSeqNo++);
+					textItems.add(prevText);
+					prevText = curText;
+				}
 			}
 			else
 			{
