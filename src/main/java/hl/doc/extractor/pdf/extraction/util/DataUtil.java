@@ -62,90 +62,41 @@ public class DataUtil  {
     		}
     		else 
     		{	
-    			// ---- FIX: Handle empty rows properly ----
-    			boolean isCurrentEmpty = cur.getData().trim().length()==0;
-    			boolean isPrevEmpty = prev != null && prev.getData().trim().length()==0;
+    			// ---- FIX: Always add newline between items (except first on page) ----
+    			// This ensures each extracted item appears on its own line
     			
-    			if(isCurrentEmpty && isPrevEmpty)
+    			String sCurData = cur.getData().trim();
+    			String sPrevData = (prev != null) ? prev.getData().trim() : "";
+    			
+    			// Check if both items are empty - skip double empty lines
+    			if(sCurData.length() == 0 && sPrevData.length() == 0)
     			{
-    				// Skip consecutive empty rows
     				prev = cur;
     				continue;
     			}
     			
-    			String sCurData = cur.getData().replace(" ", ""); //remove all spaces
-    			if(sCurData.startsWith("\n") || sCurData.endsWith("\n"))
-    			{
-    				// No padding needed - already has newline
-    				sb.append("\n");
-    			}
-    			else if(aMaxAppendLineBreaks>0 && !isPrevEmpty)
-    			{
-	    			double minHeight = Math.min(cur.getHeight(), prev.getHeight());
-	    			
-     				double dXDiff = Math.abs(cur.getX1() - prev.getX1());
-     				if(dXDiff<(minHeight*2))
-     				{
-	    				// Items are on similar X position (same column area)
-	    				double dGapH = Math.abs(cur.getY1() - prev.getY2());
-	    				
-	    				if(dGapH > minHeight)
-	    				{
-	    					// Significant vertical gap detected - add line breaks
-	    					int iEmptyLines = (int) Math.floor(dGapH / minHeight);
-	    					
-	    					if(iEmptyLines > aMaxAppendLineBreaks)
-	    						iEmptyLines = aMaxAppendLineBreaks;
-	    					
-	    					for(;iEmptyLines>0;iEmptyLines--)
-	    					{
-	    						sb.append("\n");
-	    					}
-	    					
-	    					Rectangle2D rectCur = cur.getRect2D();
-	    					cur.setRect2D(
-	    							new Rectangle2D.Double(
-	    									rectCur.getX(), rectCur.getY(), rectCur.getWidth(), rectCur.getHeight()*(1+iEmptyLines)));
-	    				}
-	    				else if(!isCurrentEmpty)
-	    				{
-	    					// No significant gap but same column - just add space
-	    					sb.append(" ");
-	    				}
-     				}
-     				else
-         			{
-	     				// Different column position - add newline
-         	    		sb.append("\n");
-         			}
-     			}
-     			else if(!isCurrentEmpty)
-     			{
-     				// Default: add newline between items
-     	    		sb.append("\n");
-     			}
+    			// Default: add newline between all items
+    			sb.append("\n");
     		}
     		
-    		// ---- Only append if current item has content ----
+    		// ---- Append current item content ----
     		String sCurrentData = cur.getData().trim();
-    		if(sCurrentData.length()>0)
+    		if(sCurrentData.length() > 0)
     		{
     			String sPrefix = "";
     			String sSuffix = "";
-    			if(cur.getType()==Type.TEXT)
+    			if(cur.getType() == Type.TEXT)
     			{
     				String sFontFormat = cur.getContentFormat();
-    	    		if(sFontFormat!=null) 
+    	    		if(sFontFormat != null) 
     	    		{
     	    			if(sFontFormat.contains("bold"))
     	    			{
-    	    				sPrefix = "**";
-    	    				sSuffix = "**";
+    	    				sPrefix = "## ";
     	    			}
     	    			else if(sFontFormat.contains("italic") || sFontFormat.contains("oblique"))
     	    			{
-    	    				sPrefix = "_";
-    	    				sSuffix = "_";
+    	    				sPrefix = "### ";
     	    			}
     	    		}
     			}
@@ -155,7 +106,7 @@ public class DataUtil  {
     		prev = cur;
     	}
     	
-    	if(isShowPageNo && sb.length()>0)
+    	if(isShowPageNo && sb.length() > 0)
 			sb.append("\n----[ end ]----");
     	
     	return sb.toString();
@@ -182,7 +133,7 @@ public class DataUtil  {
     		jsonItem.put(JSON_TYPE, it.getType());
     		jsonItem.put(JSON_TAGNAME, it.getTagName());
     		
-    		if(it.getType()==Type.VECTOR)
+    		if(it.getType() == Type.VECTOR)
     		{
     			jsonItem.put(JSON_DATA, new JSONObject(it.getData()));
     		}
