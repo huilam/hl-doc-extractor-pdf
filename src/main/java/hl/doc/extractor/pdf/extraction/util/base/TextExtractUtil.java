@@ -21,8 +21,8 @@ public class TextExtractUtil  {
 
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex, boolean isGroupByParagraph) throws IOException {
 
-		//Silent the missing font warning
-    	Logger.getLogger("org.apache.pdfbox.pdmodel").setLevel(Level.SEVERE);
+	    // Silence the missing font warning
+	    Logger.getLogger("org.apache.pdfbox.pdmodel").setLevel(Level.SEVERE);
 
 	    class GroupedTextStripper extends PDFTextStripper {
 	        List<ContentItem> contentItems = new ArrayList<>();
@@ -84,29 +84,41 @@ public class TextExtractUtil  {
 	            Collections.sort(baselines);
 	            float mainBaseline = baselines.get(baselines.size() / 2);
 
-	            // Define group height tolerance
-	            //float tolerance = maxHeight * 0.3f;
-
 	            // --- 2) Bounding box extremes ---
 	            float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
 	            float maxX = 0, maxY = 0;
 	            StringBuffer sb = new StringBuffer();
 	            
+	            // Track the horizontal end position of the previous character
+	            float lastXEnd = -1f;
+	            
 	            for (TextPosition t : line) {
 	                float x = t.getXDirAdj();
-	                //float baseline = t.getYDirAdj();
 	                float w = t.getWidthDirAdj();
-	                //float h = t.getHeightDir();
+
+	                // --- Detect missing word spaces using horizontal gaps ---
+	                if (lastXEnd != -1f) {
+	                    float gap = x - lastXEnd;
+	                    
+	                    // Fallback to a sensible default if the font doesn't specify a space width
+	                    float spaceWidthThreshold = t.getWidthOfSpace();
+	                    if (spaceWidthThreshold <= 0) {
+	                        spaceWidthThreshold = t.getWidthDirAdj() * 0.5f; 
+	                    } else {
+	                        spaceWidthThreshold = spaceWidthThreshold * 0.5f; // 50% of a standard space
+	                    }
+
+	                    // If the gap is wide enough and the text doesn't already end/start with a space
+	                    if (gap > spaceWidthThreshold && sb.length() > 0 && sb.charAt(sb.length() - 1) != ' ' && !t.getUnicode().startsWith(" ")) {
+	                        sb.append(" ");
+	                    }
+	                }
 
 	                // --- 3) NORMALIZED baseline for bounding box only ---
 	                float normalizedBaseline = mainBaseline;
 
 	                // --- 4) NORMALIZED height for bounding box only ---
 	                float normalizedHeight = maxHeight;
-
-	                // NOTE:
-	                // We DO NOT modify t's visual baseline or height.
-	                // The normalization only applies to bounding box calculation.
 
 	                float yTop = normalizedBaseline - normalizedHeight;
 
@@ -116,16 +128,24 @@ public class TextExtractUtil  {
 	                maxY = Math.max(maxY, normalizedBaseline);
 
 	                sb.append(t.getUnicode());
+	                
+	                // Update the end pointer for the next character comparison
+	                lastXEnd = x + w;
 	            }
 	            
-
-	            String sData   = sb.toString();
-	            String sFormat = null;
+	            String sData = sb.toString();
 	            
-	            if(sData.trim().length()>0)
+	            // --- OPTION 1 FIX: Handle line breaks ---
+	            // Append a trailing space if the extracted line text doesn't already end with one.
+	            // (If you prefer an actual line break character instead of a space, change " " to "\n")
+	            if (sData.length() > 0 && !sData.endsWith(" ")) {
+	                sData += " ";
+	            }
+
+	            String sFormat = null;
+	            if(sData.trim().length() > 0)
 	            {
-	            	sFormat = getCommonFontStyle(line);
-	            	//System.out.println("sFormat---->"+sFormat);
+	                sFormat = getCommonFontStyle(line);
 	            }
 
 	            double dX = minX;
@@ -133,9 +153,9 @@ public class TextExtractUtil  {
 	            double dW = maxX - minX;
 	            double dH = maxY - minY;
 	            
-	            //Assumption : empty out of view bounding box 
-	            if(dX<0) dX = 0;
-	            if(dY<0) dY = 0;
+	            // Assumption: empty out of view bounding box 
+	            if(dX < 0) dX = 0;
+	            if(dY < 0) dY = 0;
 	            
 	            Rectangle2D rect2D = new Rectangle2D.Double(dX, dY, dW, dH);
 	            
@@ -148,7 +168,6 @@ public class TextExtractUtil  {
 	    }
 
 	    GroupedTextStripper stripper = new GroupedTextStripper();
-	    //stripper.setAddMoreFormatting(true);
 	    stripper.setSortByPosition(true);
 	    stripper.setStartPage(pageIndex + 1);
 	    stripper.setEndPage(pageIndex + 1);
@@ -157,7 +176,7 @@ public class TextExtractUtil  {
 	    List<ContentItem> textItems = stripper.contentItems;
 	    
 	    if(isGroupByParagraph)
-	    	textItems = groupTextByParagraph(textItems);
+	        textItems = groupTextByParagraph(textItems);
 	    
 	    return textItems;
 	}
@@ -174,75 +193,105 @@ public class TextExtractUtil  {
 	{
 		return groupVerticalText(aTextItems, 1.4, true, true);
 	}
+
 	private static List<ContentItem> groupVerticalText(List<ContentItem> aTextItems, double aYThreshold, boolean isMatchFontStyle, boolean isCombineMultiLines)
 	{
-		List<ContentItem> textItems = new ArrayList<ContentItem>();
-		
-		if(aYThreshold<0)
-			aYThreshold = 1.5;
-		
-		String sLineSeparator = isCombineMultiLines?" ":"\n";
-		
-		int iSeqNo = 1;
-		ContentItem prevText = null;
-		for(ContentItem curText : aTextItems)
-		{
-			if(prevText==null)
-			{
-				prevText = curText;
-				continue;
-			}
-			
-			//different font style
-			if(isMatchFontStyle && !prevText.getContentFormat().equalsIgnoreCase(curText.getContentFormat()))
-			{
-				prevText.setExtract_seq(iSeqNo++);
-				textItems.add(prevText);
-				prevText = curText;
-				continue;
-			}
-			
-			Rectangle2D prevBounds = prevText.getRect2D();
-			Rectangle2D curBounds = curText.getRect2D();
-			
-			double dExpansion = Math.min(curText.getHeight(), prevText.getHeight()) * aYThreshold;
-			Rectangle2D prevExpanded = expandRect2D(prevBounds, dExpansion, dExpansion);
-			
-			if(prevExpanded.intersects(curBounds))
-			{
-				// ---- FIX: Only group if at least one item has more than 3 words ----
-				int iPrevWordCount = countWords(prevText.getData());
-				int iCurWordCount = countWords(curText.getData());
-				
-				// Only combine if at least one has substantial content (>3 words)
-				if(iPrevWordCount > 3 || iCurWordCount > 3)
-				{
-					String sCombinedText = prevText.getData() + sLineSeparator + curText.getData();
-					Rectangle2D rectCombined = combineRect2Ds(prevBounds, curBounds);
-					prevText.setData(sCombinedText);
-					prevText.setRect2D(rectCombined);
-				}
-				else
-				{
-					// Both are short (numbers/markers) - don't group, save previous and start new
-					prevText.setExtract_seq(iSeqNo++);
-					textItems.add(prevText);
-					prevText = curText;
-				}
-			}
-			else
-			{
-				prevText.setExtract_seq(iSeqNo++);
-				textItems.add(prevText);
-				prevText = curText;
-			}
-			
-		}
-		
-		if(prevText!=null)
-			textItems.add(prevText);
-		
-		return textItems;
+	    List<ContentItem> textItems = new ArrayList<ContentItem>();
+	    
+	    if (aTextItems == null || aTextItems.isEmpty())
+	        return textItems;
+	        
+	    if (aYThreshold < 0)
+	        aYThreshold = 1.5;
+	    
+	    String sLineSeparator = isCombineMultiLines ? " " : "\n";
+	    
+	    int iSeqNo = 1;
+	    ContentItem prevText = null;
+	    
+	    for (ContentItem curText : aTextItems)
+	    {
+	        if (prevText == null)
+	        {
+	            prevText = curText;
+	            continue;
+	        }
+	        
+	        // 1. Check different font styles
+	        if (isMatchFontStyle && !prevText.getContentFormat().equalsIgnoreCase(curText.getContentFormat()))
+	        {
+	            prevText.setExtract_seq(iSeqNo++);
+	            textItems.add(prevText);
+	            prevText = curText;
+	            continue;
+	        }
+	        
+	        Rectangle2D prevBounds = prevText.getRect2D();
+	        Rectangle2D curBounds = curText.getRect2D();
+	        
+	        double dExpansion = Math.min(curText.getHeight(), prevText.getHeight()) * aYThreshold;
+	        Rectangle2D prevExpanded = expandRect2D(prevBounds, dExpansion, dExpansion);
+	        
+	        // 2. Check physical geometric intersection
+	        if (prevExpanded.intersects(curBounds))
+	        {
+	            // Calculate hypothetical combined text
+	            String sCombinedText = prevText.getData() + sLineSeparator + curText.getData();
+	            
+	            // --- FIX FOR INDEXES (3, 4, 5, 6) ---
+	            // Instead of evaluating individual sub-sentences strictly, we look at whether
+	            // the WHOLE accumulating block has substantial sentence content (> 3 words total)
+	            // AND ensure we normalize wide spaces inside the check so formatting doesn't break it.
+	            int totalWordCount = countWords(sCombinedText);
+	            boolean hasWideGap = containsInvalidSpacing(sCombinedText);
+	            
+	            if (totalWordCount > 3 && !hasWideGap)
+	            {
+	                // Approved: This forms an active paragraph block containing an index and a sentence.
+	                Rectangle2D rectCombined = combineRect2Ds(prevBounds, curBounds);
+	                prevText.setData(sCombinedText);
+	                prevText.setRect2D(rectCombined);
+	            }
+	            else
+	            {
+	                // Denied: Disconnect if it's just sequential short numbers (e.g., "3" intersecting "4")
+	                // without any main text body, or if it spans entirely different columns (wide gaps).
+	                prevText.setExtract_seq(iSeqNo++);
+	                textItems.add(prevText);
+	                prevText = curText;
+	            }
+	        }
+	        else
+	        {
+	            prevText.setExtract_seq(iSeqNo++);
+	            textItems.add(prevText);
+	            prevText = curText;
+	        }
+	    }
+	    
+	    if (prevText != null)
+	    {
+	        prevText.setExtract_seq(iSeqNo++);
+	        textItems.add(prevText);
+	    }
+	    
+	    return textItems;
+	}
+
+	/**
+	 * Validates if a text sequence contains uncomfortably massive wide gaps 
+	 * (3+ spaces) within actual textual phrases, ignoring structural newlines.
+	 */
+	private static boolean containsInvalidSpacing(String text) {
+	    if (text == null) return false;
+	    // Split by lines first to ensure we only check horizontal spacing within lines
+	    String[] lines = text.split("[\\n\\r]+");
+	    for (String line : lines) {
+	        if (line.trim().matches(".*\\s{3,}.*")) {
+	            return true;
+	        }
+	    }
+	    return false;
 	}
 	
 	private static Rectangle2D expandRect2D(Rectangle2D rect, double aExpandW, double aExpandH)
