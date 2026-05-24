@@ -45,6 +45,7 @@ abstract public class AbstractExtractor
 	private boolean is_extract_image 	= true;
 	private boolean is_extract_vector 	= false;
 	//
+	private boolean is_resize_image = false;
 	private float force_pdf_version = -1f;
 	private boolean is_group_text_vertically = false;
 	//
@@ -171,7 +172,7 @@ abstract public class AbstractExtractor
 	    	////
     		if(this.is_extract_image)
     		{
-		    	listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1);
+		    	listImage = ExtractionUtil.extractImageContent(pdf_doc, iPageNo-1, this.is_resize_image);
     		}
 	    	////
     		if(this.is_extract_vector)
@@ -251,6 +252,11 @@ abstract public class AbstractExtractor
     public void setExtractVector(boolean isExtract)
     {
     	this.is_extract_vector= isExtract;
+    }
+    
+    public void setIsResizeExtractedImage(boolean isResized)
+    {
+    	this.is_resize_image= isResized;
     }
     
     public BufferedImage renderPagePreview(int iPageNo, float aScale)

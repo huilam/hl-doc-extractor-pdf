@@ -13,6 +13,6 @@
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.6/fontbox-3.0.6.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.6/pdfbox-3.0.6.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.6/pdfbox-io-3.0.6.jar"/>
-	<classpathentry kind="lib" path="lib/hl-common_jdk21_20251215-1047-40.jar"/>
+	<classpathentry kind="lib" path="lib/hl-common_jdk21_20260225-1355-11.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

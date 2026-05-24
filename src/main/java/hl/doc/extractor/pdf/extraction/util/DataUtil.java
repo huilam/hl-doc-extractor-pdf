@@ -62,86 +62,51 @@ public class DataUtil  {
     		}
     		else 
     		{	
-    			if(cur.getData().trim().length()==0)
+    			// ---- FIX: Always add newline between items (except first on page) ----
+    			// This ensures each extracted item appears on its own line
+    			
+    			String sCurData = cur.getData().trim();
+    			String sPrevData = (prev != null) ? prev.getData().trim() : "";
+    			
+    			// Check if both items are empty - skip double empty lines
+    			if(sCurData.length() == 0 && sPrevData.length() == 0)
     			{
-    				if(prev.getData().trim().length()==0)
-    				{
-    					//We just pad in last round
-    					prev = cur;
-    					continue;
-    				}
+    				prev = cur;
+    				continue;
     			}
     			
-    			String sCurData = cur.getData().replace(" ", ""); //remove all spaces
-    			if(sCurData.startsWith("\n") || sCurData.endsWith("\n"))
-    			{
-    				//No padding needed
-    			}
-    			else if(aMaxAppendLineBreaks>0)
-    			{
-	    			double minHeight = Math.min(cur.getHeight(), prev.getHeight());
-	    			
-    				double dXDiff = Math.abs(cur.getX1() - prev.getX1());
-    				if(dXDiff<(minHeight*2))
-    				{
-		    			double dGapH = Math.abs(cur.getY1() - prev.getY2());
-		    			if(dGapH > minHeight)
-		    			{
-		    				int iEmptyLines = (int) Math.floor(dGapH / minHeight);
-		    				
-		    				if(iEmptyLines > aMaxAppendLineBreaks)
-		    					iEmptyLines = aMaxAppendLineBreaks;
-		    				
-		    				for(;iEmptyLines>0;iEmptyLines--)
-		    				{
-		    					sb.append("\n");
-		    				}
-		    				
-		    				Rectangle2D rectCur = cur.getRect2D();
-		    				cur.setRect2D(
-		    						new Rectangle2D.Double(
-		    								rectCur.getX(), rectCur.getY(), rectCur.getWidth(), rectCur.getHeight()*(1+iEmptyLines)));
-		    				
-		    				if(cur.getData().trim().length()==0)
-		    				{
-		    					prev = cur;
-		    					continue;
-		    				}
-		    			}
-    				}
-    				else
-        			{
-        	    		sb.append("\n");
-        			}
-    			}
-    			else
-    			{
-    	    		sb.append("\n");
-    			}
+    			// Default: add newline between all items
+    			sb.append("\n");
     		}
     		
-    		String sPrefix = "";
-    		String sSuffix = "";
-    		if(cur.getType()==Type.TEXT)
+    		// ---- Append current item content ----
+    		String sCurrentData = cur.getData().trim();
+    		if(sCurrentData.length() > 0)
     		{
-    			String sFontFormat = cur.getContentFormat();
-	    		if(sFontFormat!=null) 
-	    		{
-	    			if(sFontFormat.contains("bold"))
-	    			{
-	    				sPrefix = "## ";
-	    			}
-	    			else if(sFontFormat.contains("italic") || sFontFormat.contains("oblique"))
-	    			{
-	    				sPrefix = "### ";
-	    			}
-	    		}
+    			String sPrefix = "";
+    			String sSuffix = "";
+    			if(cur.getType() == Type.TEXT)
+    			{
+    				String sFontFormat = cur.getContentFormat();
+    	    		if(sFontFormat != null) 
+    	    		{
+    	    			if(sFontFormat.contains("bold"))
+    	    			{
+    	    				sPrefix = "## ";
+    	    			}
+    	    			else if(sFontFormat.contains("italic") || sFontFormat.contains("oblique"))
+    	    			{
+    	    				sPrefix = "### ";
+    	    			}
+    	    		}
+    			}
+    			sb.append(sPrefix).append(sCurrentData).append(sSuffix);
     		}
-    		sb.append(sPrefix).append(cur.getData()).append(sSuffix);
+    		
     		prev = cur;
     	}
     	
-    	if(isShowPageNo && sb.length()>0)
+    	if(isShowPageNo && sb.length() > 0)
 			sb.append("\n----[ end ]----");
     	
     	return sb.toString();
@@ -168,7 +133,7 @@ public class DataUtil  {
     		jsonItem.put(JSON_TYPE, it.getType());
     		jsonItem.put(JSON_TAGNAME, it.getTagName());
     		
-    		if(it.getType()==Type.VECTOR)
+    		if(it.getType() == Type.VECTOR)
     		{
     			jsonItem.put(JSON_DATA, new JSONObject(it.getData()));
     		}
@@ -187,35 +152,35 @@ public class DataUtil  {
     {
 		List<ContentItem> listContentList = new ArrayList<>();
 
-    	if(aJsonContentList!=null)
-    	{
-    		JSONObject jsonImages = aJsonContentList.getJSONObject(JSON_GROUP_IMAGES);
-    		
-    		JSONArray jArrContent = aJsonContentList.getJSONArray(JSON_GROUP_CONTENT);
-    		for(int i=0; i<jArrContent.length(); i++)
-    		{
-    			JSONObject jsonItem = jArrContent.getJSONObject(i);
-    			jsonItem.getInt(JSON_PAGE_NO);
-        		jsonItem.getInt(JSON_LINE_SEQ);
-        		jsonItem.getInt(JSON_GROUP_NO);
-        		jsonItem.getDouble(JSON_X);
-        		jsonItem.getDouble(JSON_Y);
-        		jsonItem.getDouble(JSON_WIDTH);
-        		jsonItem.getDouble(JSON_HEIGHT);
-        		jsonItem.getString(JSON_FORMAT);
-        		jsonItem.getString(JSON_TAGNAME);
-        		
-        		
-        		jsonItem.get(JSON_TYPE);
-        		jsonItem.get(JSON_DATA);
-        		
-        		String sBase64Image = jsonImages.getString(jsonItem.getString(JSON_TAGNAME));
-    			
-    		}
-    	}
-		
-		return listContentList;
-    }
+     	if(aJsonContentList!=null)
+     	{
+     		JSONObject jsonImages = aJsonContentList.getJSONObject(JSON_GROUP_IMAGES);
+     		
+     		JSONArray jArrContent = aJsonContentList.getJSONArray(JSON_GROUP_CONTENT);
+     		for(int i=0; i<jArrContent.length(); i++)
+     		{
+     			JSONObject jsonItem = jArrContent.getJSONObject(i);
+     			jsonItem.getInt(JSON_PAGE_NO);
+         		jsonItem.getInt(JSON_LINE_SEQ);
+         		jsonItem.getInt(JSON_GROUP_NO);
+         		jsonItem.getDouble(JSON_X);
+         		jsonItem.getDouble(JSON_Y);
+         		jsonItem.getDouble(JSON_WIDTH);
+         		jsonItem.getDouble(JSON_HEIGHT);
+         		jsonItem.getString(JSON_FORMAT);
+         		jsonItem.getString(JSON_TAGNAME);
+         		
+         		
+         		jsonItem.get(JSON_TYPE);
+         		jsonItem.get(JSON_DATA);
+         		
+         		String sBase64Image = jsonImages.getString(jsonItem.getString(JSON_TAGNAME));
+     			
+     		}
+     	}
+     	
+     	return listContentList;
+     }
 	**/
 	//////
 

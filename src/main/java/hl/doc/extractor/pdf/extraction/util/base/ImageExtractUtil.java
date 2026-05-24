@@ -29,7 +29,7 @@ public class ImageExtractUtil  {
 		
 		float scale = 1.0f;
 		double pgHeight = page.getMediaBox().getHeight();
-		//double pgWidth 	= page.getMediaBox().getWidth();
+		double pgWidth 	= page.getMediaBox().getWidth();
 		
 	    class ImagePositionEngine extends PDFGraphicsStreamEngine {
 	        final List<ContentItem> contentItems = new ArrayList<>();
@@ -70,21 +70,49 @@ public class ImageExtractUtil  {
 	            	}
 	            }
 	            
-	            /**
-	             * Out-of-Bound Image Adjustment
-	             * 
+	            // ---- Out-of-Bounds Image Adjustment ----
 	            if(iX<0 || iY<0)
 	            {
-	            	imgAdj = imgAdj.getSubimage(Math.abs(iX), Math.abs(iY), iW, iH);
+	            	// Adjust subimage extraction to prevent out-of-bounds access
+	            	int srcX = Math.max(0, Math.abs(iX));
+	            	int srcY = Math.max(0, Math.abs(iY));
 	            	
-		            if(iX<0) iX = 0;
-		            if(iY<0) iY = 0;
+	            	// Ensure subimage dimensions don't exceed source image bounds
+	            	int srcWidth = Math.min(iW - srcX, imgAdj.getWidth() - srcX);
+	            	int srcHeight = Math.min(iH - srcY, imgAdj.getHeight() - srcY);
+	            	
+	            	if(srcWidth > 0 && srcHeight > 0)
+	            	{
+	            		try {
+	            			imgAdj = imgAdj.getSubimage(srcX, srcY, srcWidth, srcHeight);
+	            		} catch (Exception e) {
+	            			// Log and skip if subimage extraction fails
+	            			System.err.println("Warning: Failed to extract subimage at (" + srcX + "," + srcY + 
+	            					") with size (" + srcWidth + "x" + srcHeight + "): " + e.getMessage());
+	            		}
+	            	}
+	            	
+	            	// Reset coordinates to page origin
+	            	if(iX<0) iX = 0;
+	            	if(iY<0) iY = 0;
 	            }
-	            if(iW+iX>pgWidth) iW = (int)pgWidth-iX-1;
-	            if(iH+iY>pgHeight) iH = (int)pgHeight-iY-1;;
-	            **/
 	            
-	            Rectangle2D rect = new Rectangle2D.Double(iX,iY,iW,iH);
+	            // Clamp dimensions to page boundaries
+	            if(iW + iX > pgWidth) {
+	            	iW = (int)pgWidth - iX - 1;
+	            }
+	            if(iH + iY > pgHeight) {
+	            	iH = (int)pgHeight - iY - 1;
+	            }
+	            
+	            // Skip image if it's completely outside page bounds
+	            if(iW <= 0 || iH <= 0)
+	            {
+	            	System.err.println("Warning: Image skipped - completely out of page bounds at (" + iX + "," + iY + ")");
+	            	return;
+	            }
+	            
+	            Rectangle2D rect = new Rectangle2D.Double(iX, iY, iW, iH);
 	            
 	            ContentItem item = ContentUtil.imageToContentItem(
 	            		imgAdj,  //Buffered Image
