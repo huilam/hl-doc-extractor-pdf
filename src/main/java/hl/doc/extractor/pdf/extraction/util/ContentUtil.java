@@ -89,7 +89,7 @@ public class ContentUtil  {
     {
     	if(aContentItem.getType() == Type.IMAGE)
     	{
-    		int iContentSize = aContentItem.getData().length();
+    		int iContentSize = aContentItem.getData()!=null?aContentItem.getData().length():0;
     		
     		String sData100 = "";
     		if(iContentSize>50)
@@ -139,13 +139,13 @@ public class ContentUtil  {
 				}
     	}
     	
-    	return aFile!=null?aFile.isFile():null;
+    	return aFile!=null?aFile.isFile():false;
     }
 	
 	public static String getImageBase64(ContentItem aContentItem)
 	{
 		String sBase64 = null;
-		if(aContentItem.getType()==Type.IMAGE)
+		if(aContentItem!=null && aContentItem.getType()==Type.IMAGE)
 		{
 			sBase64 = aContentItem.getRawData();
 		}
@@ -258,6 +258,9 @@ public class ContentUtil  {
 		        FontMetrics fm = g2d.getFontMetrics();
 		        for(ContentItem item : aPageContentItem)
 		        {
+		        	if(item==null || item.getData()==null)
+		        		continue;
+		        	
 		        	Shape shape = null;
 		        	if(item.getType() == ContentItem.Type.IMAGE)
 		        	{
@@ -318,6 +321,9 @@ public class ContentUtil  {
     	PDFRenderer pdfRenderer = new PDFRenderer(aPDDoc);
     	BufferedImage pageImage = null;
 		try {
+			if(iPageNo<=0)
+				iPageNo = 1;
+			
 			int iPageIndex = iPageNo-1; //index start with 0
 			
 			if(aScale<=0 || aScale>5)
@@ -367,11 +373,12 @@ public class ContentUtil  {
     	
         for(ContentItem it : aExtractedData.getContentItemList())
         {
-        	String sData = it.getData().toLowerCase();
+        	String sData = it.getData()!=null?it.getData().toLowerCase():"";
         	boolean isFound = false;
         	for(String sSearch : listLowerCase)
         	{
-        		if(sData.indexOf(sSearch)>-1)
+        		if(sData.length()>=sSearch.length() 
+        			&& sData.indexOf(sSearch)>-1)
         		{
         			isFound = true;
         			break;
