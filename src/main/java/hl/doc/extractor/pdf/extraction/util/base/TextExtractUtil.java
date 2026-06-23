@@ -1,26 +1,42 @@
 package hl.doc.extractor.pdf.extraction.util.base;
 
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 
 public class TextExtractUtil  {
 
-	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex, boolean isGroupByParagraph) throws IOException {
-
-	    // Silence the missing font warning
-	    Logger.getLogger("org.apache.pdfbox.pdmodel").setLevel(Level.SEVERE);
+	public static List<ContentItem> extractTextContent(
+			PDDocument doc, int pageIndex, 
+			boolean isGroupByParagraph) throws IOException {
+		
+		return extractTextContentByAreas(doc, pageIndex, null, isGroupByParagraph);
+	}
+	
+	public static List<ContentItem> extractTextContentByAreas(
+			PDDocument doc, int pageIndex, Map<String, Rectangle> mapAreasOfInterest,
+			boolean isGroupByParagraph) throws IOException {
 
 	    GroupedTextStripper stripper = new GroupedTextStripper();
 	    stripper.setSortByPosition(true);
 	    stripper.setStartPage(pageIndex + 1);
 	    stripper.setEndPage(pageIndex + 1);
+	    
+	    if(mapAreasOfInterest!=null && mapAreasOfInterest.size()>0)
+	    {
+	    	for(String sLabel: mapAreasOfInterest.keySet())
+	    	{
+	    		Rectangle rect = mapAreasOfInterest.get(sLabel);
+	    		stripper.addAreaOfInterest(sLabel, rect);
+	    	}
+	    }
 	    stripper.getText(doc);
 
 	    List<ContentItem> textItems = stripper.contentItems;

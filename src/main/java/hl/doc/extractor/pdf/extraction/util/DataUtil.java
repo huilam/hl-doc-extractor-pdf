@@ -1,6 +1,5 @@
 package hl.doc.extractor.pdf.extraction.util;
 
-import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 import org.json.JSONArray;

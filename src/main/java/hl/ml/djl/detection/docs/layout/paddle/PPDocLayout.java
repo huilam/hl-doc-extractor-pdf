@@ -43,13 +43,28 @@ public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 		super.loadModel();
 	}
 
+	
 	public DetectedObjects detectDocLayout(File aImageFile) throws IOException, TranslateException
 	{
 		Image inputImage = ImageFactory.getInstance().fromFile(aImageFile.toPath());
-		
-		//inputImage = inputImage.resize(800, 800, false);
-		
-		DetectedObjects detection = this.predictor.predict(inputImage);
+		if(inputImage!=null)
+			return detectDocLayout(inputImage);
+		else
+			return null;
+	}	
+	
+	public DetectedObjects detectDocLayout(BufferedImage aImage) throws IOException, TranslateException
+	{
+		Image inputImage = ImageFactory.getInstance().fromImage(aImage);
+		if(inputImage!=null)
+			return detectDocLayout(inputImage);
+		else
+			return null;
+	}	
+	
+	public DetectedObjects detectDocLayout(Image aInputImage) throws IOException, TranslateException
+	{
+		DetectedObjects detection = this.predictor.predict(aInputImage);
 		System.out.println(detection);
 		return detection;
 	} 

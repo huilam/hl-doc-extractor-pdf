@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -21,11 +23,15 @@ public class GroupedTextStripper extends PDFTextStripper {
     
     List<ContentItem> contentItems = new ArrayList<>();
     List<TextPosition> currentLine = new ArrayList<>();
+    int iExtractSeq = 1;
     
     private Map<String, Rectangle> mapAreasOfInterest = new HashMap<>();
 
-    GroupedTextStripper() throws IOException {}
-    int iExtractSeq = 1;
+    GroupedTextStripper() throws IOException {
+        // Silence the missing font warning
+        Logger.getLogger("org.apache.pdfbox.pdmodel").setLevel(Level.SEVERE);
+        Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
+    }
     
     private String getCommonFontStyle(List<TextPosition> aLineText)
     {
