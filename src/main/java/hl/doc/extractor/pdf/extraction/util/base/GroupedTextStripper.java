@@ -1,10 +1,14 @@
 package hl.doc.extractor.pdf.extraction.util.base;
 
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -14,82 +18,102 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 
 public class GroupedTextStripper extends PDFTextStripper {
-	
+    
     List<ContentItem> contentItems = new ArrayList<>();
     List<TextPosition> currentLine = new ArrayList<>();
+    
+    private Map<String, Rectangle> mapAreasOfInterest = new HashMap<>();
 
     GroupedTextStripper() throws IOException {}
     int iExtractSeq = 1;
     
-    private static String getCommonFontStyle(List<TextPosition> aLineText)
-	{
-		if(aLineText==null || aLineText.size()==0)
-			return null;
-		
-		PDFont firstFont 	= null;
-		PDFont lastFont 	= null;
-		
-		TextPosition textFirst = null;
-		TextPosition textLast = null;
-		
-		int iListSize = aLineText.size()-1;
-		//search first character
-		for(int i=0; i<=iListSize; i++)
-		{
-			if(firstFont==null)
-			{
-				textFirst = aLineText.get(i);
-				if(textFirst.getUnicode().trim().length()>0)
-				{
-					firstFont = textFirst.getFont();
-				}
-			}
-			if(lastFont==null)
-			{
-				textLast = aLineText.get(iListSize-i);
-				if(textLast.getUnicode().trim().length()>0)
-				{
-					lastFont = textLast.getFont();
-				}
-			}
-			
-			if(lastFont!=null && firstFont!=null)
-				break;
-		}
-		
-		if(firstFont!=null && lastFont!=null)
-		{
-			String[] sFontNames = new String[] 
-					{firstFont.getName(), lastFont.getName()};
-			
-			for(int i=0; i<sFontNames.length; i++)
-			{
-				//Remove custom random font name prefix 
-				if (sFontNames[i]!=null && sFontNames[i].contains("+")) {
-					sFontNames[i] = sFontNames[i].substring(sFontNames[i].indexOf("+") + 1);
-				}
-			}
-			
-			if(sFontNames[0]!=null)
-			{
-				if(sFontNames[0].equals(sFontNames[1]))
-					return sFontNames[0]+" ("+textFirst.getFontSizeInPt()+")";
-			}
-			else if(textFirst.getFontSizeInPt() == textLast.getFontSizeInPt())
-			{
-				return "unknown ("+textFirst.getFontSizeInPt()+")";
-			}
-			
-				
-		}
-		
-		return null;
-	}
+    private String getCommonFontStyle(List<TextPosition> aLineText)
+    {
+        if(aLineText==null || aLineText.size()==0)
+            return null;
+        
+        PDFont firstFont     = null;
+        PDFont lastFont     = null;
+        
+        TextPosition textFirst = null;
+        TextPosition textLast = null;
+        
+        int iListSize = aLineText.size()-1;
+        //search first character
+        for(int i=0; i<=iListSize; i++)
+        {
+            if(firstFont==null)
+            {
+                textFirst = aLineText.get(i);
+                if(textFirst.getUnicode().trim().length()>0)
+                {
+                    firstFont = textFirst.getFont();
+                }
+            }
+            if(lastFont==null)
+            {
+                textLast = aLineText.get(iListSize-i);
+                if(textLast.getUnicode().trim().length()>0)
+                {
+                    lastFont = textLast.getFont();
+                }
+            }
+            
+            if(lastFont!=null && firstFont!=null)
+                break;
+        }
+        
+        if(firstFont!=null && lastFont!=null)
+        {
+            String[] sFontNames = new String[] 
+                    {firstFont.getName(), lastFont.getName()};
+            
+            for(int i=0; i<sFontNames.length; i++)
+            {
+                //Remove custom random font name prefix 
+                if (sFontNames[i]!=null && sFontNames[i].contains("+")) {
+                    sFontNames[i] = sFontNames[i].substring(sFontNames[i].indexOf("+") + 1);
+                }
+            }
+            
+            if(sFontNames[0]!=null)
+            {
+                if(sFontNames[0].equals(sFontNames[1]))
+                    return sFontNames[0]+" ("+textFirst.getFontSizeInPt()+")";
+            }
+            else if(textFirst.getFontSizeInPt() == textLast.getFontSizeInPt())
+            {
+                return "unknown ("+textFirst.getFontSizeInPt()+")";
+            }
+        }
+        
+        return null;
+    }
 
     @Override
     protected void processTextPosition(TextPosition text) {
+        // --- FIX: Filter by Multiple Regions of Interest Map ---
+        if (!mapAreasOfInterest.isEmpty()) {
+            double x = text.getXDirAdj();
+            double y = text.getYDirAdj();
+            
+            boolean inAnyRegion = false;
+            for (Rectangle rect : mapAreasOfInterest.values()) {
+                if (rect.contains(x, y)) {
+                    inAnyRegion = true;
+                    break; // Character matches at least one registered area
+                }
+            }
+            
+            // If the character doesn't fall into any defined region, discard it
+            if (!inAnyRegion) {
+                return;
+            }
+        }
+
         if (currentLine.isEmpty()) {
             currentLine.add(text);
+            super.processTextPosition(text); 
             return;
         }
 
@@ -113,6 +137,25 @@ public class GroupedTextStripper extends PDFTextStripper {
             currentLine.add(text);
         }
         super.processTextPosition(text);
+    }
+    
+    public Rectangle getAreaOfInterest(String aAreaName)
+    {
+        return this.mapAreasOfInterest.get(aAreaName);
+    }
+    
+    public void clearAreaOfInterest()
+    {
+        this.mapAreasOfInterest.clear();
+    }
+    
+    public boolean addAreaOfInterest(String aAreaName, Rectangle aAreaRect)
+    {
+        if(aAreaName!=null && aAreaRect!=null)
+        {
+            return this.mapAreasOfInterest.put(aAreaName, aAreaRect)!=null;
+        }
+        return false;
     }
 
     @Override
@@ -191,8 +234,6 @@ public class GroupedTextStripper extends PDFTextStripper {
         String sData = sb.toString();
         
         // --- OPTION 1 FIX: Handle line breaks ---
-        // Append a trailing space if the extracted line text doesn't already end with one.
-        // (If you prefer an actual line break character instead of a space, change " " to "\n")
         if (sData.length() > 0 && !sData.endsWith(" ")) {
             sData += " ";
         }
@@ -208,7 +249,6 @@ public class GroupedTextStripper extends PDFTextStripper {
         double dW = maxX - minX;
         double dH = maxY - minY;
         
-        // Assumption: empty out of view bounding box 
         if(dX < 0) dX = 0;
         if(dY < 0) dY = 0;
         
@@ -217,6 +257,11 @@ public class GroupedTextStripper extends PDFTextStripper {
         ContentItem textItem = new ContentItem(Type.TEXT, sData, getCurrentPageNo(), rect2D);
         textItem.setExtract_seq(iExtractSeq++);
         textItem.setContentFormat(sFormat);
+        
+        // --- OPTIONAL TIP ---
+        // If your ContentItem has a property to hold metadata or label, you can 
+        // determine which area name it belonged to by matching 'rect2D' back to mapAreasOfInterest.
+        
         contentItems.add(textItem);
     }
 }
