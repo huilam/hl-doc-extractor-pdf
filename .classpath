@@ -14,5 +14,12 @@
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.7/pdfbox-3.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.7/pdfbox-io-3.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.7/commons-logging-1.3.6.jar"/>
+	<classpathentry kind="lib" path="lib/djl/0.36.0/api-0.36.0.jar"/>
+	<classpathentry kind="lib" path="lib/djl/0.36.0/gson-2.14.0.jar"/>
+	<classpathentry kind="lib" path="lib/djl/0.36.0/onnxruntime-1.26.0.jar"/>
+	<classpathentry kind="lib" path="lib/djl/0.36.0/onnxruntime-engine-0.36.0.jar"/>
+	<classpathentry kind="lib" path="lib/djl/0.36.0/slf4j-api-2.0.17.jar"/>
+	<classpathentry kind="lib" path="lib/djl/0.36.0/slf4j-simple-2.0.17.jar"/>
+	<classpathentry kind="lib" path="lib/djl/0.36.0/pytorch-engine-0.36.0.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
