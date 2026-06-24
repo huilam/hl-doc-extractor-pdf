@@ -174,7 +174,7 @@ public class ConsoleApp {
         }
         else
         {
-        	folderInput 	= new File("test/");
+        	folderInput 	= new File("test/pdf");
         	folderOutput	= new File(folderInput.getAbsolutePath()+"/output");
         }
 
