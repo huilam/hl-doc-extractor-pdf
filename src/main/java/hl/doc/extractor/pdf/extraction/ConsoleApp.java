@@ -165,7 +165,7 @@ public class ConsoleApp {
     public static void main(String[] args) throws IOException{
         File folderInput 		= null;
         File folderOutput 		= null;
-        String[] sOutputTypes  	= new String[]{"json","txt"};
+        String[] sOutputTypes  	= new String[]{"txt"};
         
         if(isConsoleSyntaxOK(args))
         {
@@ -224,7 +224,7 @@ public class ConsoleApp {
 				        //pdfExtract.setExtractVector(true);
 				        
 				        //Group text by paragraph
-				        pdfExtract.setIsGroupTextVertically(true);
+				        pdfExtract.setIsGroupTextVertically(false);
 				        
 				        ExtractedData content = pdfExtract.extractAll();
 				        

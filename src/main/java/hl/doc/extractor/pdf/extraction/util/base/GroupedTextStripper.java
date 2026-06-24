@@ -26,6 +26,7 @@ public class GroupedTextStripper extends PDFTextStripper {
     int iExtractSeq = 1;
     
     private Map<String, Rectangle> mapAreasOfInterest = new HashMap<>();
+    private Map<String, List<ContentItem>> mapContentItemByAreas = new HashMap<>();
 
     GroupedTextStripper() throws IOException {
         // Silence the missing font warning
@@ -264,9 +265,23 @@ public class GroupedTextStripper extends PDFTextStripper {
         textItem.setExtract_seq(iExtractSeq++);
         textItem.setContentFormat(sFormat);
         
-        // --- OPTIONAL TIP ---
-        // If your ContentItem has a property to hold metadata or label, you can 
-        // determine which area name it belonged to by matching 'rect2D' back to mapAreasOfInterest.
+        if(mapAreasOfInterest!=null && mapAreasOfInterest.size()>0)
+        {
+        	for(String sAreaName: mapAreasOfInterest.keySet())
+        	{
+        		Rectangle rectInterest = mapAreasOfInterest.get(sAreaName);
+        		
+        		if(rectInterest.contains(
+        				rect2D.getX(), rect2D.getY(), 
+        				rect2D.getWidth(), rect2D.getHeight()))
+				{
+        			List<ContentItem> listItems = mapContentItemByAreas.get(sAreaName);
+        			if(listItems==null)
+        				listItems = new ArrayList<>();
+        			listItems.add(textItem);
+				}
+        	}
+        }
         
         contentItems.add(textItem);
     }

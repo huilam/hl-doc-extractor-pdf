@@ -14,15 +14,13 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem;
 public class TextExtractUtil  {
 
 	public static List<ContentItem> extractTextContent(
-			PDDocument doc, int pageIndex, 
-			boolean isGroupByParagraph) throws IOException {
+			PDDocument doc, int pageIndex) throws IOException {
 		
-		return extractTextContentByAreas(doc, pageIndex, null, isGroupByParagraph);
+		return extractTextContentByAreas(doc, pageIndex, null);
 	}
 	
 	public static List<ContentItem> extractTextContentByAreas(
-			PDDocument doc, int pageIndex, Map<String, Rectangle> mapAreasOfInterest,
-			boolean isGroupByParagraph) throws IOException {
+			PDDocument doc, int pageIndex, Map<String, Rectangle> mapAreasOfInterest) throws IOException {
 
 	    GroupedTextStripper stripper = new GroupedTextStripper();
 	    stripper.setSortByPosition(true);
@@ -38,13 +36,7 @@ public class TextExtractUtil  {
 	    	}
 	    }
 	    stripper.getText(doc);
-
-	    List<ContentItem> textItems = stripper.contentItems;
-	    
-	    if(isGroupByParagraph)
-	        textItems = groupTextByParagraph(textItems);
-	    
-	    return textItems;
+	    return stripper.contentItems;
 	}
 	
 	// ---- Helper function to count words in a line ----
@@ -55,7 +47,7 @@ public class TextExtractUtil  {
 		return text.trim().split("\\s+").length;
 	}
 	
-	private static List<ContentItem> groupTextByParagraph(List<ContentItem> aTextItems)
+	public static List<ContentItem> groupTextByParagraph(List<ContentItem> aTextItems)
 	{
 		return groupVerticalText(aTextItems, 1.4, true, true);
 	}

@@ -27,17 +27,17 @@ import hl.ml.djl.DjlModelConfig;
 
 public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 	
-	@SuppressWarnings("rawtypes")
-	protected PPDocLayout(Class aImplClass, DjlModelConfig aDjlModelConfig)
+	public PPDocLayout()
 	{
-		aDjlModelConfig.setTranslator_factory(new PPStructureLayoutTranslatorFactory());
-		
-		//if(aDjlModelConfig.getDevice_type()==null)
-		//	aDjlModelConfig.setDevice_type(Device.cpu());
+		DjlModelConfig config = new DjlModelConfig();
+		//
+		config.setModel_name("pp-doclayoutv3");
+		config.setRuntime_engine(DjlConstants.RT_ENGINE_ONNX);
+		config.setTranslator_factory(new PPStructureLayoutTranslatorFactory());
 		
 		super(
-			aImplClass, 
-			aDjlModelConfig, 
+			PPDocLayout.class, 
+			config, 
 			Criteria.builder().setTypes(Image.class, DetectedObjects.class));
 		
 		super.loadModel();
@@ -53,7 +53,7 @@ public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 			return null;
 	}	
 	
-	public DetectedObjects detectDocLayout(BufferedImage aImage) throws IOException, TranslateException
+	public DetectedObjects detectDocLayout(BufferedImage aImage) throws IOException
 	{
 		Image inputImage = ImageFactory.getInstance().fromImage(aImage);
 		if(inputImage!=null)
@@ -62,12 +62,26 @@ public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 			return null;
 	}	
 	
-	public DetectedObjects detectDocLayout(Image aInputImage) throws IOException, TranslateException
+	public DetectedObjects detectDocLayout(Image aInputImage) throws IOException
 	{
-		DetectedObjects detection = this.predictor.predict(aInputImage);
-		System.out.println(detection);
+		DetectedObjects detection = null;
+		try {
+			detection = this.predictor.predict(aInputImage);
+		} catch (TranslateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return detection;
 	} 
+	
+	public void destroy()
+	{
+		if(this.predictor!=null)
+			this.predictor.close();
+		
+		if(this.model!=null)
+			this.model.close();
+	}
 	
 	public static void annotateImage(File originalFile, DetectedObjects detections, String outputFilePath) throws IOException {
         // 1. Read the original image into a standard Java BufferedImage
@@ -153,16 +167,8 @@ public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 		File folderImage = new File("./test/images/pdf");
 		if(folderImage.listFiles()!=null)
 		{
-			DjlModelConfig config = new DjlModelConfig();
 			//
-			config.setModel_name("pp-doclayoutv3");
-			config.setRuntime_engine(DjlConstants.RT_ENGINE_ONNX);
-			//
-			//config.addOption("ortDevice", "CoreML");// This is the direct key DJL uses to choose the native acceleration device
-			//config.addOption("coreml.OptimizationHint", "ALL");    // Instruct CoreML to use CPU, GPU, and ANE
-	        
-			//
-			PPDocLayout det = new PPDocLayout(PPDocLayout.class, config);
+			PPDocLayout det = new PPDocLayout();
 			//
 			File folderOutput = new File(folderImage.getAbsoluteFile()+"/output/"+System.currentTimeMillis());
 			for(File f : folderImage.listFiles())

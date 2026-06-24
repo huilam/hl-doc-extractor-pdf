@@ -1,7 +1,10 @@
 package hl.doc.extractor.pdf.extraction.util;
 
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.util.base.ImageExtractUtil;
@@ -13,13 +16,15 @@ public class ExtractionUtil  {
 	// ---- TEXT BOUNDING BOXES ----
 	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex) throws IOException 
 	{
-		return extractTextContent(doc, pageIndex, true);
-	}
-	public static List<ContentItem> extractTextContent(PDDocument doc, int pageIndex, boolean isGroupByParagraph) throws IOException 
-	{
-		return TextExtractUtil.extractTextContent(doc, pageIndex, isGroupByParagraph);
+		return TextExtractUtil.extractTextContent(doc, pageIndex);
 	}
 	
+	public static List<ContentItem> extractTextContentByAreas(PDDocument doc, int pageIndex, 
+			Map<String, Rectangle> mapAreasOfInterest) throws IOException 
+	{
+		return TextExtractUtil.extractTextContentByAreas(doc, pageIndex, mapAreasOfInterest);
+	}
+
 	// ---- IMAGE BOUNDING BOXES (Y-flipped to match BufferedImage coordinates) ----
 	public static List<ContentItem> extractImageContent(PDDocument doc, int pageIndex) throws IOException 
 	{

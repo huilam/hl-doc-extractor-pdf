@@ -2,9 +2,11 @@ package hl.doc.extractor.pdf.extraction.base;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.json.JSONObject;
 
+import ai.djl.modality.cv.output.DetectedObjects;
 import hl.common.ImgUtil;
 import hl.doc.extractor.pdf.extraction.model.ContentItem;
 import hl.doc.extractor.pdf.extraction.model.ExtractedData;
@@ -14,10 +16,13 @@ import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
+import hl.doc.extractor.pdf.extraction.util.base.TextExtractUtil;
+import hl.ml.djl.detection.docs.layout.paddle.PPDocLayout;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -41,6 +46,7 @@ abstract public class AbstractExtractor
 	private PDDocument pdf_doc 	= null;
 	private SORT[] sortings 	= null; 
 	//
+	private boolean is_detect_layout 	= false;
 	private boolean is_extract_text 	= true;
 	private boolean is_extract_image 	= true;
 	private boolean is_extract_vector 	= false;
@@ -49,6 +55,7 @@ abstract public class AbstractExtractor
 	private float force_pdf_version = -1f;
 	private boolean is_group_text_vertically = false;
 	//
+	private PPDocLayout ppDocLayout = null;
 	
 	public String getVersion()
 	{
@@ -91,6 +98,9 @@ abstract public class AbstractExtractor
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+    	
+    	if(ppDocLayout!=null)
+			ppDocLayout.destroy();
     }
 
     public File getOrigPdfFile()
@@ -165,9 +175,30 @@ abstract public class AbstractExtractor
     		List<ContentItem> listImage 	= new ArrayList<>();
     		List<ContentItem> listVector 	= new ArrayList<>();
     		
+    		Map<String, Rectangle> mapInterestAreas = null;
+    		
+    		if(this.is_detect_layout)
+    		{
+    			mapInterestAreas = new HashMap<>();
+    			
+    			PDFRenderer pdfRenderer = new PDFRenderer(pdf_doc);
+                BufferedImage imagePage = pdfRenderer.renderImageWithDPI(iPageNo-1, 72, ImageType.RGB);
+                
+                if(ppDocLayout==null) ppDocLayout = new PPDocLayout();
+                DetectedObjects dets = ppDocLayout.detectDocLayout(imagePage);
+                
+                
+                System.out.println(dets);
+    		}
+    		////
     		if(this.is_extract_text)
     		{
-		    	listText = ExtractionUtil.extractTextContent(pdf_doc, iPageNo-1, this.is_group_text_vertically);
+		    	listText = ExtractionUtil.extractTextContentByAreas(pdf_doc, iPageNo-1, mapInterestAreas);
+		    	
+		    	if(this.is_group_text_vertically)
+		    	{
+		    		listText = TextExtractUtil.groupTextByParagraph(listText);
+		    	}
     		}
 	    	////
     		if(this.is_extract_image)
