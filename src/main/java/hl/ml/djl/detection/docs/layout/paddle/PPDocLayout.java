@@ -182,7 +182,7 @@ public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 					{
 						long lStartMs = System.currentTimeMillis();
 						
-						Image inputImage = ImageFactory.getInstance().fromImage(f);
+						Image inputImage = ImageFactory.getInstance().fromFile(f.toPath());
 						DetectedObjects detObjs = det.detectDocLayout(inputImage);
 						long lElapsedMs = System.currentTimeMillis()-lStartMs;
 						
