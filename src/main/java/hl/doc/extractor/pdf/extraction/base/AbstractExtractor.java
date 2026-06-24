@@ -4,6 +4,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ai.djl.modality.cv.output.DetectedObjects;
@@ -46,7 +47,8 @@ abstract public class AbstractExtractor
 	private PDDocument pdf_doc 	= null;
 	private SORT[] sortings 	= null; 
 	//
-	private boolean is_detect_layout 	= false;
+	private boolean is_detect_layout 	= false; //docLayout
+	//
 	private boolean is_extract_text 	= true;
 	private boolean is_extract_image 	= true;
 	private boolean is_extract_vector 	= false;
@@ -185,10 +187,34 @@ abstract public class AbstractExtractor
                 BufferedImage imagePage = pdfRenderer.renderImageWithDPI(iPageNo-1, 72, ImageType.RGB);
                 
                 if(ppDocLayout==null) ppDocLayout = new PPDocLayout();
-                DetectedObjects dets = ppDocLayout.detectDocLayout(imagePage);
+                JSONArray jsonArrDets = ppDocLayout.getDocLayoutInJson(imagePage);
+                System.out.println(jsonArrDets.toString(4));
                 
                 
-                System.out.println(dets);
+                for(int i=0; i<jsonArrDets.length(); i++)
+                {
+                	JSONObject json = jsonArrDets.getJSONObject(i);
+                	String sObjClassName = json.optString("className");
+                	if(sObjClassName.equalsIgnoreCase("text"))
+                	{
+                		JSONObject jsonBox = json.optJSONObject("boundingBox");
+                		if(jsonBox!=null)
+                		{
+                			JSONArray jsonRect = jsonBox.optJSONArray("rect");
+                			
+                			int iX = Math.round(jsonRect.getFloat(0));
+                			int iY = Math.round(jsonRect.getFloat(1));
+                			int iW = Math.round(jsonRect.getFloat(2));
+                			int iH = Math.round(jsonRect.getFloat(3));
+                			
+                			Rectangle rect = new Rectangle(iX, iY, iW, iH);
+                			
+                			mapInterestAreas.put(sObjClassName+"_"+iX+"_"+iY, rect);
+                		}
+                	}
+                	
+                }
+                 
     		}
     		////
     		if(this.is_extract_text)

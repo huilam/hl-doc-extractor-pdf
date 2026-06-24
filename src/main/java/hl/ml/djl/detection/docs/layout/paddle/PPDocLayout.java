@@ -14,6 +14,8 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
+import org.json.JSONArray;
+
 import ai.djl.modality.cv.Image;
 import ai.djl.modality.cv.ImageFactory;
 import ai.djl.modality.cv.output.BoundingBox;
@@ -42,25 +44,26 @@ public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 		
 		super.loadModel();
 	}
-
 	
-	public DetectedObjects detectDocLayout(File aImageFile) throws IOException, TranslateException
-	{
-		Image inputImage = ImageFactory.getInstance().fromFile(aImageFile.toPath());
-		if(inputImage!=null)
-			return detectDocLayout(inputImage);
-		else
-			return null;
-	}	
-	
-	public DetectedObjects detectDocLayout(BufferedImage aImage) throws IOException
+	public JSONArray getDocLayoutInJson(BufferedImage aImage) throws IOException
 	{
 		Image inputImage = ImageFactory.getInstance().fromImage(aImage);
 		if(inputImage!=null)
-			return detectDocLayout(inputImage);
+			return getDocLayoutInJson(inputImage);
 		else
 			return null;
 	}	
+	
+	public JSONArray getDocLayoutInJson(Image aInputImage) throws IOException
+	{
+		JSONArray jsonData = new JSONArray();
+		DetectedObjects detection = detectDocLayout(aInputImage);
+		if(detection!=null)
+		{
+			jsonData = new JSONArray(detection.toJson());
+		}
+		return jsonData;
+	} 
 	
 	public DetectedObjects detectDocLayout(Image aInputImage) throws IOException
 	{
@@ -178,7 +181,9 @@ public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 					if(f.getName().toLowerCase().endsWith(".jpg"))
 					{
 						long lStartMs = System.currentTimeMillis();
-						DetectedObjects detObjs = det.detectDocLayout(f);
+						
+						Image inputImage = ImageFactory.getInstance().fromImage(f);
+						DetectedObjects detObjs = det.detectDocLayout(inputImage);
 						long lElapsedMs = System.currentTimeMillis()-lStartMs;
 						
 						folderOutput.mkdirs();
