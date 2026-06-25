@@ -1,4 +1,4 @@
-package hl.doc.extractor.pdf.extraction.model;
+package hl.doc.extractor.pdf.extraction.pojo;
 
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;

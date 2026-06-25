@@ -9,11 +9,11 @@ import org.json.JSONObject;
 
 import ai.djl.modality.cv.output.DetectedObjects;
 import hl.common.ImgUtil;
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ExtractedData;
-import hl.doc.extractor.pdf.extraction.model.MetaData;
-import hl.doc.extractor.pdf.extraction.model.VectorData;
-import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ExtractedData;
+import hl.doc.extractor.pdf.extraction.pojo.MetaData;
+import hl.doc.extractor.pdf.extraction.pojo.VectorData;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
@@ -294,6 +294,11 @@ abstract public class AbstractExtractor
         ExtractedData extracted = new ExtractedData(this.pdf_meta);
         extracted.setContentItemList(listItems);
         return extracted;
+    }
+    
+    public void setDetectDocLayout(boolean isDetectLayout)
+    {
+    	this.is_detect_layout = isDetectLayout;
     }
     
     public void setExtractText(boolean isExtract)

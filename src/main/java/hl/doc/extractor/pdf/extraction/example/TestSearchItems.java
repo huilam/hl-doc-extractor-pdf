@@ -1,8 +1,8 @@
 package hl.doc.extractor.pdf.extraction.example;
 
 import hl.doc.extractor.pdf.extraction.PDFExtractor;
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ExtractedData;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ExtractedData;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 import java.awt.image.BufferedImage;

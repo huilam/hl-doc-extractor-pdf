@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
 import hl.doc.extractor.pdf.extraction.util.base.ImageExtractUtil;
 import hl.doc.extractor.pdf.extraction.util.base.TextExtractUtil;
 import hl.doc.extractor.pdf.extraction.util.base.VectorExtractUtil;

@@ -18,7 +18,7 @@ import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.util.Matrix;
 
 import hl.common.ImgUtil;
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 public class ImageExtractUtil  {

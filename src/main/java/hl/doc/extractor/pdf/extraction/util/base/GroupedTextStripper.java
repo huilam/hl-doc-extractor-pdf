@@ -16,8 +16,8 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem.Type;
 
 public class GroupedTextStripper extends PDFTextStripper {
     

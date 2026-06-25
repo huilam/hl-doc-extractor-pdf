@@ -5,8 +5,8 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem.Type;
 
 public class DataUtil  {
 	

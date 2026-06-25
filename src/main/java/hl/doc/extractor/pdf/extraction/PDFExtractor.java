@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import hl.doc.extractor.pdf.extraction.base.AbstractExtractor;
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 
 public class PDFExtractor extends AbstractExtractor

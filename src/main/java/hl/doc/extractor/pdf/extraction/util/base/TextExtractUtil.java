@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
 
 public class TextExtractUtil  {
 

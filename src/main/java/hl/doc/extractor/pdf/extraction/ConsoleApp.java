@@ -1,10 +1,10 @@
 package hl.doc.extractor.pdf.extraction;
 
-import hl.doc.extractor.pdf.extraction.model.ContentItem;
-import hl.doc.extractor.pdf.extraction.model.ExtractedData;
-import hl.doc.extractor.pdf.extraction.model.MetaData;
-import hl.doc.extractor.pdf.extraction.model.VectorData;
-import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
+import hl.doc.extractor.pdf.extraction.pojo.ExtractedData;
+import hl.doc.extractor.pdf.extraction.pojo.MetaData;
+import hl.doc.extractor.pdf.extraction.pojo.VectorData;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 import java.awt.Color;
@@ -221,6 +221,8 @@ public class ConsoleApp {
 				        pdfExtract = new PDFExtractor(f);
 				        pdfExtract.setExtractText(true);
 				        pdfExtract.setExtractImage(true);
+				        
+				        pdfExtract.setDetectDocLayout(true);
 				        //pdfExtract.setExtractVector(true);
 				        
 				        //Group text by paragraph

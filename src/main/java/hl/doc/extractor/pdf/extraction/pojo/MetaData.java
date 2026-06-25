@@ -1,4 +1,4 @@
-package hl.doc.extractor.pdf.extraction.model;
+package hl.doc.extractor.pdf.extraction.pojo;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

@@ -1,4 +1,4 @@
-package hl.doc.extractor.pdf.extraction.model;
+package hl.doc.extractor.pdf.extraction.pojo;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 
 import org.json.JSONObject;
 
-import hl.doc.extractor.pdf.extraction.model.ContentItem.Type;
+import hl.doc.extractor.pdf.extraction.pojo.ContentItem.Type;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.DataUtil;
 
