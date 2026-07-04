@@ -2,6 +2,8 @@ package hl.doc.extractor.pdf.extraction.pojo;
 
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContentItem {
 	//
@@ -21,6 +23,7 @@ public class ContentItem {
 	private String rawdata 	= null;
 	private String data 	= null;
 	private double group_no	= -1;
+	private List<String> layout_areas = new ArrayList<String>();
 	private Rectangle2D rect= null;
 
 	public ContentItem(Type type, String content, int pageno, 
@@ -46,7 +49,29 @@ public class ContentItem {
         this.rect = rect2d;
         this.rawdata = data;
 	}
-
+	//
+	//
+	public void assocLayoutArea(String aAreaName)
+	{
+		this.layout_areas.add("["+aAreaName+"]");
+	}
+	
+	public String assocLayoutAreasAsString()
+	{
+		String[] layoutAreas = (String[])this.layout_areas.toArray();
+		return String.join("", layoutAreas).trim();
+	}
+	
+	public void removeLayoutArea(String aAreaName)
+	{
+		this.layout_areas.remove("["+aAreaName+"]");
+	}
+	
+	public void clearLayoutArea()
+	{
+		this.layout_areas.clear();
+	}
+	//
 	//
 	public Type getType() {
 		return type;

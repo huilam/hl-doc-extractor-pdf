@@ -8,14 +8,11 @@ import ai.djl.translate.TranslatorFactory;
 
 public class DjlModelConfig {
 	
-	public static final String RT_ENGINE_ONNX 		= "OnnxRuntime";
-	public static final String RT_ENGINE_PYTORCH 	= "PyTorch";
-	
 	private String model_name 				= null;
 	private String model_uri 				= null;
 	private String runtime_engine 			= DjlConstants.RT_ENGINE_ONNX;
 	//
-	private Device device_type				= null;
+	private Device device_type						= null;
 	private TranslatorFactory translator_factory 	= null;
 	private Map<String, Object> mapMLArgs 			= new HashMap<>();
 	private Map<String, String> mapOptions 			= new HashMap<>();

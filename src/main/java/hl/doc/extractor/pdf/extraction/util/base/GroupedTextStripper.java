@@ -25,7 +25,7 @@ public class GroupedTextStripper extends PDFTextStripper {
     List<TextPosition> currentLine = new ArrayList<>();
     int iExtractSeq = 1;
     
-    private Map<String, Rectangle> mapAreasOfInterest = new HashMap<>();
+    private Map<String, Rectangle> mapAreasOfInterest = null;
     private Map<String, List<ContentItem>> mapContentItemByAreas = new HashMap<>();
 
     GroupedTextStripper() throws IOException {
@@ -100,7 +100,7 @@ public class GroupedTextStripper extends PDFTextStripper {
     @Override
     protected void processTextPosition(TextPosition text) {
         // --- FIX: Filter by Multiple Regions of Interest Map ---
-        if (!mapAreasOfInterest.isEmpty()) {
+        if (mapAreasOfInterest!=null && !mapAreasOfInterest.isEmpty()) {
             double x = text.getXDirAdj();
             double y = text.getYDirAdj();
             
@@ -148,19 +148,33 @@ public class GroupedTextStripper extends PDFTextStripper {
     
     public Rectangle getAreaOfInterest(String aAreaName)
     {
-        return this.mapAreasOfInterest.get(aAreaName);
+    	if(this.mapAreasOfInterest!=null)
+    	{
+    		return this.mapAreasOfInterest.get(aAreaName);
+    	}
+    	return null;
     }
     
     public void clearAreaOfInterest()
     {
-        this.mapAreasOfInterest.clear();
+    	if(this.mapAreasOfInterest!=null)
+    	{
+    		this.mapAreasOfInterest.clear();
+    	}
+    	else
+    	{
+    		this.mapAreasOfInterest = new HashMap<>();
+    	}
     }
     
     public boolean addAreaOfInterest(String aAreaName, Rectangle aAreaRect)
     {
         if(aAreaName!=null && aAreaRect!=null)
         {
-            return this.mapAreasOfInterest.put(aAreaName, aAreaRect)!=null;
+        	if(this.mapAreasOfInterest!=null)
+        	{
+        		return this.mapAreasOfInterest.put(aAreaName, aAreaRect)!=null;
+        	}
         }
         return false;
     }
@@ -265,7 +279,7 @@ public class GroupedTextStripper extends PDFTextStripper {
         textItem.setExtract_seq(iExtractSeq++);
         textItem.setContentFormat(sFormat);
         
-        if(mapAreasOfInterest!=null && mapAreasOfInterest.size()>0)
+        if(mapAreasOfInterest!=null)
         {
         	for(String sAreaName: mapAreasOfInterest.keySet())
         	{
@@ -275,14 +289,23 @@ public class GroupedTextStripper extends PDFTextStripper {
         				rect2D.getX(), rect2D.getY(), 
         				rect2D.getWidth(), rect2D.getHeight()))
 				{
+        			textItem.assocLayoutArea(sAreaName);
+        			//
         			List<ContentItem> listItems = mapContentItemByAreas.get(sAreaName);
         			if(listItems==null)
         				listItems = new ArrayList<>();
         			listItems.add(textItem);
 				}
         	}
+        	
+        	if(textItem.assocLayoutAreasAsString().length()>0)
+        	{
+        		contentItems.add(textItem);
+        	}
         }
-        
-        contentItems.add(textItem);
+        else
+        {
+        	contentItems.add(textItem);
+        }
     }
 }
