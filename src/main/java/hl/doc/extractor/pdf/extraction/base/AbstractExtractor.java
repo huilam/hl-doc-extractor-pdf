@@ -18,7 +18,6 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 import hl.doc.extractor.pdf.extraction.util.ContentUtil.SORT;
 import hl.doc.extractor.pdf.extraction.util.ExtractionUtil;
 import hl.doc.extractor.pdf.extraction.util.base.TextExtractUtil;
-import hl.ml.djl.detection.docs.layout.paddle.PPDocLayout;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -47,8 +46,6 @@ abstract public class AbstractExtractor
 	private PDDocument pdf_doc 	= null;
 	private SORT[] sortings 	= null; 
 	//
-	private boolean is_detect_layout 	= false; //docLayout
-	//
 	private boolean is_extract_text 	= true;
 	private boolean is_extract_image 	= true;
 	private boolean is_extract_vector 	= false;
@@ -57,7 +54,8 @@ abstract public class AbstractExtractor
 	private float force_pdf_version = -1f;
 	private boolean is_group_text_vertically = false;
 	//
-	private PPDocLayout ppDocLayout = null;
+	private boolean is_detect_layout 	= false; //docLayout
+	private DocLayoutDetector docLayoutDetector = null;
 	
 	public String getVersion()
 	{
@@ -101,8 +99,8 @@ abstract public class AbstractExtractor
 				e.printStackTrace();
 			}
     	
-    	if(ppDocLayout!=null)
-			ppDocLayout.destroy();
+    	if(docLayoutDetector!=null)
+    		docLayoutDetector.release();
     }
 
     public File getOrigPdfFile()
@@ -181,40 +179,10 @@ abstract public class AbstractExtractor
     		
     		if(this.is_detect_layout)
     		{
-    			mapInterestAreas = new HashMap<>();
+    			if(docLayoutDetector==null)
+					docLayoutDetector = new DocLayoutDetector();
     			
-    			PDFRenderer pdfRenderer = new PDFRenderer(pdf_doc);
-                BufferedImage imagePage = pdfRenderer.renderImageWithDPI(iPageNo-1, 72, ImageType.RGB);
-                
-                if(ppDocLayout==null) ppDocLayout = new PPDocLayout();
-                JSONArray jsonArrDets = ppDocLayout.getDocLayoutInJson(imagePage);
-                System.out.println(jsonArrDets.toString(4));
-                
-                
-                for(int i=0; i<jsonArrDets.length(); i++)
-                {
-                	JSONObject json = jsonArrDets.getJSONObject(i);
-                	String sObjClassName = json.optString("className");
-                	if(sObjClassName.equalsIgnoreCase("text"))
-                	{
-                		JSONObject jsonBox = json.optJSONObject("boundingBox");
-                		if(jsonBox!=null)
-                		{
-                			JSONArray jsonRect = jsonBox.optJSONArray("rect");
-                			
-                			int iX = Math.round(jsonRect.getFloat(0));
-                			int iY = Math.round(jsonRect.getFloat(1));
-                			int iW = Math.round(jsonRect.getFloat(2));
-                			int iH = Math.round(jsonRect.getFloat(3));
-                			
-                			Rectangle rect = new Rectangle(iX, iY, iW, iH);
-                			
-                			mapInterestAreas.put(sObjClassName+"_"+iX+"_"+iY, rect);
-                		}
-                	}
-                	
-                }
-                 
+    			mapInterestAreas = docLayoutDetector.detectLayoutROI(pdf_doc, iPageNo);
     		}
     		////
     		if(this.is_extract_text)
