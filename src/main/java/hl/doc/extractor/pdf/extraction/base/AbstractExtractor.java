@@ -7,7 +7,6 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ai.djl.modality.cv.output.DetectedObjects;
 import hl.common.ImgUtil;
 import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
 import hl.doc.extractor.pdf.extraction.pojo.ExtractedData;

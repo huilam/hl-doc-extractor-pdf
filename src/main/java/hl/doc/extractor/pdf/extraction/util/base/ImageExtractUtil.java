@@ -118,6 +118,7 @@ public class ImageExtractUtil  {
 	            	System.err.println("Warning: Image skipped - completely out of page bounds at (" + iX + "," + iY + ")");
 	            	return;
 	            }
+	            
 	            if(iH<iMinImageHeight)
 	            {
 	            	System.err.println("Warning: Image skipped - below minHeight of "+iMinImageHeight+" (" + iW + "x" + iH + ")");
@@ -127,10 +128,9 @@ public class ImageExtractUtil  {
 	            Color colorSolid = ImgUtil.isSolidColorOnly(imgAdj);
 	            if(colorSolid!=null)
 	            {
-	            	System.err.println("Warning: Image skipped - solid color image detected ! ( RGB:"+colorSolid.getRGB()+" - "+ iW + "x" + iH + ")");
+	            	System.err.println("Warning: Image skipped - solid color image detected ! (RGB:"+colorSolid.getRGB()+" - "+ iW + "x" + iH + ")");
 	            	return;
 	            }
-	            
 	            
 	            Rectangle2D rect = new Rectangle2D.Double(iX, iY, iW, iH);
 	            
