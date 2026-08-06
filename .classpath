@@ -8,7 +8,6 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="lib/hl-common_jdk21_20260225-1355-11.jar"/>
 	<classpathentry kind="lib" path="lib/json-20260522.jar"/>
 	<classpathentry kind="lib" path="lib/djl/0.36.0/api-0.36.0.jar"/>
 	<classpathentry kind="lib" path="lib/djl/0.36.0/gson-2.14.0.jar"/>
@@ -21,5 +20,6 @@
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.8/fontbox-3.0.8.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.8/pdfbox-3.0.8.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.8/pdfbox-io-3.0.8.jar"/>
+	<classpathentry kind="lib" path="lib/hl-common_jdk21_20260805-2306-52.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
