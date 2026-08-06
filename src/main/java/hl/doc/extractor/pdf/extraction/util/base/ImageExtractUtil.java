@@ -1,5 +1,6 @@
 package hl.doc.extractor.pdf.extraction.util.base;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -120,6 +121,13 @@ public class ImageExtractUtil  {
 	            if(iH<iMinImageHeight)
 	            {
 	            	System.err.println("Warning: Image skipped - below minHeight of "+iMinImageHeight+" (" + iW + "x" + iH + ")");
+	            	return;
+	            }
+	            
+	            Color colorSolid = ImgUtil.isSolidColorOnly(imgAdj);
+	            if(colorSolid!=null)
+	            {
+	            	System.err.println("Warning: Image skipped - solid color image detected ! ( RGB:"+colorSolid.getRGB()+" - "+ iW + "x" + iH + ")");
 	            	return;
 	            }
 	            

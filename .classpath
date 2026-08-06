@@ -10,16 +10,10 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="lib/json-20260522.jar"/>
 	<classpathentry kind="lib" path="lib/djl/0.36.0/api-0.36.0.jar"/>
-	<classpathentry kind="lib" path="lib/djl/0.36.0/gson-2.14.0.jar"/>
-	<classpathentry kind="lib" path="lib/djl/0.36.0/onnxruntime-1.26.0.jar"/>
-	<classpathentry kind="lib" path="lib/djl/0.36.0/onnxruntime-engine-0.36.0.jar"/>
-	<classpathentry kind="lib" path="lib/djl/0.36.0/slf4j-api-2.0.17.jar"/>
-	<classpathentry kind="lib" path="lib/djl/0.36.0/slf4j-simple-2.0.17.jar"/>
-	<classpathentry kind="lib" path="lib/djl/0.36.0/pytorch-engine-0.36.0.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.8/commons-logging-1.4.0.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.8/fontbox-3.0.8.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.8/pdfbox-3.0.8.jar"/>
 	<classpathentry kind="lib" path="lib/pdfbox/3.0.8/pdfbox-io-3.0.8.jar"/>
-	<classpathentry kind="lib" path="lib/hl-common_jdk21_20260805-2306-52.jar"/>
+	<classpathentry kind="lib" path="lib/hl-common_jdk21_20260806-1341-56.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

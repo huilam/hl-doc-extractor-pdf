@@ -317,7 +317,7 @@ public class VectorExtractUtil  {
     	return isBoundingBox(aVectorPath, aMinLength, aMinLength);
     }
     
-    public static boolean isBoundingBox(final Path2D aVectorPath, int aMinWidth, int aMinHeight)
+    private static boolean isBoundingBox(final Path2D aVectorPath, int aMinWidth, int aMinHeight)
     {
 		Area areaPath = new Area(aVectorPath);
 		return  aVectorPath.getBounds().getWidth()>aMinWidth 
