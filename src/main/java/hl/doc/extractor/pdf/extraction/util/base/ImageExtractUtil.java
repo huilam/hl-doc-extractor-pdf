@@ -23,8 +23,12 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 public class ImageExtractUtil  {
 
+
+ 	public static List<ContentItem> extractImageContent(PDDocument doc, int pageIndex, boolean isResizeImage) throws IOException {
+ 		return extractImageContent(doc, pageIndex, isResizeImage, 3);
+ 	}
 	// ---- IMAGE BOUNDING BOXES (Y-flipped to match BufferedImage coordinates) ----
-	public static List<ContentItem> extractImageContent(PDDocument doc, int pageIndex, boolean isResizeImage) throws IOException {
+	public static List<ContentItem> extractImageContent(PDDocument doc, int pageIndex, boolean isResizeImage, int iMinImageHeight) throws IOException {
 		PDPage page = doc.getPage(pageIndex);
 		
 		float scale = 1.0f;
@@ -34,11 +38,13 @@ public class ImageExtractUtil  {
 	    class ImagePositionEngine extends PDFGraphicsStreamEngine {
 	        final List<ContentItem> contentItems = new ArrayList<>();
 	        int iExtractSeq = 1;
+	       
 
 	        ImagePositionEngine(PDPage page) { 
 	        	super(page); 
 	        	Logger.getLogger("org.apache.pdfbox.contentstream.operator.graphics").setLevel(Level.SEVERE);
 	        }
+	        
 
 	        @Override
 	        public void drawImage(PDImage pdImage) throws IOException {
@@ -111,6 +117,12 @@ public class ImageExtractUtil  {
 	            	System.err.println("Warning: Image skipped - completely out of page bounds at (" + iX + "," + iY + ")");
 	            	return;
 	            }
+	            if(iH<iMinImageHeight)
+	            {
+	            	System.err.println("Warning: Image skipped - below minHeight of "+iMinImageHeight+" (" + iW + "x" + iH + ")");
+	            	return;
+	            }
+	            
 	            
 	            Rectangle2D rect = new Rectangle2D.Double(iX, iY, iW, iH);
 	            
