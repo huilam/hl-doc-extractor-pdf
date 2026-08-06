@@ -31,6 +31,7 @@ import org.apache.pdfbox.util.Matrix;
 
 import hl.doc.extractor.pdf.extraction.pojo.ContentItem;
 import hl.doc.extractor.pdf.extraction.pojo.VectorData;
+import hl.doc.extractor.pdf.extraction.util.PathGeometryUtils;
 import hl.doc.extractor.pdf.extraction.pojo.ContentItem.Type;
 
 public class VectorExtractUtil  {
@@ -189,10 +190,14 @@ public class VectorExtractUtil  {
         DrawingPositionEngine engine = new DrawingPositionEngine(page);
         engine.processPage(page);
         
-        List<Path2D> listVectors = engine.listVector;
+        List<Path2D> listVectors = stitchListIntoShapes(engine.listVector);
         
+    	
         if(isGroupVectors)
         {
+        	//System.out.println("Before stitchListIntoShapes: "+listVectors.size());
+        	//System.out.println("AFTER stitchListIntoShapes: "+listVectors.size());
+        	
         	listVectors = groupByBounds(pageIndex, listVectors, grouping_bound_expand_len, grouping_intersect_threshold);
         }
         
@@ -286,6 +291,77 @@ public class VectorExtractUtil  {
         }
         
         return listVectors;
+    }
+    
+    public static List<Path2D> stitchListIntoShapes(List<Path2D> aOrigVectorList) {
+        List<Path2D> resultShapes = new ArrayList<>();
+        
+        if (aOrigVectorList == null || aOrigVectorList.isEmpty()) {
+            return resultShapes;
+        }
+
+        // 1. Working copy so we can remove lines as we group them
+        List<Path2D> remainingLines = new ArrayList<>(aOrigVectorList);
+
+        // 2. Keep processing until all lines belong to a shape
+        while (!remainingLines.isEmpty()) {
+            
+            Path2D combinedShape = new Path2D.Double();
+            List<Point2D> groupEndpoints = new ArrayList<>(); // Tracks all endpoints in this cluster
+
+            // 3. Take the first available line to seed the new shape
+            Path2D seedLine = remainingLines.remove(0);
+            combinedShape.append(seedLine, false);
+            
+            Point2D[] seedPts = PathGeometryUtils.getEndpoints(seedLine);
+            if (seedPts[0] != null) groupEndpoints.add(seedPts[0]);
+            if (seedPts[1] != null) groupEndpoints.add(seedPts[1]);
+
+            boolean foundNewConnection = true;
+
+            // 4. Keep searching the remaining lines until no more connections are found for this cluster
+            while (foundNewConnection) {
+                foundNewConnection = false;
+
+                // Loop backwards so we can safely remove items from the list while iterating
+                for (int i = remainingLines.size() - 1; i >= 0; i--) {
+                    Path2D candidate = remainingLines.get(i);
+                    Point2D[] candidatePts = PathGeometryUtils.getEndpoints(candidate);
+
+                    // If the candidate touches ANY point in our current cluster
+                    if (touchesGroup(candidatePts, groupEndpoints)) {
+                        
+                        // Add it to our combined shape
+                        combinedShape.append(candidate, false); 
+                        
+                        // Add its endpoints to our cluster's known endpoints
+                        if (candidatePts[0] != null) groupEndpoints.add(candidatePts[0]);
+                        if (candidatePts[1] != null) groupEndpoints.add(candidatePts[1]);
+
+                        // Remove it from the remaining pool
+                        remainingLines.remove(i);
+                        foundNewConnection = true;
+                    }
+                }
+            }
+
+            // 5. The cluster is finished (no more lines connect to it). Add it to our final list.
+            resultShapes.add(combinedShape);
+        }
+
+        return resultShapes;
+    }
+
+    // Helper method to check if a candidate line touches any point in the current cluster
+    private static boolean touchesGroup(Point2D[] candidatePts, List<Point2D> groupEndpoints) {
+        for (Point2D groupPt : groupEndpoints) {
+            // Check if either the start or end of the candidate touches this group point
+            if (PathGeometryUtils.pointsTouch(candidatePts[0], groupPt) || 
+                PathGeometryUtils.pointsTouch(candidatePts[1], groupPt)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int countSegment(final Path2D aVectorPath)

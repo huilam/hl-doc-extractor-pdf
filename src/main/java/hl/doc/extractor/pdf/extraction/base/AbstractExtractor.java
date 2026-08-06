@@ -201,7 +201,7 @@ abstract public class AbstractExtractor
 	    	////
     		if(this.is_extract_vector)
     		{
-    			List<ContentItem> listVectorTemp = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1);
+    			List<ContentItem> listVectorTemp = ExtractionUtil.extractVectorContent(pdf_doc, iPageNo-1, true);
 	    		
 	    		for(ContentItem it : listVectorTemp)
 	    		{

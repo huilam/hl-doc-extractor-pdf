@@ -222,8 +222,8 @@ public class ConsoleApp {
 				        pdfExtract.setExtractText(true);
 				        pdfExtract.setExtractImage(true);
 				        
-				        //pdfExtract.setDetectDocLayout(true);
-				        //pdfExtract.setExtractVector(true);
+				        pdfExtract.setDetectDocLayout(false);
+				        pdfExtract.setExtractVector(false);
 				        
 				        //Group text by paragraph
 				        pdfExtract.setIsGroupTextVertically(false);
