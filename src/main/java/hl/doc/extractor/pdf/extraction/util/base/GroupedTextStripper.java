@@ -126,23 +126,24 @@ public class GroupedTextStripper extends PDFTextStripper {
 
         TextPosition last = currentLine.get(currentLine.size() - 1);
 
-        // --- FIX 1: Baseline-based grouping to handle superscripts/subscripts ---
-        float baselineLast = last.getTextMatrix().getTranslateY();
-        float baselineCurrent = text.getTextMatrix().getTranslateY();
+	     // --- FIX 1: Baseline-based grouping to handle superscripts/subscripts ---
+	     // Use getYDirAdj() instead of getTextMatrix().getTranslateY() to automatically account for page rotation
+	     float baselineLast = last.getYDirAdj();
+	     float baselineCurrent = text.getYDirAdj();
 
-        float hLast = last.getHeightDir();
-        float hCurrent = text.getHeightDir();
+	     float hLast = last.getHeightDir();
+	     float hCurrent = text.getHeightDir();
 
-        // relative tolerance based on the larger font height
-        float tolerance = Math.max(hLast, hCurrent) * 0.8f;
+	     // relative tolerance based on the larger font height
+	     float tolerance = Math.max(hLast, hCurrent) * 0.8f;
 
-        if (Math.abs(baselineLast - baselineCurrent) < tolerance) {
-            currentLine.add(text);
-        } else {
-            addBoundingBox(getCurrentPage(), currentLine);
-            currentLine.clear();
-            currentLine.add(text);
-        }
+	     if (Math.abs(baselineLast - baselineCurrent) < tolerance) {
+	         currentLine.add(text);
+	     } else {
+	         addBoundingBox(getCurrentPage(), currentLine);
+	         currentLine.clear();
+	         currentLine.add(text);
+	     }
         super.processTextPosition(text);
     }
     
