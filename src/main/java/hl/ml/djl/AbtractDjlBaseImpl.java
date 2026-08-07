@@ -16,24 +16,23 @@ public abstract class AbtractDjlBaseImpl<I, O> {
 	protected Predictor<I, O> predictor 				= null;
 	protected ZooModel<I, O> model 						= null;
 	//
-	protected DjlModelConfig djl_model_config 	= null;
-	protected boolean model_init_ok 			= false;
-
+	protected DjlModelConfig djl_model_config 			= null;
+	protected boolean model_init_ok 					= false;
+	//
+	private Class<?> child_impl_class = null;
+	
 	@SuppressWarnings("rawtypes")
 	protected AbtractDjlBaseImpl(
 			Class aImplClass, 
-			DjlModelConfig aDjlModelConfig,
 			Criteria.Builder<I, O> aCriteriaBuilder)
 	{
-		if(aDjlModelConfig.getModel_uri()==null)
-		{
-			URL url = aImplClass.getProtectionDomain().getCodeSource().getLocation();
-			String sModelFolder = url.toString()+aImplClass.getPackageName().replace(".","/")+"/model/";
-			aDjlModelConfig.setModel_uri( sModelFolder + aDjlModelConfig.getModel_name());
-		}
-		//
-		this.djl_model_config = aDjlModelConfig;
+		this.child_impl_class = aImplClass;
 		this.criteria_builder = aCriteriaBuilder;
+	}
+	
+	public void setDjlModelConfig(DjlModelConfig aDjlModelConfig)
+	{
+		this.djl_model_config = aDjlModelConfig;
 	}
 	
 	public void loadModel() {
@@ -41,6 +40,12 @@ public abstract class AbtractDjlBaseImpl<I, O> {
 		DjlModelConfig djlModelConfig 	= this.djl_model_config;
 		Criteria.Builder<I, O> builder 	= this.criteria_builder;
 		
+		if(djlModelConfig.getModel_uri()==null)
+		{
+			URL url = child_impl_class.getProtectionDomain().getCodeSource().getLocation();
+			String sModelFolder = url.toString()+child_impl_class.getPackageName().replace(".","/")+"/model/";
+			djlModelConfig.setModel_uri( sModelFolder + djlModelConfig.getModel_name());
+		}
 		
 		String sModelPath = djlModelConfig.getModel_uri();
 		int iPos = sModelPath.indexOf(":");

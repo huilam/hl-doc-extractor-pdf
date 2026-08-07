@@ -36,7 +36,6 @@ import hl.doc.extractor.pdf.extraction.pojo.ContentItem.Type;
 
 public class VectorExtractUtil  {
 
-	
     public static List<ContentItem> extractVectorContent(PDDocument doc, int pageIndex, boolean isGroupVectors) throws IOException {
         
         // Silence verbose PDFBox logging

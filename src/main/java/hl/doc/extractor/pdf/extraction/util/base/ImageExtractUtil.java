@@ -24,6 +24,7 @@ import hl.doc.extractor.pdf.extraction.util.ContentUtil;
 
 public class ImageExtractUtil  {
 
+	public static Logger logger = Logger.getLogger(ImageExtractUtil.class.getName());
 
  	public static List<ContentItem> extractImageContent(PDDocument doc, int pageIndex, boolean isResizeImage) throws IOException {
  		return extractImageContent(doc, pageIndex, isResizeImage, 3);
@@ -115,20 +116,20 @@ public class ImageExtractUtil  {
 	            // Skip image if it's completely outside page bounds
 	            if(iW <= 0 || iH <= 0)
 	            {
-	            	System.err.println("Warning: Image skipped - completely out of page bounds at (" + iX + "," + iY + ")");
+	            	logger.warning("Image skipped - completely out of page bounds at (" + iX + "," + iY + ")");
 	            	return;
 	            }
 	            
 	            if(iH<iMinImageHeight)
 	            {
-	            	System.err.println("Warning: Image skipped - below minHeight of "+iMinImageHeight+" (" + iW + "x" + iH + ")");
+	            	logger.warning("Warning: Image skipped - below minHeight of "+iMinImageHeight+" (" + iW + "x" + iH + ")");
 	            	return;
 	            }
 	            
 	            Color colorSolid = ImgUtil.isSolidColorOnly(imgAdj);
 	            if(colorSolid!=null)
 	            {
-	            	System.err.println("Warning: Image skipped - solid color image detected ! (RGB:"+colorSolid.getRGB()+" - "+ iW + "x" + iH + ")");
+	            	logger.warning("Warning: Image skipped - solid color image detected ! (RGB:"+colorSolid.getRGB()+" - "+ iW + "x" + iH + ")");
 	            	return;
 	            }
 	            

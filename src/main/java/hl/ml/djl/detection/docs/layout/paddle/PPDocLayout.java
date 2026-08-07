@@ -31,16 +31,16 @@ public class PPDocLayout extends AbtractDjlBaseImpl <Image, DetectedObjects>{
 	
 	public PPDocLayout()
 	{
+		super(PPDocLayout.class, 
+			Criteria.builder().setTypes(Image.class, DetectedObjects.class));
+		
 		DjlModelConfig config = new DjlModelConfig();
 		//
 		config.setModel_name("pp-doclayoutv3");
 		config.setRuntime_engine(DjlConstants.RT_ENGINE_ONNX);
 		config.setTranslator_factory(new PPStructureLayoutTranslatorFactory());
 		
-		super(
-			PPDocLayout.class, 
-			config, 
-			Criteria.builder().setTypes(Image.class, DetectedObjects.class));
+		setDjlModelConfig(config);
 		
 		super.loadModel();
 	}
